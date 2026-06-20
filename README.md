@@ -1,270 +1,217 @@
-# Visualisasi Statistik
+# 📊 Visualisasi Statistik Jakarta Barat
 
-Project ini menggunakan **Laravel 10** sebagai backend utama. Dokumentasi ini berisi langkah-langkah setup project dari awal sampai bisa dijalankan di lokal.
+Project Laravel 10 untuk menampilkan data statistik Kota Administrasi Jakarta Barat dalam bentuk chart interaktif dan peta.
 
-## Kebutuhan Sistem
+---
 
-Sebelum menjalankan project, pastikan laptop sudah memiliki:
+## 🛠️ Teknologi yang Digunakan
 
-* PHP minimal versi 8.1
-* Composer
-* MySQL / MariaDB
-* Node.js dan NPM
-* Git
-* Web server lokal seperti Laragon, Herd, XAMPP, atau Laravel Artisan Serve
+- **Laravel 10** — Backend framework
+- **MySQL** — Database
+- **ApexCharts** — Library chart interaktif
+- **Leaflet.js** — Library peta interaktif
+- **Bootstrap 5** — CSS framework
+- **OpenStreetMap** — Tile map (gratis, tanpa API key)
 
-## Cara Setup Project
+---
 
-### 1. Clone Repository
+## 📁 Struktur Project
 
-```bash
-git clone https://github.com/badaso404/Visualisasi-statistik.git
+```
+visualisasi-statistik/
+├── app/
+│   ├── Models/                  # Model database
+│   │   ├── Kecamatan.php
+│   │   ├── DataGeografis.php
+│   │   ├── LuasKecamatan.php
+│   │   ├── DataIklim.php
+│   │   ├── DataKependudukan.php
+│   │   ├── PendudukKecamatan.php
+│   │   ├── PendudukKelurahan.php
+│   │   ├── DataPendidikan.php
+│   │   ├── PendidikanKecamatan.php
+│   │   ├── DataKesehatan.php
+│   │   ├── TenagaKesehatanKecamatan.php
+│   │   └── FasilitasKesehatanKecamatan.php
+│   └── Http/
+│       └── Controllers/
+│           └── StatistikController.php  # Controller utama
+├── database/
+│   ├── migrations/              # Struktur tabel
+│   └── seeders/                 # Data awal
+│       ├── GeografisSeeder.php
+│       ├── IklimSeeder.php
+│       ├── KependudukanSeeder.php
+│       ├── PendidikanSeeder.php
+│       └── KesehatanSeeder.php
+├── public/
+│   └── assets/
+│       └── geojson/
+│           └── kecamatan.geojson    # Batas wilayah kecamatan
+└── resources/
+    └── views/
+        ├── layouts/
+        │   └── app.blade.php        # Layout utama
+        └── statistik/               # Halaman per kategori
+            ├── geografis.blade.php
+            ├── iklim.blade.php
+            ├── kependudukan.blade.php
+            ├── pendidikan.blade.php
+            └── kesehatan.blade.php
 ```
 
-Masuk ke folder project:
+---
+
+## ⚙️ Cara Setup Project (Dari Awal)
+
+### 1. Clone atau Copy Project
 
 ```bash
-cd Visualisasi-statistik
+cd ~/Herd
+# copy folder project ke sini
 ```
 
-### 2. Install Dependency Laravel
-
-Jalankan perintah berikut:
+### 2. Install Dependencies
 
 ```bash
+cd visualisasi-statistik
 composer install
 ```
 
-Jika terjadi error dependency, pastikan versi PHP sudah sesuai dengan kebutuhan Laravel 10.
-
-### 3. Copy File Environment
-
-Copy file `.env.example` menjadi `.env`:
+### 3. Buat File .env
 
 ```bash
 cp .env.example .env
-```
-
-Untuk Windows CMD:
-
-```bash
-copy .env.example .env
-```
-
-### 4. Generate APP_KEY
-
-Jalankan perintah:
-
-```bash
 php artisan key:generate
 ```
 
-Perintah ini akan membuat `APP_KEY` otomatis di file `.env`.
+### 4. Konfigurasi Database
 
-### 5. Setting Database
-
-Buka file `.env`, lalu sesuaikan konfigurasi database:
+Edit file `.env`:
 
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=nama_database
+DB_DATABASE=visualisasi_statistik
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Sesuaikan bagian berikut:
+> Buat database `visualisasi_statistik` terlebih dahulu di DBeaver atau DBngin.
 
-* `DB_DATABASE` dengan nama database lokal
-* `DB_USERNAME` dengan username database
-* `DB_PASSWORD` dengan password database jika ada
-
-Contoh jika menggunakan Laragon atau Herd biasanya:
-
-```env
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-### 6. Buat Database
-
-Buat database secara manual melalui DBeaver, phpMyAdmin, TablePlus, atau terminal MySQL.
-
-Contoh nama database:
-
-```sql
-CREATE DATABASE visualisasi_statistik;
-```
-
-Pastikan nama database sama dengan yang ada di file `.env`.
-
-### 7. Jalankan Migration
-
-Jika project menggunakan migration Laravel, jalankan:
+### 5. Jalankan Migration
 
 ```bash
 php artisan migrate
 ```
 
-Jika project sudah menggunakan database hasil restore/dump, migration tidak wajib dijalankan selama struktur tabel sudah tersedia.
-
-Untuk mengecek status migration:
+### 6. Jalankan Seeder (Isi Data Awal)
 
 ```bash
-php artisan migrate:status
+php artisan db:seed --class=GeografisSeeder
+php artisan db:seed --class=IklimSeeder
+php artisan db:seed --class=KependudukanSeeder
+php artisan db:seed --class=PendidikanSeeder
+php artisan db:seed --class=KesehatanSeeder
 ```
 
-### 8. Install Dependency Frontend
+### 7. Akses di Browser
 
-Jalankan:
+Kalau pakai Laravel Herd, langsung akses:
+```
+http://visualisasi-statistik.test
+```
 
+---
+
+## 🗺️ Halaman yang Tersedia
+
+| URL | Halaman | Isi |
+|-----|---------|-----|
+| `/statistik/geografis` | Geografis | Luas wilayah kecamatan, peta Jakarta Barat |
+| `/statistik/iklim` | Iklim | Suhu, curah hujan, kelembaban per bulan |
+| `/statistik/kependudukan` | Kependudukan | Populasi per kecamatan & kelurahan, peta sebaran |
+| `/statistik/pendidikan` | Pendidikan | Jumlah murid, guru, APM & APK per kecamatan |
+| `/statistik/kesehatan` | Kesehatan | Tenaga & fasilitas kesehatan per kecamatan |
+
+---
+
+## 🗄️ Struktur Database
+
+### Tabel Master
+- `kecamatan` — Daftar 8 kecamatan Jakarta Barat
+
+### Tabel Geografis
+- `data_geografis` — Luas kota & ketinggian per tahun
+- `luas_kecamatan` — Luas & persentase per kecamatan per tahun
+
+### Tabel Iklim
+- `data_iklim` — Data iklim per bulan (suhu, hujan, angin, dll)
+
+### Tabel Kependudukan
+- `data_kependudukan` — Summary jumlah penduduk per tahun
+- `penduduk_kecamatan` — Jumlah penduduk per kecamatan
+- `penduduk_kelurahan` — Jumlah penduduk per kelurahan + koordinat peta
+
+### Tabel Pendidikan
+- `data_pendidikan` — APM & APK per tahun
+- `pendidikan_kecamatan` — Jumlah murid, guru, sekolah per kecamatan
+
+### Tabel Kesehatan
+- `data_kesehatan` — Summary fasilitas kesehatan per tahun
+- `tenaga_kesehatan_kecamatan` — Jumlah tenaga kesehatan per kecamatan
+- `fasilitas_kesehatan_kecamatan` — Jumlah fasilitas kesehatan per kecamatan
+
+---
+
+## 📋 Pembagian Tugas Magang
+
+Setiap halaman bisa dikerjakan secara terpisah. Berikut pembagian yang disarankan:
+
+| Tugas | File yang Diubah | Keterangan |
+|-------|-----------------|------------|
+| Halaman Geografis | `views/statistik/geografis.blade.php` | Chart luas wilayah + peta |
+| Halaman Iklim | `views/statistik/iklim.blade.php` | 6 chart data iklim per bulan |
+| Halaman Kependudukan | `views/statistik/kependudukan.blade.php` | Chart + peta sebaran penduduk |
+| Halaman Pendidikan | `views/statistik/pendidikan.blade.php` | Chart murid, guru, sekolah |
+| Halaman Kesehatan | `views/statistik/kesehatan.blade.php` | Chart tenaga & fasilitas kesehatan |
+
+> **Catatan:** Jangan ubah file Controller dan Model tanpa koordinasi dengan tech lead.
+
+---
+
+## 🔧 Cara Update Data
+
+### Tambah data baru via Seeder
+Edit file seeder yang sesuai, lalu jalankan ulang:
 ```bash
-npm install
+php artisan db:seed --class=NamaSeeder
 ```
 
-Lalu jalankan salah satu perintah berikut:
-
-Untuk development:
-
-```bash
-npm run dev
+### Tambah data langsung via SQL (DBeaver)
+```sql
+INSERT INTO nama_tabel (...) VALUES (...);
 ```
 
-Untuk build production:
-
-```bash
-npm run build
+### Hapus data via SQL
+```sql
+DELETE FROM nama_tabel WHERE id = 1;
 ```
 
-### 9. Buat Storage Link
+---
 
-Jika project menggunakan upload file atau akses file dari folder storage, jalankan:
+## 📚 Referensi Library
 
-```bash
-php artisan storage:link
-```
+- [ApexCharts Docs](https://apexcharts.com/docs/)
+- [Leaflet.js Docs](https://leafletjs.com/reference.html)
+- [Laravel 10 Docs](https://laravel.com/docs/10.x)
+- [Bootstrap 5 Docs](https://getbootstrap.com/docs/5.3/)
 
-Jika muncul pesan link sudah ada, berarti tidak perlu dibuat ulang.
+---
 
-### 10. Jalankan Project
+## 📞 Kontak
 
-Jalankan project Laravel:
+Kalau ada pertanyaan WA gua langsung aja ya guys.
 
-```bash
-php artisan serve
-```
-
-Project akan berjalan di:
-
-```text
-http://127.0.0.1:8000
-```
-
-## Perintah Cache Laravel
-
-Jika ada perubahan config, route, atau view tetapi belum terbaca, jalankan:
-
-```bash
-php artisan optimize:clear
-```
-
-Atau jalankan satu per satu:
-
-```bash
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-```
-
-## Struktur File Penting
-
-Beberapa file dan folder penting dalam project:
-
-```text
-app/                 Berisi logic utama aplikasi Laravel
-routes/web.php       Berisi route website
-resources/views/     Berisi file Blade template
-public/              Berisi asset publik seperti CSS, JS, gambar
-database/migrations/ Berisi file migration database
-.env                 Konfigurasi lokal aplikasi
-```
-
-## Catatan Penting
-
-File berikut tidak perlu di-push ke GitHub:
-
-```text
-.env
-vendor/
-node_modules/
-storage/logs/
-```
-
-Jika ada file besar seperti PDF, video, atau asset berukuran besar, sebaiknya tidak dimasukkan ke repository GitHub. File besar bisa disimpan di storage server, Google Drive, atau tempat penyimpanan lain.
-
-## Troubleshooting
-
-### Error `.env` belum ada
-
-Jika muncul error karena file `.env` tidak ditemukan, jalankan:
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-### Error database tidak ditemukan
-
-Pastikan database sudah dibuat dan konfigurasi `.env` sudah benar.
-
-Cek kembali bagian ini:
-
-```env
-DB_DATABASE=
-DB_USERNAME=
-DB_PASSWORD=
-```
-
-### Error `APP_KEY` kosong
-
-Jalankan:
-
-```bash
-php artisan key:generate
-```
-
-### Error storage tidak tampil
-
-Jalankan:
-
-```bash
-php artisan storage:link
-```
-
-### Error cache atau config lama masih terbaca
-
-Jalankan:
-
-```bash
-php artisan optimize:clear
-```
-
-## Alur Setup Singkat
-
-Jika ingin setup cepat, jalankan perintah berikut:
-
-```bash
-git clone https://github.com/badaso404/Visualisasi-statistik.git
-cd Visualisasi-statistik
-composer install
-cp .env.example .env
-php artisan key:generate
-npm install
-npm run dev
-php artisan storage:link
-php artisan serve
-```
-
-Setelah itu, sesuaikan konfigurasi database di file `.env`, lalu jalankan migration atau restore database sesuai kebutuhan project.
+> Terkait data ini hanya dummy
