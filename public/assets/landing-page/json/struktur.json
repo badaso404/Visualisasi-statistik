@@ -1,0 +1,203 @@
+[
+    {
+        "head": "Walikota",
+        "id": "1",
+        "contents": "",
+        "children": [
+            {
+                "head": "Wakil Walikota",
+                "id": "11",
+                "contents": "",
+                "children": [
+                    {
+                        "head": "Sekretariat Kota",
+                        "id": "111",
+                        "contents": "",
+                        "children": [
+                            {
+                                "head": "Asisten Pemerintahan",
+                                "id": "1111",
+                                "contents": "",
+                                "children": [
+                                    {
+                                        "head": "Bagian Pemerintahan",
+                                        "id": "11111",
+                                        "contents": "",
+                                        "children": [
+                                            {
+                                                "head": "Subbagian Administrasi Pemerintahan",
+                                                "id": "111111",
+                                                "contents": ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "head": "Bagian Hukum",
+                                        "id": "11112",
+                                        "contents": ""
+                                    },
+                                    {
+                                        "head": "Bagian Kepegawaian, Ketatalaksanaan, dan Pelayanan Publik",
+                                        "id": "11113",
+                                        "contents": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "head": "Asisten Perekonomian dan Pembangunan",
+                                "id": "1112",
+                                "contents": "",
+                                "children": [
+                                    {
+                                        "head": "Bagian Perekonomian",
+                                        "id": "11121",
+                                        "contents": ""
+                                    },
+                                    {
+                                        "head": "Bagian Pembangunan dan Lingkungan Hidup",
+                                        "id": "11122",
+                                        "contents": ""
+                                    }
+                                ]
+                            },
+                            {
+                                "head": "Asisten Administrasi dan Kesejahteraan Rakyat",
+                                "id": "1113",
+                                "contents": "",
+                                "children": [
+                                    {
+                                        "head": "Bagian Umum dan Protokol",
+                                        "id": "11131",
+                                        "contents": "",
+                                        "children": [
+                                            {
+                                                "head": "Subbagian Tata Usaha",
+                                                "id": "111311",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Subbagian Rumah Tangga",
+                                                "id": "111312",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Subbagian Protokol",
+                                                "id": "111313",
+                                                "contents": ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "head": "Bagian Program, Pelaporan, dan Keuangan",
+                                        "id": "11132",
+                                        "contents": "",
+                                        "children": [
+                                            {
+                                                "head": "Subbagian Tata Usaha Keuangan",
+                                                "id": "111321",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Subbagian Perbendaharaan",
+                                                "id": "111322",
+                                                "contents": ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "head": "Bagian Kesejahteraan Rakyat",
+                                        "id": "11133",
+                                        "contents": ""
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "head": "Camat",
+                        "id": "112",
+                        "contents": "",
+                        "children": [
+                            {
+                                "head": "Wakil Camat",
+                                "id": "1121",
+                                "contents": "",
+                                "children": [
+                                    {
+                                        "head": "Sekretariat Kecamatan",
+                                        "id": "11211",
+                                        "contents": "",
+                                        "children": [
+                                            {
+                                                "head": "Subbagian Umum dan Kepegawaian",
+                                                "id": "112111",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Subbagian Program dan Anggaran",
+                                                "id": "112112",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Subbagian Keuangan",
+                                                "id": "112113",
+                                                "contents": ""
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "head": "Seksi Pemerintahan",
+                                        "id": "11212",
+                                        "contents": ""
+                                    },
+                                    {
+                                        "head": "Seksi Ekonomi dan Pembangunan",
+                                        "id": "11213",
+                                        "contents": ""
+                                    },
+                                    {
+                                        "head": "Seksi Kesejahteraan Rakyat",
+                                        "id": "11214",
+                                        "contents": ""
+                                    },
+                                    {
+                                        "head": "Lurah",
+                                        "id": "11215",
+                                        "contents": "",
+                                        "children": [
+                                            {
+                                                "head": "Sekretariat Kelurahan",
+                                                "id": "112151",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Seksi Pemerintahan",
+                                                "id": "112152",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Seksi Ekonomi dan Pembangunan",
+                                                "id": "112153",
+                                                "contents": ""
+                                            },
+                                            {
+                                                "head": "Seksi Kesejahteraan Rakyat",
+                                                "id": "112154",
+                                                "contents": ""
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "head": "Jabatan Fungsional dan Jabatan Pelaksana",
+                        "id": "113",
+                        "contents": ""
+                    }
+                ]
+            }
+        ]
+    }
+]

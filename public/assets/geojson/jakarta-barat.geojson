@@ -1,0 +1,101 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "nama": "Kalideres", "kode": "kalideres" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.6950, -6.0900], [106.7200, -6.0900],
+          [106.7200, -6.1400], [106.6950, -6.1400],
+          [106.6950, -6.0900]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Cengkareng", "kode": "cengkareng" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.7200, -6.0900], [106.7600, -6.0900],
+          [106.7600, -6.1600], [106.7200, -6.1600],
+          [106.7200, -6.0900]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Kembangan", "kode": "kembangan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.7200, -6.1600], [106.7600, -6.1600],
+          [106.7600, -6.2000], [106.7200, -6.2000],
+          [106.7200, -6.1600]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Kebon Jeruk", "kode": "kebon-jeruk" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.7600, -6.1600], [106.8000, -6.1600],
+          [106.8000, -6.2000], [106.7600, -6.2000],
+          [106.7600, -6.1600]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Grogol Petamburan", "kode": "grogol-petamburan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.7800, -6.1400], [106.8100, -6.1400],
+          [106.8100, -6.1700], [106.7800, -6.1700],
+          [106.7800, -6.1400]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Taman Sari", "kode": "taman-sari" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.8100, -6.1400], [106.8400, -6.1400],
+          [106.8400, -6.1700], [106.8100, -6.1700],
+          [106.8100, -6.1400]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Palmerah", "kode": "palmerah" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.7800, -6.1700], [106.8100, -6.1700],
+          [106.8100, -6.2000], [106.7800, -6.2000],
+          [106.7800, -6.1700]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama": "Tambora", "kode": "tambora" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.8100, -6.1700], [106.8400, -6.1700],
+          [106.8400, -6.2000], [106.8100, -6.2000],
+          [106.8100, -6.1700]
+        ]]
+      }
+    }
+  ]
+}
