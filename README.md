@@ -212,6 +212,6 @@ DELETE FROM nama_tabel WHERE id = 1;
 
 ## 📞 Kontak
 
-Kalau ada pertanyaan WA gua langsung aja ya guys.
+Kalau ada pertanyaan WA gua langsung aja ya guys atau tanya langsung di microsoft teams aja ya.
 
 > Terkait data ini hanya dummy
