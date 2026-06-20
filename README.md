@@ -68,7 +68,12 @@ visualisasi-statistik/
 
 ```bash
 cd ~/Herd
-# copy folder project ke sini
+# copy folder project ke sini kalo pake herd
+```
+
+```bash
+cd ~/laragon/www
+# copy folder project ke sini kalo pake laragon
 ```
 
 ### 2. Install Dependencies
@@ -82,6 +87,7 @@ composer install
 
 ```bash
 cp .env.example .env
+
 php artisan key:generate
 ```
 
@@ -93,7 +99,7 @@ Edit file `.env`:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=visualisasi_statistik
+DB_DATABASE=visualisasi_statistik #contoh aja
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -186,7 +192,11 @@ Setiap halaman bisa dikerjakan secara terpisah. Berikut pembagian yang disaranka
 ### Tambah data baru via Seeder
 Edit file seeder yang sesuai, lalu jalankan ulang:
 ```bash
-php artisan db:seed --class=NamaSeeder
+php artisan db:seed --class=GeografisSeeder
+php artisan db:seed --class=IklimSeeder
+php artisan db:seed --class=KependudukanSeeder
+php artisan db:seed --class=PendidikanSeeder
+php artisan db:seed --class=KesehatanSeeder
 ```
 
 ### Tambah data langsung via SQL (DBeaver)
@@ -201,6 +211,120 @@ DELETE FROM nama_tabel WHERE id = 1;
 
 ---
 
+## 🔀 Cara Kerja dengan Git
+
+> Wajib ikuti alur ini setiap kali mau mulai ngerjain yakkk, Jangan langsung push ke branch `main`.
+
+### Alur Kerja Harian
+
+```
+Pull dulu → Kerjakan tugas → Add → Commit → Push
+```
+
+---
+
+### 📥 Sebelum Mulai Kerja — Pull Dulu
+
+Selalu ambil update terbaru dari repository sebelum mulai:
+
+```bash
+git pull origin main
+```
+
+> Ini penting agar kode kamu tidak bentrok dengan pekerjaan orang lain.
+
+---
+
+### 🌿 Buat Branch Sendiri
+
+Setiap orang **wajib** buat branch sendiri, jangan langsung kerja di `main`:
+
+```bash
+# Format: feature/nama-halaman-nama-kamu
+git checkout -b feature/geografis-andi
+```
+
+Contoh nama branch per tugas:
+- `feature/geografis-Angie`
+- `feature/iklim-Faiz`
+- `feature/kependudukan-Kay`
+- `feature/pendidikan-Zaidan`
+- `feature/kesehatan-Krito`
+
+---
+
+### 📤 Setelah Selesai Kerja — Push
+
+**Langkah 1** — Cek file apa saja yang berubah:
+```bash
+git status
+```
+
+**Langkah 2** — Tambahkan file yang sudah dikerjakan:
+```bash
+# Tambah semua file yang berubah
+git add .
+
+# Atau tambah file tertentu saja
+git add resources/views/statistik/geografis.blade.php
+```
+
+**Langkah 3** — Commit dengan pesan yang jelas:
+```bash
+# Format pesan: [halaman] deskripsi singkat apa yang dikerjakan
+git commit -m "feat: tambah chart luas wilayah kecamatan di halaman geografis"
+```
+
+Contoh pesan commit yang baik:
+- `feat: tambah chart bar hari hujan di halaman iklim`
+- `fix: perbaiki warna chart kecamatan tidak sinkron dengan map`
+- `style: rapikan tampilan card summary kependudukan`
+
+**Langkah 4** — Push ke branch kamu:
+```bash
+git push origin feature/geografis-angie
+```
+
+---
+
+### 🔁 Minta Review ke gua
+
+Setelah push, Kabarin gua biar gua review dan di-merge ke `main`.
+
+Jangan merge sendiri ke `main` tanpa izin gua.
+
+---
+
+### ⚠️ Kalau Ada Konflik (Conflict)
+
+Kalau muncul pesan conflict saat pull, jangan panik.Cari tahu sendiri kalo ga tanya gua untuk bantu resolve.
+
+```bash
+# Lihat file mana yang conflict
+git status
+
+# Setelah conflict diselesaikan, lanjut dengan
+git add .
+git commit -m "fix: resolve conflict"
+```
+
+---
+
+### 📋 Rangkuman Perintah Git
+
+| Perintah | Fungsi |
+|----------|--------|
+| `git pull origin main` | Ambil update terbaru |
+| `git checkout -b nama-branch` | Buat branch baru |
+| `git checkout nama-branch` | Pindah ke branch yang sudah ada |
+| `git status` | Cek file yang berubah |
+| `git add .` | Tambah semua perubahan |
+| `git commit -m "pesan"` | Simpan perubahan dengan pesan |
+| `git push origin nama-branch` | Upload ke repository |
+| `git log --oneline` | Lihat riwayat commit |
+
+---
+
 ## 📚 Referensi Library
 
 - [ApexCharts Docs](https://apexcharts.com/docs/)
@@ -212,6 +336,6 @@ DELETE FROM nama_tabel WHERE id = 1;
 
 ## 📞 Kontak
 
-Kalau ada pertanyaan WA gua langsung aja ya guys atau tanya langsung di microsoft teams aja ya.
+Kalau ada pertanyaan atau kendala, WA gua aja ya atau kita ngobrol langsung di microsoft teams.
 
-> Terkait data ini hanya dummy
+> Data yang digunakan hanya dummy
