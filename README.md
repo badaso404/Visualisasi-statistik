@@ -1,66 +1,341 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📊 Visualisasi Statistik Jakarta Barat
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Project Laravel 10 untuk menampilkan data statistik Kota Administrasi Jakarta Barat dalam bentuk chart interaktif dan peta.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🛠️ Teknologi yang Digunakan
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Laravel 10** — Backend framework
+- **MySQL** — Database
+- **ApexCharts** — Library chart interaktif
+- **Leaflet.js** — Library peta interaktif
+- **Bootstrap 5** — CSS framework
+- **OpenStreetMap** — Tile map (gratis, tanpa API key)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📁 Struktur Project
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+visualisasi-statistik/
+├── app/
+│   ├── Models/                  # Model database
+│   │   ├── Kecamatan.php
+│   │   ├── DataGeografis.php
+│   │   ├── LuasKecamatan.php
+│   │   ├── DataIklim.php
+│   │   ├── DataKependudukan.php
+│   │   ├── PendudukKecamatan.php
+│   │   ├── PendudukKelurahan.php
+│   │   ├── DataPendidikan.php
+│   │   ├── PendidikanKecamatan.php
+│   │   ├── DataKesehatan.php
+│   │   ├── TenagaKesehatanKecamatan.php
+│   │   └── FasilitasKesehatanKecamatan.php
+│   └── Http/
+│       └── Controllers/
+│           └── StatistikController.php  # Controller utama
+├── database/
+│   ├── migrations/              # Struktur tabel
+│   └── seeders/                 # Data awal
+│       ├── GeografisSeeder.php
+│       ├── IklimSeeder.php
+│       ├── KependudukanSeeder.php
+│       ├── PendidikanSeeder.php
+│       └── KesehatanSeeder.php
+├── public/
+│   └── assets/
+│       └── geojson/
+│           └── kecamatan.geojson    # Batas wilayah kecamatan
+└── resources/
+    └── views/
+        ├── layouts/
+        │   └── app.blade.php        # Layout utama
+        └── statistik/               # Halaman per kategori
+            ├── geografis.blade.php
+            ├── iklim.blade.php
+            ├── kependudukan.blade.php
+            ├── pendidikan.blade.php
+            └── kesehatan.blade.php
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ⚙️ Cara Setup Project (Dari Awal)
 
-## Laravel Sponsors
+### 1. Clone atau Copy Project
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cd ~/Herd
+# copy folder project ke sini kalo pake herd
+```
 
-### Premium Partners
+```bash
+cd ~/laragon/www
+# copy folder project ke sini kalo pake laragon
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 2. Install Dependencies
 
-## Contributing
+```bash
+cd visualisasi-statistik
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Buat File .env
 
-## Code of Conduct
+```bash
+cp .env.example .env
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+php artisan key:generate
+```
 
-## Security Vulnerabilities
+### 4. Konfigurasi Database
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Edit file `.env`:
 
-## License
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=visualisasi_statistik #contoh aja
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> Buat database `visualisasi_statistik` terlebih dahulu di DBeaver atau DBngin.
+
+### 5. Jalankan Migration
+
+```bash
+php artisan migrate
+```
+
+### 6. Jalankan Seeder (Isi Data Awal)
+
+```bash
+php artisan db:seed --class=GeografisSeeder
+php artisan db:seed --class=IklimSeeder
+php artisan db:seed --class=KependudukanSeeder
+php artisan db:seed --class=PendidikanSeeder
+php artisan db:seed --class=KesehatanSeeder
+```
+
+### 7. Akses di Browser
+
+Kalau pakai Laravel Herd, langsung akses:
+```
+http://visualisasi-statistik.test
+```
+
+---
+
+## 🗺️ Halaman yang Tersedia
+
+| URL | Halaman | Isi |
+|-----|---------|-----|
+| `/statistik/geografis` | Geografis | Luas wilayah kecamatan, peta Jakarta Barat |
+| `/statistik/iklim` | Iklim | Suhu, curah hujan, kelembaban per bulan |
+| `/statistik/kependudukan` | Kependudukan | Populasi per kecamatan & kelurahan, peta sebaran |
+| `/statistik/pendidikan` | Pendidikan | Jumlah murid, guru, APM & APK per kecamatan |
+| `/statistik/kesehatan` | Kesehatan | Tenaga & fasilitas kesehatan per kecamatan |
+
+---
+
+## 🗄️ Struktur Database
+
+### Tabel Master
+- `kecamatan` — Daftar 8 kecamatan Jakarta Barat
+
+### Tabel Geografis
+- `data_geografis` — Luas kota & ketinggian per tahun
+- `luas_kecamatan` — Luas & persentase per kecamatan per tahun
+
+### Tabel Iklim
+- `data_iklim` — Data iklim per bulan (suhu, hujan, angin, dll)
+
+### Tabel Kependudukan
+- `data_kependudukan` — Summary jumlah penduduk per tahun
+- `penduduk_kecamatan` — Jumlah penduduk per kecamatan
+- `penduduk_kelurahan` — Jumlah penduduk per kelurahan + koordinat peta
+
+### Tabel Pendidikan
+- `data_pendidikan` — APM & APK per tahun
+- `pendidikan_kecamatan` — Jumlah murid, guru, sekolah per kecamatan
+
+### Tabel Kesehatan
+- `data_kesehatan` — Summary fasilitas kesehatan per tahun
+- `tenaga_kesehatan_kecamatan` — Jumlah tenaga kesehatan per kecamatan
+- `fasilitas_kesehatan_kecamatan` — Jumlah fasilitas kesehatan per kecamatan
+
+---
+
+## 📋 Pembagian Tugas Magang
+
+Setiap halaman bisa dikerjakan secara terpisah. Berikut pembagian yang disarankan:
+
+| Tugas | File yang Diubah | Keterangan |
+|-------|-----------------|------------|
+| Halaman Geografis | `views/statistik/geografis.blade.php` | Chart luas wilayah + peta |
+| Halaman Iklim | `views/statistik/iklim.blade.php` | 6 chart data iklim per bulan |
+| Halaman Kependudukan | `views/statistik/kependudukan.blade.php` | Chart + peta sebaran penduduk |
+| Halaman Pendidikan | `views/statistik/pendidikan.blade.php` | Chart murid, guru, sekolah |
+| Halaman Kesehatan | `views/statistik/kesehatan.blade.php` | Chart tenaga & fasilitas kesehatan |
+
+> **Catatan:** Jangan ubah file Controller dan Model tanpa koordinasi dengan tech lead.
+
+---
+
+## 🔧 Cara Update Data
+
+### Tambah data baru via Seeder
+Edit file seeder yang sesuai, lalu jalankan ulang:
+```bash
+php artisan db:seed --class=GeografisSeeder
+php artisan db:seed --class=IklimSeeder
+php artisan db:seed --class=KependudukanSeeder
+php artisan db:seed --class=PendidikanSeeder
+php artisan db:seed --class=KesehatanSeeder
+```
+
+### Tambah data langsung via SQL (DBeaver)
+```sql
+INSERT INTO nama_tabel (...) VALUES (...);
+```
+
+### Hapus data via SQL
+```sql
+DELETE FROM nama_tabel WHERE id = 1;
+```
+
+---
+
+## 🔀 Cara Kerja dengan Git
+
+> Wajib ikuti alur ini setiap kali mau mulai ngerjain yakkk, Jangan langsung push ke branch `main`.
+
+### Alur Kerja Harian
+
+```
+Pull dulu → Kerjakan tugas → Add → Commit → Push
+```
+
+---
+
+### 📥 Sebelum Mulai Kerja — Pull Dulu
+
+Selalu ambil update terbaru dari repository sebelum mulai:
+
+```bash
+git pull origin main
+```
+
+> Ini penting agar kode kamu tidak bentrok dengan pekerjaan orang lain.
+
+---
+
+### 🌿 Buat Branch Sendiri
+
+Setiap orang **wajib** buat branch sendiri, jangan langsung kerja di `main`:
+
+```bash
+# Format: feature/nama-halaman-nama-kamu
+git checkout -b feature/geografis-andi
+```
+
+Contoh nama branch per tugas:
+- `feature/geografis-Angie`
+- `feature/iklim-Faiz`
+- `feature/kependudukan-Kay`
+- `feature/pendidikan-Zaidan`
+- `feature/kesehatan-Krito`
+
+---
+
+### 📤 Setelah Selesai Kerja — Push
+
+**Langkah 1** — Cek file apa saja yang berubah:
+```bash
+git status
+```
+
+**Langkah 2** — Tambahkan file yang sudah dikerjakan:
+```bash
+# Tambah semua file yang berubah
+git add .
+
+# Atau tambah file tertentu saja
+git add resources/views/statistik/geografis.blade.php
+```
+
+**Langkah 3** — Commit dengan pesan yang jelas:
+```bash
+# Format pesan: [halaman] deskripsi singkat apa yang dikerjakan
+git commit -m "feat: tambah chart luas wilayah kecamatan di halaman geografis"
+```
+
+Contoh pesan commit yang baik:
+- `feat: tambah chart bar hari hujan di halaman iklim`
+- `fix: perbaiki warna chart kecamatan tidak sinkron dengan map`
+- `style: rapikan tampilan card summary kependudukan`
+
+**Langkah 4** — Push ke branch kamu:
+```bash
+git push origin feature/geografis-angie
+```
+
+---
+
+### 🔁 Minta Review ke gua
+
+Setelah push, Kabarin gua biar gua review dan di-merge ke `main`.
+
+Jangan merge sendiri ke `main` tanpa izin gua.
+
+---
+
+### ⚠️ Kalau Ada Konflik (Conflict)
+
+Kalau muncul pesan conflict saat pull, jangan panik.Cari tahu sendiri kalo ga tanya gua untuk bantu resolve.
+
+```bash
+# Lihat file mana yang conflict
+git status
+
+# Setelah conflict diselesaikan, lanjut dengan
+git add .
+git commit -m "fix: resolve conflict"
+```
+
+---
+
+### 📋 Rangkuman Perintah Git
+
+| Perintah | Fungsi |
+|----------|--------|
+| `git pull origin main` | Ambil update terbaru |
+| `git checkout -b nama-branch` | Buat branch baru |
+| `git checkout nama-branch` | Pindah ke branch yang sudah ada |
+| `git status` | Cek file yang berubah |
+| `git add .` | Tambah semua perubahan |
+| `git commit -m "pesan"` | Simpan perubahan dengan pesan |
+| `git push origin nama-branch` | Upload ke repository |
+| `git log --oneline` | Lihat riwayat commit |
+
+---
+
+## 📚 Referensi Library
+
+- [ApexCharts Docs](https://apexcharts.com/docs/)
+- [Leaflet.js Docs](https://leafletjs.com/reference.html)
+- [Laravel 10 Docs](https://laravel.com/docs/10.x)
+- [Bootstrap 5 Docs](https://getbootstrap.com/docs/5.3/)
+
+---
+
+## 📞 Kontak
+
+Kalau ada pertanyaan atau kendala, WA gua aja ya atau kita ngobrol langsung di microsoft teams.
+
+> Data yang digunakan hanya dummy
