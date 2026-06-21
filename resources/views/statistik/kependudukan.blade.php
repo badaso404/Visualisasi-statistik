@@ -28,6 +28,43 @@
     .chart-card .chart-title { font-size: 13px; font-weight: 600; color: #555; letter-spacing: 1px; margin-bottom: 16px; }
     .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
     #map-kelurahan { height: 450px; width: 100%; border-radius: 8px; z-index: 1; }
+    .stat-header-wrap {
+        display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .stat-header { flex: 1; margin-bottom: 0; }
+    .dropdown-tahun { position: relative; flex-shrink: 0; }
+    .dropdown-tahun-btn {
+        display: flex; align-items: center; gap: 8px;
+        border: 2px solid #ffbf00; border-radius: 6px; background: #fff;
+        color: #b8860b; font-weight: 700; font-size: 14px;
+        padding: 6px 12px; cursor: pointer; white-space: nowrap; user-select: none;
+    }
+    .dropdown-tahun-btn .arrow {
+        font-size: 10px; transition: transform 0.2s;
+    }
+    .dropdown-tahun-btn.open .arrow { transform: rotate(180deg); }
+    .dropdown-tahun-menu {
+        display: none; position: absolute; top: calc(100% + 4px); right: 0;
+        background: #fff; border: 2px solid #ffbf00; border-radius: 6px;
+        min-width: 100%; z-index: 9999; overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .dropdown-tahun-menu.show { display: block; }
+    .dropdown-tahun-menu a {
+        display: block; padding: 8px 16px; color: #555;
+        font-weight: 600; font-size: 14px; text-decoration: none;
+        transition: background 0.15s;
+    }
+    .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
+    .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
+    .stat-summary-card { display: flex; align-items: center; gap: 16px; }
+    .stat-summary-card .card-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+    }
+    .stat-summary-card .card-text .value { font-size: 28px; font-weight: 700; color: #333; }
+    .stat-summary-card .card-text .label { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
 </style>
 @endpush
 
@@ -48,26 +85,58 @@
 
         {{-- KONTEN --}}
         <div class="statistik-content">
-            <div class="stat-header">KEPENDUDUKAN JAKARTA BARAT 2024</div>
+            <div class="stat-header-wrap">
+                <div class="stat-header">KEPENDUDUKAN JAKARTA BARAT {{ $tahun }}</div>
+                <div class="dropdown-tahun">
+                    <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
+                        <i class="fa fa-calendar"></i>
+                        {{ $tahun }}
+                        <span class="arrow">&#9660;</span>
+                    </div>
+                    <div class="dropdown-tahun-menu" id="dropdownTahunMenu">
+                        @foreach($availableTahun as $t)
+                        <a href="{{ route('statistik.kependudukan', ['tahun' => $t]) }}"
+                           class="{{ $t === $tahun ? 'active' : '' }}">
+                            {{ $t }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
 
             {{-- Summary --}}
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="label">LAKI-LAKI</div>
-                        <div class="value">{{ number_format($summary->jumlah_laki_laki) }}</div>
+                        <div class="card-icon" style="background:#e3f0ff;">
+                            <i class="fa fa-male" style="color:#2196f3;"></i>
+                        </div>
+                        <div class="card-text">
+                            <div class="label">LAKI-LAKI</div>
+                            <div class="value">{{ number_format($summary->jumlah_laki_laki) }}</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="label">PEREMPUAN</div>
-                        <div class="value">{{ number_format($summary->jumlah_perempuan) }}</div>
+                        <div class="card-icon" style="background:#fde8f5;">
+                            <i class="fa fa-female" style="color:#e91e8c;"></i>
+                        </div>
+                        <div class="card-text">
+                            <div class="label">PEREMPUAN</div>
+                            <div class="value">{{ number_format($summary->jumlah_perempuan) }}</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="label">TOTAL PENDUDUK</div>
-                        <div class="value">{{ number_format($summary->jumlah_total) }}</div>
+                        <div class="card-icon" style="background:#fff8e1;">
+                            <i class="fa fa-users" style="color:#ffbf00;"></i>
+                        </div>
+                        <div class="card-text">
+                            <div class="label">TOTAL PENDUDUK</div>
+                            <div class="value">{{ number_format($summary->jumlah_total) }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -108,6 +177,21 @@
 @endsection
 
 @push('scripts')
+<script>
+    (function () {
+        var btn  = document.getElementById('dropdownTahunBtn');
+        var menu = document.getElementById('dropdownTahunMenu');
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            btn.classList.toggle('open');
+            menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function () {
+            btn.classList.remove('open');
+            menu.classList.remove('show');
+        });
+    })();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>

@@ -34,21 +34,26 @@ class StatistikController extends Controller
         return view('statistik.iklim', compact('iklim'));
     }
 
-    public function kependudukan()
+    public function kependudukan(Request $request)
     {
-        $summary = DataKependudukan::where('tahun', 2024)->first();
+        $availableTahun = [2024, 2025, 2026];
+        $tahun = (int) $request->get('tahun', 2024);
+        if (!in_array($tahun, $availableTahun)) {
+            $tahun = 2024;
+        }
+
+        $summary = DataKependudukan::where('tahun', $tahun)->first();
 
         $perKecamatan = PendudukKecamatan::with('kecamatan')
-            ->where('tahun', 2024)
+            ->where('tahun', $tahun)
             ->orderByDesc('jumlah_penduduk')
             ->get();
 
         $perKelurahan = PendudukKelurahan::with('kecamatan')
-            ->where('tahun', 2024)
+            ->where('tahun', $tahun)
             ->orderByDesc('jumlah_penduduk')
             ->get();
 
-        // Group kelurahan per kecamatan untuk drill-down
         $kelurahanPerKecamatan = $perKelurahan->groupBy('kecamatan.nama_kecamatan')
             ->map(fn($items) => [
                 'labels' => $items->pluck('nama_kelurahan'),
@@ -59,7 +64,9 @@ class StatistikController extends Controller
             'summary',
             'perKecamatan',
             'perKelurahan',
-            'kelurahanPerKecamatan'
+            'kelurahanPerKecamatan',
+            'tahun',
+            'availableTahun'
         ));
     }
 
