@@ -233,6 +233,39 @@
     });
     chartKelurahan.render();
 
+    // Tampilan awal: kelurahan terpadat dari setiap kecamatan
+    function showTopKelurahan() {
+        var labels = [];
+        var data   = [];
+        var colors = [];
+        namaKecamatan.forEach(function(nama) {
+            var k = kelurahanPerKecamatan[nama];
+            if (!k || !k.data || !k.data.length) return;
+            // data sudah terurut desc, tapi cari max untuk amannya
+            var maxIdx = 0;
+            for (var i = 1; i < k.data.length; i++) {
+                if (k.data[i] > k.data[maxIdx]) maxIdx = i;
+            }
+            labels.push(k.labels[maxIdx]);
+            data.push(k.data[maxIdx]);
+            colors.push(warnaMap[nama.toUpperCase()] || '#26a0fc');
+        });
+
+        chartKelurahan.updateOptions({
+            series: [{ name: 'Penduduk', data: data }],
+            xaxis: { categories: labels },
+            colors: colors,
+            plotOptions: { bar: { borderRadius: 3, horizontal: true, distributed: true } },
+            legend: { show: false },
+            title: {
+                text: 'Kelurahan Terpadat per Kecamatan',
+                align: 'left',
+                style: { fontSize: '12px', fontWeight: 600 }
+            }
+        });
+    }
+    showTopKelurahan();
+
     // Chart Kecamatan
     var chartKecamatan = new ApexCharts(document.querySelector("#chart-kecamatan"), {
         chart: {
@@ -268,6 +301,8 @@
             series: [{ name: 'Penduduk', data: data.data }],
             xaxis: { categories: data.labels },
             colors: [warna],
+            plotOptions: { bar: { borderRadius: 3, horizontal: true, distributed: false } },
+            legend: { show: false },
             title: {
                 text: 'Kelurahan - ' + namaKec,
                 align: 'left',
@@ -285,11 +320,7 @@
 
     // Kembali
     function backToKecamatan() {
-        chartKelurahan.updateOptions({
-            series: [{ name: 'Penduduk', data: [] }],
-            xaxis: { categories: [] },
-            title: { text: '' }
-        });
+        showTopKelurahan();
         chartKecamatan.updateOptions({
             title: { text: '👆 Klik bar untuk lihat kelurahan', align: 'center', style: { fontSize: '11px', color: '#999' } }
         });
@@ -299,9 +330,28 @@
 
     // MAP
     var map = L.map('map-kelurahan').setView([-6.15, 106.75], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+
+    // Layer satelit (Esri World Imagery) — default
+    var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
+        maxZoom: 19
     }).addTo(map);
+
+    // Overlay label (nama jalan/tempat) di atas satelit
+    var label = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19, pane: 'overlayPane'
+    }).addTo(map);
+
+    // Layer peta biasa (OSM) — alternatif
+    var jalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    });
+
+    L.control.layers(
+        { 'Satelit': satelit, 'Peta Jalan': jalan },
+        { 'Label Nama': label },
+        { position: 'topright' }
+    ).addTo(map);
 
     var kecJakbar = Object.keys(warnaMap);
 
