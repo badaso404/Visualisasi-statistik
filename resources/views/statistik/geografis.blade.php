@@ -136,6 +136,7 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="stat-summary-card">
+                            <i class="fas fa-vector-square" style="font-size: 2.2rem; color: #ffbf00;"></i>
                             <div>
                                 <div class="label">LUAS WILAYAH (km2)</div>
                                 <div class="value">{{ number_format($geo->luas_kota_km2, 2, ',', '.') }}</div>
@@ -144,6 +145,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="stat-summary-card">
+                            <i class="fas fa-mountain" style="font-size: 2.2rem; color: #ffbf00;"></i>
                             <div>
                                 <div class="label">KETINGGIAN (M dpl)</div>
                                 <div class="value">{{ $geo->ketinggian_mdpl }}</div>
