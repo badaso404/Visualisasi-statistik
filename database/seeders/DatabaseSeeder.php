@@ -12,11 +12,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Urutan penting: GeografisSeeder membuat data Kecamatan (master),
+        // seeder lain hanya mencari kecamatan berdasarkan nama, jadi harus setelahnya.
+        $this->call([
+            GeografisSeeder::class,    // membuat Kecamatan + data geografis + luas
+            IklimSeeder::class,
+            KependudukanSeeder::class,
+            PendidikanSeeder::class,
+            KesehatanSeeder::class,
+            BencanaSeeder::class,      // butuh Kecamatan sudah ada
+            AdminSeeder::class,        // akun admin (login panel)
+        ]);
     }
 }

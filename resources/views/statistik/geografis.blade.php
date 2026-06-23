@@ -125,6 +125,9 @@
                     <a class="nav-link" href="{{ route('statistik.kesehatan') }}">
                         <i class="fa fa-plus-circle"></i> Kesehatan
                     </a>
+                    <a class="nav-link" href="{{ route('statistik.bencana') }}">
+                        <i class="fa fa-house-flood-water"></i> Monitor Bencana
+                    </a>
                 </nav>
             </div>
 
