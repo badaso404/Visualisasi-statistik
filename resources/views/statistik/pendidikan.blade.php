@@ -27,6 +27,7 @@
     .chart-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .chart-card .chart-title { font-size: 13px; font-weight: 600; color: #555; letter-spacing: 1px; margin-bottom: 16px; }
     .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
+    .total-badge { display: inline-block; background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
 </style>
 @endpush
 
@@ -104,20 +105,65 @@
                 </div>
             </div>
 
-            {{-- Charts --}}
+            {{-- Ringkasan Total per Kecamatan --}}
+            <div class="chart-card mb-4">
+                <div class="chart-title">RINGKASAN TOTAL PER KECAMATAN</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0" style="font-size:13px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Kecamatan</th>
+                                <th class="text-center">Pelajar</th>
+                                <th class="text-center">Pendidik</th>
+                                <th class="text-center">Sekolah Negeri</th>
+                                <th class="text-center">Sekolah Swasta</th>
+                                <th class="text-center">Total Sekolah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($perKecamatan as $row)
+                            <tr>
+                                <td>{{ $row->kecamatan->nama_kecamatan ?? '-' }}</td>
+                                <td class="text-center">{{ number_format($row->jumlah_pelajar, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($row->jumlah_pendidik, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($row->jumlah_sekolah_negeri, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ number_format($row->jumlah_sekolah_swasta, 0, ',', '.') }}</td>
+                                <td class="text-center">
+                                    <span class="total-badge">{{ number_format($row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta, 0, ',', '.') }}</span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Charts Pelajar & Pendidik --}}
             <div class="row">
                 <div class="col-md-6">
                     <div class="chart-card">
-                        <div class="chart-title">JUMLAH MURID PADA KECAMATAN</div>
-                        <div id="chart-murid"></div>
+                        <div class="chart-title">JUMLAH PELAJAR PER KECAMATAN</div>
+                        <div id="chart-pelajar"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="chart-card">
-                        <div class="chart-title">JUMLAH GURU PADA KECAMATAN</div>
-                        <div id="chart-guru"></div>
+                        <div class="chart-title">JUMLAH PENDIDIK PER KECAMATAN</div>
+                        <div id="chart-pendidik"></div>
                     </div>
                 </div>
+            </div>
+
+            {{-- Chart Sekolah Negeri vs Swasta --}}
+            <div class="chart-card">
+                <div class="chart-title">JUMLAH SEKOLAH NEGERI VS SWASTA PER KECAMATAN</div>
+                <div id="chart-sekolah"></div>
+            </div>
+
+            {{-- Chart Total Sekolah --}}
+            <div class="chart-card">
+                <div class="chart-title">TOTAL SEKOLAH PER KECAMATAN</div>
+                <div id="chart-total-sekolah"></div>
             </div>
 
             <div class="sumber">Sumber: {{ $summary->sumber }}</div>
@@ -129,26 +175,53 @@
 
 @push('scripts')
 <script>
-    var namaKecamatan = {!! json_encode($perKecamatan->pluck('kecamatan.nama_kecamatan')) !!};
-    var jumlahMurid   = {!! json_encode($perKecamatan->pluck('jumlah_murid')->map(fn($v) => (int)$v)) !!};
-    var jumlahGuru    = {!! json_encode($perKecamatan->pluck('jumlah_guru')->map(fn($v) => (int)$v)) !!};
+    var namaKecamatan   = {!! json_encode($perKecamatan->pluck('kecamatan.nama_kecamatan')) !!};
+    var jumlahPelajar   = {!! json_encode($perKecamatan->pluck('jumlah_pelajar')->map(fn($v) => (int)$v)) !!};
+    var jumlahPendidik  = {!! json_encode($perKecamatan->pluck('jumlah_pendidik')->map(fn($v) => (int)$v)) !!};
+    var jumlahNegeri    = {!! json_encode($perKecamatan->pluck('jumlah_sekolah_negeri')->map(fn($v) => (int)$v)) !!};
+    var jumlahSwasta    = {!! json_encode($perKecamatan->pluck('jumlah_sekolah_swasta')->map(fn($v) => (int)$v)) !!};
+    var totalSekolah    = jumlahNegeri.map((n, i) => n + jumlahSwasta[i]);
 
-    // Chart Murid
-    new ApexCharts(document.querySelector("#chart-murid"), {
+    // Chart Pelajar
+    new ApexCharts(document.querySelector("#chart-pelajar"), {
         chart: { type: 'bar', height: 300, toolbar: { show: false } },
-        series: [{ name: 'Murid', data: jumlahMurid }],
+        series: [{ name: 'Pelajar', data: jumlahPelajar }],
         xaxis: { categories: namaKecamatan, labels: { style: { fontSize: '10px' } } },
         colors: ['#4caf50'],
         dataLabels: { enabled: true, style: { fontSize: '9px' } },
         plotOptions: { bar: { borderRadius: 3 } },
     }).render();
 
-    // Chart Guru
-    new ApexCharts(document.querySelector("#chart-guru"), {
+    // Chart Pendidik
+    new ApexCharts(document.querySelector("#chart-pendidik"), {
         chart: { type: 'bar', height: 300, toolbar: { show: false } },
-        series: [{ name: 'Guru', data: jumlahGuru }],
+        series: [{ name: 'Pendidik', data: jumlahPendidik }],
         xaxis: { categories: namaKecamatan, labels: { style: { fontSize: '10px' } } },
         colors: ['#9c27b0'],
+        dataLabels: { enabled: true, style: { fontSize: '9px' } },
+        plotOptions: { bar: { borderRadius: 3 } },
+    }).render();
+
+    // Chart Sekolah Negeri vs Swasta (grouped bar)
+    new ApexCharts(document.querySelector("#chart-sekolah"), {
+        chart: { type: 'bar', height: 320, toolbar: { show: false } },
+        series: [
+            { name: 'Negeri', data: jumlahNegeri },
+            { name: 'Swasta', data: jumlahSwasta },
+        ],
+        xaxis: { categories: namaKecamatan, labels: { style: { fontSize: '10px' } } },
+        colors: ['#1976d2', '#f57c00'],
+        dataLabels: { enabled: true, style: { fontSize: '9px' } },
+        plotOptions: { bar: { borderRadius: 3, groupPadding: 0.1 } },
+        legend: { position: 'top' },
+    }).render();
+
+    // Chart Total Sekolah
+    new ApexCharts(document.querySelector("#chart-total-sekolah"), {
+        chart: { type: 'bar', height: 300, toolbar: { show: false } },
+        series: [{ name: 'Total Sekolah', data: totalSekolah }],
+        xaxis: { categories: namaKecamatan, labels: { style: { fontSize: '10px' } } },
+        colors: ['#ffbf00'],
         dataLabels: { enabled: true, style: { fontSize: '9px' } },
         plotOptions: { bar: { borderRadius: 3 } },
     }).render();

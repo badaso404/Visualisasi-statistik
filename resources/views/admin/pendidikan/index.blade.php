@@ -51,16 +51,23 @@
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-                <tr><th>Kecamatan</th><th>Tahun</th><th>Murid</th><th>Guru</th><th>Sekolah</th><th class="text-end">Aksi</th></tr>
+                <tr>
+                    <th>Kecamatan</th><th>Tahun</th>
+                    <th>Pelajar</th><th>Pendidik</th>
+                    <th>Sekolah Negeri</th><th>Sekolah Swasta</th><th>Total Sekolah</th>
+                    <th class="text-end">Aksi</th>
+                </tr>
             </thead>
             <tbody>
                 @forelse ($perKecamatan as $row)
                     <tr>
                         <td>{{ $row->kecamatan->nama_kecamatan ?? '-' }}</td>
                         <td>{{ $row->tahun }}</td>
-                        <td>{{ number_format($row->jumlah_murid, 0, ',', '.') }}</td>
-                        <td>{{ number_format($row->jumlah_guru, 0, ',', '.') }}</td>
-                        <td>{{ number_format($row->jumlah_sekolah, 0, ',', '.') }}</td>
+                        <td>{{ number_format($row->jumlah_pelajar, 0, ',', '.') }}</td>
+                        <td>{{ number_format($row->jumlah_pendidik, 0, ',', '.') }}</td>
+                        <td>{{ number_format($row->jumlah_sekolah_negeri, 0, ',', '.') }}</td>
+                        <td>{{ number_format($row->jumlah_sekolah_swasta, 0, ',', '.') }}</td>
+                        <td><strong>{{ number_format($row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta, 0, ',', '.') }}</strong></td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('admin.pendidikan-kecamatan.edit', $row) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                             <form action="{{ route('admin.pendidikan-kecamatan.destroy', $row) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data ini?')">
@@ -70,7 +77,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada data.</td></tr>
+                    <tr><td colspan="8" class="text-center text-muted py-4">Belum ada data.</td></tr>
                 @endforelse
             </tbody>
         </table>
