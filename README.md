@@ -109,22 +109,13 @@ DB_PASSWORD=
 ### 5. Jalankan Migration
 
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
 
-### 6. Jalankan Seeder (Isi Data Awal)
-
-```bash
-php artisan db:seed --class=GeografisSeeder
-php artisan db:seed --class=IklimSeeder
-php artisan db:seed --class=KependudukanSeeder
-php artisan db:seed --class=PendidikanSeeder
-php artisan db:seed --class=KesehatanSeeder
-```
-
-### 7. Akses di Browser
+### 6. Akses di Browser
 
 Kalau pakai Laravel Herd, langsung akses:
+
 ```
 http://visualisasi-statistik.test
 ```
@@ -133,38 +124,44 @@ http://visualisasi-statistik.test
 
 ## 🗺️ Halaman yang Tersedia
 
-| URL | Halaman | Isi |
-|-----|---------|-----|
-| `/statistik/geografis` | Geografis | Luas wilayah kecamatan, peta Jakarta Barat |
-| `/statistik/iklim` | Iklim | Suhu, curah hujan, kelembaban per bulan |
+| URL                       | Halaman      | Isi                                              |
+| ------------------------- | ------------ | ------------------------------------------------ |
+| `/statistik/geografis`    | Geografis    | Luas wilayah kecamatan, peta Jakarta Barat       |
+| `/statistik/iklim`        | Iklim        | Suhu, curah hujan, kelembaban per bulan          |
 | `/statistik/kependudukan` | Kependudukan | Populasi per kecamatan & kelurahan, peta sebaran |
-| `/statistik/pendidikan` | Pendidikan | Jumlah murid, guru, APM & APK per kecamatan |
-| `/statistik/kesehatan` | Kesehatan | Tenaga & fasilitas kesehatan per kecamatan |
+| `/statistik/pendidikan`   | Pendidikan   | Jumlah murid, guru, APM & APK per kecamatan      |
+| `/statistik/kesehatan`    | Kesehatan    | Tenaga & fasilitas kesehatan per kecamatan       |
 
 ---
 
 ## 🗄️ Struktur Database
 
 ### Tabel Master
+
 - `kecamatan` — Daftar 8 kecamatan Jakarta Barat
 
 ### Tabel Geografis
+
 - `data_geografis` — Luas kota & ketinggian per tahun
 - `luas_kecamatan` — Luas & persentase per kecamatan per tahun
 
 ### Tabel Iklim
+
 - `data_iklim` — Data iklim per bulan (suhu, hujan, angin, dll)
 
 ### Tabel Kependudukan
+
 - `data_kependudukan` — Summary jumlah penduduk per tahun
 - `penduduk_kecamatan` — Jumlah penduduk per kecamatan
 - `penduduk_kelurahan` — Jumlah penduduk per kelurahan + koordinat peta
 
 ### Tabel Pendidikan
+
 - `data_pendidikan` — APM & APK per tahun
 - `pendidikan_kecamatan` — Jumlah murid, guru, sekolah per kecamatan
 
 ### Tabel Kesehatan
+
 - `data_kesehatan` — Summary fasilitas kesehatan per tahun
 - `tenaga_kesehatan_kecamatan` — Jumlah tenaga kesehatan per kecamatan
 - `fasilitas_kesehatan_kecamatan` — Jumlah fasilitas kesehatan per kecamatan
@@ -175,13 +172,13 @@ http://visualisasi-statistik.test
 
 Setiap halaman bisa dikerjakan secara terpisah. Berikut pembagian yang disarankan:
 
-| Tugas | File yang Diubah | Keterangan |
-|-------|-----------------|------------|
-| Halaman Geografis | `views/statistik/geografis.blade.php` | Chart luas wilayah + peta |
-| Halaman Iklim | `views/statistik/iklim.blade.php` | 6 chart data iklim per bulan |
-| Halaman Kependudukan | `views/statistik/kependudukan.blade.php` | Chart + peta sebaran penduduk |
-| Halaman Pendidikan | `views/statistik/pendidikan.blade.php` | Chart murid, guru, sekolah |
-| Halaman Kesehatan | `views/statistik/kesehatan.blade.php` | Chart tenaga & fasilitas kesehatan |
+| Tugas                | File yang Diubah                         | Keterangan                         |
+| -------------------- | ---------------------------------------- | ---------------------------------- |
+| Halaman Geografis    | `views/statistik/geografis.blade.php`    | Chart luas wilayah + peta          |
+| Halaman Iklim        | `views/statistik/iklim.blade.php`        | 6 chart data iklim per bulan       |
+| Halaman Kependudukan | `views/statistik/kependudukan.blade.php` | Chart + peta sebaran penduduk      |
+| Halaman Pendidikan   | `views/statistik/pendidikan.blade.php`   | Chart murid, guru, sekolah         |
+| Halaman Kesehatan    | `views/statistik/kesehatan.blade.php`    | Chart tenaga & fasilitas kesehatan |
 
 > **Catatan:** Jangan ubah file Controller dan Model tanpa koordinasi dengan tech lead.
 
@@ -189,22 +186,14 @@ Setiap halaman bisa dikerjakan secara terpisah. Berikut pembagian yang disaranka
 
 ## 🔧 Cara Update Data
 
-### Tambah data baru via Seeder
-Edit file seeder yang sesuai, lalu jalankan ulang:
-```bash
-php artisan db:seed --class=GeografisSeeder
-php artisan db:seed --class=IklimSeeder
-php artisan db:seed --class=KependudukanSeeder
-php artisan db:seed --class=PendidikanSeeder
-php artisan db:seed --class=KesehatanSeeder
-```
-
 ### Tambah data langsung via SQL (DBeaver)
+
 ```sql
 INSERT INTO nama_tabel (...) VALUES (...);
 ```
 
 ### Hapus data via SQL
+
 ```sql
 DELETE FROM nama_tabel WHERE id = 1;
 ```
@@ -245,6 +234,7 @@ git checkout -b feature/geografis-andi
 ```
 
 Contoh nama branch per tugas:
+
 - `feature/geografis-Angie`
 - `feature/iklim-Faiz`
 - `feature/kependudukan-Kay`
@@ -256,11 +246,13 @@ Contoh nama branch per tugas:
 ### 📤 Setelah Selesai Kerja — Push
 
 **Langkah 1** — Cek file apa saja yang berubah:
+
 ```bash
 git status
 ```
 
 **Langkah 2** — Tambahkan file yang sudah dikerjakan:
+
 ```bash
 # Tambah semua file yang berubah
 git add .
@@ -270,17 +262,20 @@ git add resources/views/statistik/geografis.blade.php
 ```
 
 **Langkah 3** — Commit dengan pesan yang jelas:
+
 ```bash
 # Format pesan: [halaman] deskripsi singkat apa yang dikerjakan
 git commit -m "feat: tambah chart luas wilayah kecamatan di halaman geografis"
 ```
 
 Contoh pesan commit yang baik:
+
 - `feat: tambah chart bar hari hujan di halaman iklim`
 - `fix: perbaiki warna chart kecamatan tidak sinkron dengan map`
 - `style: rapikan tampilan card summary kependudukan`
 
 **Langkah 4** — Push ke branch kamu:
+
 ```bash
 git push origin feature/geografis-angie
 ```
@@ -312,16 +307,16 @@ git commit -m "fix: resolve conflict"
 
 ### 📋 Rangkuman Perintah Git
 
-| Perintah | Fungsi |
-|----------|--------|
-| `git pull origin main` | Ambil update terbaru |
-| `git checkout -b nama-branch` | Buat branch baru |
-| `git checkout nama-branch` | Pindah ke branch yang sudah ada |
-| `git status` | Cek file yang berubah |
-| `git add .` | Tambah semua perubahan |
-| `git commit -m "pesan"` | Simpan perubahan dengan pesan |
-| `git push origin nama-branch` | Upload ke repository |
-| `git log --oneline` | Lihat riwayat commit |
+| Perintah                      | Fungsi                          |
+| ----------------------------- | ------------------------------- |
+| `git pull origin main`        | Ambil update terbaru            |
+| `git checkout -b nama-branch` | Buat branch baru                |
+| `git checkout nama-branch`    | Pindah ke branch yang sudah ada |
+| `git status`                  | Cek file yang berubah           |
+| `git add .`                   | Tambah semua perubahan          |
+| `git commit -m "pesan"`       | Simpan perubahan dengan pesan   |
+| `git push origin nama-branch` | Upload ke repository            |
+| `git log --oneline`           | Lihat riwayat commit            |
 
 ---
 
@@ -336,6 +331,6 @@ git commit -m "fix: resolve conflict"
 
 ## 📞 Kontak
 
-Kalau ada pertanyaan atau kendala, WA gua aja ya atau kita ngobrol langsung di microsoft teams.
+Kalau ada pertanyaan atau kendala, WA gua aja ya atau kita ngobrol langsung di Click up.
 
 > Data yang digunakan hanya dummy
