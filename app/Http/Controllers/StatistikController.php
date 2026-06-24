@@ -76,7 +76,7 @@ class StatistikController extends Controller
         $summary = DataPendidikan::where('tahun', 2024)->first();
         $perKecamatan = PendidikanKecamatan::with('kecamatan')
             ->where('tahun', 2024)
-            ->orderByDesc('jumlah_murid')
+            ->orderByDesc('jumlah_pelajar')
             ->get();
 
         return view('statistik.pendidikan', compact('summary', 'perKecamatan'));

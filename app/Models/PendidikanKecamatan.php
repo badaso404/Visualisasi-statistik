@@ -11,9 +11,10 @@ class PendidikanKecamatan extends Model
     protected $fillable = [
         'kecamatan_id',
         'tahun',
-        'jumlah_murid',
-        'jumlah_guru',
-        'jumlah_sekolah'
+        'jumlah_pelajar',
+        'jumlah_pendidik',
+        'jumlah_sekolah_negeri',
+        'jumlah_sekolah_swasta',
     ];
 
     public function kecamatan()

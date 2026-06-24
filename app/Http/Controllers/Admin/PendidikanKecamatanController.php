@@ -49,11 +49,12 @@ class PendidikanKecamatanController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'kecamatan_id'   => ['required', 'exists:kecamatan,id'],
-            'tahun'          => ['required', 'integer', 'min:1900', 'max:2100'],
-            'jumlah_murid'   => ['required', 'integer', 'min:0'],
-            'jumlah_guru'    => ['required', 'integer', 'min:0'],
-            'jumlah_sekolah' => ['required', 'integer', 'min:0'],
+            'kecamatan_id'          => ['required', 'exists:kecamatan,id'],
+            'tahun'                 => ['required', 'integer', 'min:1900', 'max:2100'],
+            'jumlah_pelajar'        => ['required', 'integer', 'min:0'],
+            'jumlah_pendidik'       => ['required', 'integer', 'min:0'],
+            'jumlah_sekolah_negeri' => ['required', 'integer', 'min:0'],
+            'jumlah_sekolah_swasta' => ['required', 'integer', 'min:0'],
         ]);
     }
 }
