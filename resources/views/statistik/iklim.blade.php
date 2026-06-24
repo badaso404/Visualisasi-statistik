@@ -3,129 +3,22 @@
 @push('styles')
 <style>
 
-    .statistik-wrapper {
-        display: flex;
-        gap: 0;
-        min-height: 100vh;
-        background: #f5f6fa;
-    }
-
-    .statistik-sidebar {
-        width: 220px;
-        flex-shrink: 0;
-        background: #fff;
-        border-right: 1px solid #ececec;
-        padding: 28px 16px 32px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 100vh;
-    }
-
-    .sidebar-brand {
-        font-size: 17px;
-        font-weight: 800;
-        color: #1a1a1a;
-        padding: 0 8px 28px;
-        letter-spacing: -.3px;
-    }
-    .sidebar-brand span { color: #ffbf00; }
-
+    .statistik-wrapper { display: flex; gap: 24px; padding: 40px 0; }
+    .statistik-sidebar { width: 220px; flex-shrink: 0; }
     .statistik-sidebar .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        border-radius: 8px;
-        color: #555;
-        font-weight: 500;
-        font-size: 13.5px;
-        margin-bottom: 3px;
-        transition: all .18s;
-        text-decoration: none;
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-radius: 8px; color: #555;
+        font-weight: 500; margin-bottom: 4px; transition: all 0.2s;
     }
-    .statistik-sidebar .nav-link i { width: 18px; text-align: center; font-size: 14px; }
-    .statistik-sidebar .nav-link:hover  { background: #fdf6e0; color: #d4a000; }
-    .statistik-sidebar .nav-link.active { background: #fdf6e0; color: #ffbf00; font-weight: 700; }
-
-    .sidebar-bottom { padding: 0 8px; }
-    .btn-export {
-        width: 100%;
-        background: #ffbf00;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 11px 0;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        transition: background .18s;
-        margin-bottom: 18px;
+    .statistik-sidebar .nav-link:hover { background: #f0f0f0; color: #ffbf00; }
+    .statistik-sidebar .nav-link.active { background: #ffbf00; color: #fff; }
+    .statistik-content { flex: 1; min-width: 0; }
+    .stat-header-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .stat-header {
+        flex: 1; background: #ffbf00; color: white; text-align: center;
+        padding: 14px; border-radius: 8px; font-weight: 700;
+        font-size: 18px; letter-spacing: 1px;
     }
-    .btn-export:hover { background: #e6a800; }
-    .sidebar-util-link {
-        display: flex; align-items: center; gap: 8px;
-        color: #888; font-size: 13px; text-decoration: none;
-        padding: 6px 0;
-    }
-    .sidebar-util-link:hover { color: #555; }
-
-    .statistik-content {
-        flex: 1;
-        min-width: 0;
-        padding: 32px 36px 48px;
-    }
-
-    .content-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    .content-topbar-title {
-        font-size: 22px;
-        font-weight: 800;
-        color: #1a1a1a;
-        line-height: 1.2;
-    }
-    .content-topbar-sub {
-        font-size: 13px;
-        color: #888;
-        margin-top: 3px;
-    }
-    .topbar-actions { display: flex; align-items: center; gap: 10px; }
-    .btn-filter {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 8px 14px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #333;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-    }
-    .btn-filter:hover { background: #f5f5f5; color: #333; }
-    .btn-compare {
-        background: #3d2f00;
-        border: none;
-        border-radius: 8px;
-        padding: 9px 16px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #ffbf00;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-    }
-    .btn-compare:hover { background: #5a4500; color: #ffbf00; }
 
     .kpi-grid {
         display: grid;
@@ -345,58 +238,28 @@
 @endphp
 
 @section('content')
-<div class="statistik-wrapper">
+<div class="container-fluid px-4">
+    <div class="statistik-wrapper">
 
-    <div class="statistik-sidebar">
-        <div>
-            <div class="sidebar-brand">Jak<span>Bar</span> Statistik</div>
+        {{-- SIDEBAR --}}
+        <div class="statistik-sidebar">
             <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('statistik.geografis') }}">
-                    <i class="fa fa-map"></i> Geografis
-                </a>
-                <a class="nav-link active" href="{{ route('statistik.iklim') }}">
-                    <i class="fa fa-cloud"></i> Iklim
-                </a>
-                <a class="nav-link" href="{{ route('statistik.kependudukan') }}">
-                    <i class="fa fa-users"></i> Kependudukan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.pendidikan') }}">
-                    <i class="fa fa-graduation-cap"></i> Pendidikan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.kesehatan') }}">
-                    <i class="fa fa-plus-circle"></i> Kesehatan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.bencana') }}">
-                    <i class="fa fa-house-flood-water"></i> Monitor Bencana
-                </a>
+                <a class="nav-link" href="{{ route('statistik.geografis') }}"><i class="fa fa-map"></i> Geografis</a>
+                <a class="nav-link active" href="{{ route('statistik.iklim') }}"><i class="fa fa-cloud"></i> Iklim</a>
+                <a class="nav-link" href="{{ route('statistik.kependudukan') }}"><i class="fa fa-users"></i> Kependudukan</a>
+                <a class="nav-link" href="{{ route('statistik.pendidikan') }}"><i class="fa fa-graduation-cap"></i> Pendidikan</a>
+                <a class="nav-link" href="{{ route('statistik.kesehatan') }}"><i class="fa fa-plus-circle"></i> Kesehatan</a>
+                <a class="nav-link" href="{{ route('statistik.bencana') }}"><i class="fa fa-house-flood-water"></i> Monitor Bencana</a>
             </nav>
         </div>
 
-        <div class="sidebar-bottom">
-            <button class="btn-export" onclick="window.print()">
-                <i class="fa fa-file-export"></i> Export Report
-            </button>
-            <a href="#" class="sidebar-util-link"><i class="fa fa-cog"></i> Settings</a>
-            <a href="#" class="sidebar-util-link"><i class="fa fa-question-circle"></i> Help</a>
-        </div>
-    </div>
+        {{-- KONTEN --}}
+        <div class="statistik-content">
 
-    <div class="statistik-content">
-
-        <div class="content-topbar">
-            <div>
-                <div class="content-topbar-title">Analisis Iklim Terpadu</div>
-                <div class="content-topbar-sub">Monitoring metrik atmosfer wilayah Jakarta Barat secara real-time.</div>
+            {{-- Header --}}
+            <div class="stat-header-wrap">
+                <div class="stat-header">IKLIM JAKARTA BARAT 2024</div>
             </div>
-            <div class="topbar-actions">
-                <a href="#table-section" class="btn-filter">
-                    <i class="fa fa-filter"></i> Filter Wilayah
-                </a>
-                <a href="#chart-bar" class="btn-compare">
-                    <i class="fa fa-chart-bar"></i> Bandingkan Bulan
-                </a>
-            </div>
-        </div>
 
         {{-- KPI cards --}}
         <div class="kpi-grid">
@@ -542,8 +405,10 @@
         <div style="text-align:right; font-size:12px; color:#bbb; margin-top:16px;">
             Sumber: Kota Jakarta Barat Dalam Angka 2025
         </div>
-    </div>
-</div>
+        </div>{{-- statistik-content --}}
+
+    </div>{{-- statistik-wrapper --}}
+</div>{{-- container-fluid --}}
 @endsection
 
 @push('scripts')
