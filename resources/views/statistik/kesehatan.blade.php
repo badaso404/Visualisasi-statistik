@@ -14,8 +14,8 @@
         font-weight:500; margin-bottom:4px; transition:all .2s;
         text-decoration:none; font-size:14px;
     }
-    .kes-sidebar .nav-link:hover { background:#f0f0f0; color:#d4a017; }
-    .kes-sidebar .nav-link.active { background:#d4a017; color:#fff; }
+    .kes-sidebar .nav-link:hover { background:#f0f0f0; color:#ffbf00; }
+    .kes-sidebar .nav-link.active { background:#ffbf00; color:#fff; }
     .kes-sidebar .nav-link i { width:18px; text-align:center; }
 
     /* ── Page header ────────────────────────────────────────── */
@@ -79,7 +79,7 @@
     .hbar-label .hb-name  { color:#333; font-weight:500; }
     .hbar-label .hb-value { color:#333; font-weight:700; }
     .hbar-track { height:8px; background:#f0f0f0; border-radius:6px; overflow:hidden; }
-    .hbar-fill  { height:100%; border-radius:6px; background:linear-gradient(90deg,#d4a017,#f5c842); transition:width .6s ease; }
+    .hbar-fill  { height:100%; border-radius:6px; background:linear-gradient(90deg,#ffbf00,#ffbf00); transition:width .6s ease; }
 
     /* ── Fasilitas ranking ───────────────────────────────────── */
     .fas-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
@@ -371,7 +371,7 @@
     },
         },
         yaxis: { labels: { style: { fontSize: '11px', colors: '#aaa' } } },
-        colors: ['#e6b12dff', '#367751ff'],
+        colors: ['#ffbf00', '#367751ff'],
         plotOptions: {
             bar: {
                 borderRadius: 4,
