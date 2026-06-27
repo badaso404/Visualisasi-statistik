@@ -14,60 +14,68 @@
     .statistik-sidebar .nav-link.active { background: #ffbf00; color: #fff; }
     .statistik-content { flex: 1; min-width: 0; }
 
-    /* Summary cards */
-    .geo-summary-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px;
+    /* Header */
+    .stat-header-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .stat-header {
+        flex: 1; background: #ffbf00; color: white; text-align: center;
+        padding: 14px; border-radius: 8px; font-weight: 700;
+        font-size: 18px; margin-bottom: 0; letter-spacing: 1px;
     }
-    .geo-card {
-        background: #fff; border: 1px solid #eee; border-radius: 10px;
-        padding: 14px 16px; position: relative; overflow: hidden;
+    .dropdown-tahun { position: relative; flex-shrink: 0; }
+    .dropdown-tahun-btn {
+        display: flex; align-items: center; gap: 8px;
+        border: 2px solid #ffbf00; border-radius: 6px; background: #fff;
+        color: #b8860b; font-weight: 700; font-size: 14px;
+        padding: 6px 12px; cursor: pointer; white-space: nowrap; user-select: none;
     }
-    .geo-card .badge-change {
-        position: absolute; top: 10px; right: 10px;
-        font-size: 10px; font-weight: 700; border-radius: 20px; padding: 2px 7px;
+    .dropdown-tahun-btn .arrow { font-size: 10px; transition: transform 0.2s; }
+    .dropdown-tahun-btn.open .arrow { transform: rotate(180deg); }
+    .dropdown-tahun-menu {
+        display: none; position: absolute; top: calc(100% + 4px); right: 0;
+        background: #fff; border: 2px solid #ffbf00; border-radius: 6px;
+        min-width: 100%; z-index: 9999; overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .badge-tetap  { background: #f0f0f0; color: #888; }
-    .badge-up     { background: #e8f5e9; color: #43a047; }
-    .badge-down   { background: #fdecea; color: #e53935; }
-    .geo-card .card-icon {
-        width: 38px; height: 38px; border-radius: 9px;
+    .dropdown-tahun-menu.show { display: block; }
+    .dropdown-tahun-menu a {
+        display: block; padding: 8px 16px; color: #555;
+        font-weight: 600; font-size: 14px; text-decoration: none; transition: background 0.15s;
+    }
+    .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
+    .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
+
+    /* Summary cards — ikon kiri, label atas, nilai bawah (sama seperti kependudukan) */
+    .stat-summary-card {
+        background: #f9f9f9; border: 1px solid #eee;
+        border-radius: 8px; padding: 16px 24px;
+        display: flex; align-items: center; gap: 16px;
+    }
+    .stat-summary-card .card-icon {
+        width: 48px; height: 48px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 17px; margin-bottom: 10px;
+        font-size: 22px; flex-shrink: 0;
     }
-    .geo-card .card-val  { font-size: 22px; font-weight: 700; color: #222; line-height: 1.1; }
-    .geo-card .card-val span { font-size: 12px; font-weight: 500; color: #888; margin-left: 3px; }
-    .geo-card .card-lbl  { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .stat-summary-card .card-text .label  { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
+    .stat-summary-card .card-text .value  { font-size: 28px; font-weight: 700; color: #333; line-height: 1.15; }
+    .stat-summary-card .card-text .value small { font-size: 13px; font-weight: 500; color: #888; margin-left: 3px; }
+
+    /* Chart cards */
+    .chart-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .chart-card .chart-title { font-size: 13px; font-weight: 600; color: #555; letter-spacing: 1px; margin-bottom: 16px; }
 
     /* Two-column middle section */
-    .geo-mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-
-    /* Chart / map cards */
-    .chart-card {
-        background: #fff; border: 1px solid #eee; border-radius: 10px;
-        padding: 18px; margin-bottom: 18px;
-    }
-    .chart-card-left { display: flex; flex-direction: column; gap: 18px; }
-    .chart-card .chart-title {
-        font-size: 13px; font-weight: 600; color: #333; margin-bottom: 14px;
-    }
-    .chart-card .chart-sub { font-size: 11px; color: #aaa; margin-top: -10px; margin-bottom: 12px; }
+    .geo-mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 0; }
+    .chart-card-left { display: flex; flex-direction: column; gap: 20px; }
+    .chart-card-left .chart-card { margin-bottom: 0; }
 
     /* Map */
-    #geo-map { height: 554px; border-radius: 8px; z-index: 1; }
+    #geo-map { height: 490px; width: 100%; border-radius: 8px; z-index: 1; }
 
-    /* Map tab buttons */
-    .map-tab-btn {
-        padding: 6px 16px; border-radius: 6px; border: 1px solid #ddd;
-        background: #f5f5f5; color: #555; font-size: 13px; font-weight: 600;
-        cursor: pointer; transition: all 0.2s;
-    }
-    .map-tab-btn:hover { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
-    .map-tab-btn.active { background: #4caf50; border-color: #4caf50; color: #fff; }
+    /* Map */
 
-    /* Comparison chart */
-    .chart-card-compare .chart-title-row {
-        display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;
-    }
+    /* Comparison chart toggle */
+    .chart-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .chart-sub { font-size: 11px; color: #aaa; margin-bottom: 12px; }
     .chart-toggle-btns { display: flex; gap: 6px; }
     .chart-toggle-btns button {
         font-size: 11px; padding: 3px 12px; border-radius: 5px; border: 1px solid #ddd;
@@ -76,9 +84,9 @@
     .chart-toggle-btns button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
 
     /* Highlight cards */
-    .geo-highlight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .geo-highlight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
     .geo-hl-card {
-        background: #fff; border: 1px solid #eee; border-radius: 10px;
+        background: #fff; border: 1px solid #eee; border-radius: 8px;
         padding: 14px 16px; display: flex; align-items: center; gap: 12px;
     }
     .geo-hl-card .hl-icon {
@@ -90,7 +98,7 @@
     .geo-hl-card .hl-sub  { font-size: 11px; color: #888; }
 
     /* Table */
-    .geo-table-wrap { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 18px; }
+    .geo-table-wrap { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .geo-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .geo-table-header .tbl-title { font-size: 14px; font-weight: 600; color: #333; }
     .geo-search-input {
@@ -112,7 +120,7 @@
     .geo-pager button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; font-weight: 700; }
     .geo-pager button:disabled { opacity: 0.4; cursor: default; }
 
-    .sumber { text-align: right; font-size: 12px; color: #bbb; margin-top: 10px; }
+    .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
 </style>
 @endpush
 
@@ -137,111 +145,101 @@
     {{-- KONTEN --}}
     <div class="statistik-content">
 
-        {{-- Header Bar --}}
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
-            <div style="flex:1; background:#ffbf00; color:#fff; text-align:center; padding:14px; border-radius:8px; font-weight:700; font-size:15px; letter-spacing:1px;">
-                GEOGRAFIS JAKARTA BARAT {{ $geo->tahun }}
-            </div>
-            <div style="position:relative; flex-shrink:0;">
-                <div id="dropdownTahunBtn" style="display:flex; align-items:center; gap:8px; border:2px solid #ffbf00; border-radius:6px; background:#fff; color:#b8860b; font-weight:700; font-size:14px; padding:6px 12px; cursor:pointer; white-space:nowrap; user-select:none;">
+        {{-- Header --}}
+        <div class="stat-header-wrap">
+            <div class="stat-header">GEOGRAFIS JAKARTA BARAT {{ $geo->tahun }}</div>
+            <div class="dropdown-tahun">
+                <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                     <i class="fa fa-calendar"></i>
                     {{ $geo->tahun }}
-                    <span style="font-size:10px;">&#9660;</span>
+                    <span class="arrow">&#9660;</span>
                 </div>
-                <div id="dropdownTahunMenu" style="display:none; position:absolute; top:calc(100% + 4px); right:0; background:#fff; border:2px solid #ffbf00; border-radius:6px; min-width:100%; z-index:9999; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-                    <a href="{{ route('statistik.geografis') }}" style="display:block; padding:8px 16px; color:#b8860b; font-weight:700; font-size:14px; text-decoration:none; background:#ffbf00;">{{ $geo->tahun }}</a>
+                <div class="dropdown-tahun-menu" id="dropdownTahunMenu">
+                    <a href="{{ route('statistik.geografis') }}" class="active">{{ $geo->tahun }}</a>
                 </div>
             </div>
         </div>
 
         {{-- Summary Cards --}}
-        @php
-            $totalKelurahan = $luas->sum(fn($l) => optional($l->kecamatan)->jumlah_kelurahan ?? 0);
-            $jumlahKecamatan = $luas->count();
-            $kepadatan = $geo->luas_kota_km2 > 0
-                ? round($geo->luas_kota_km2 > 0 ? 19243 : 0)
-                : 0;
-        @endphp
-        <div class="geo-summary-grid">
-            <div class="geo-card">
-                <span class="badge-change badge-up">+0.2%</span>
-                <div class="card-icon" style="background:#fff8e1;">
-                    <i class="fa fa-map" style="color:#f9a825;"></i>
+        @php $jumlahKecamatan = $luas->count(); @endphp
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">LUAS WILAYAH</div>
+                        <div class="value">{{ number_format($geo->luas_kota_km2, 2) }}<small>km²</small></div>
+                    </div>
+                    <div class="card-icon" style="background:#fff8e1; margin-left:auto;">
+                        <i class="fa fa-map" style="color:#f9a825;"></i>
+                    </div>
                 </div>
-                <div class="card-val">{{ number_format($geo->luas_kota_km2, 2) }}<span>km²</span></div>
-                <div class="card-lbl">Luas Wilayah</div>
             </div>
-            <div class="geo-card">
-                <span class="badge-change badge-tetap">Tetap</span>
-                <div class="card-icon" style="background:#e3f0ff;">
-                    <i class="fa fa-map-marker-alt" style="color:#1e88e5;"></i>
+            <div class="col-md-3">
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">JUMLAH KECAMATAN</div>
+                        <div class="value">{{ $jumlahKecamatan }}</div>
+                    </div>
+                    <div class="card-icon" style="background:#e3f0ff; margin-left:auto;">
+                        <i class="fa fa-map-marker-alt" style="color:#1e88e5;"></i>
+                    </div>
                 </div>
-                <div class="card-val">{{ $jumlahKecamatan }}</div>
-                <div class="card-lbl">Jumlah Kecamatan</div>
             </div>
-            <div class="geo-card">
-                <span class="badge-change badge-tetap">Tetap</span>
-                <div class="card-icon" style="background:#fce4ec;">
-                    <i class="fa fa-building" style="color:#e91e8c;"></i>
+            <div class="col-md-3">
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">JUMLAH KELURAHAN</div>
+                        <div class="value">56</div>
+                    </div>
+                    <div class="card-icon" style="background:#fce4ec; margin-left:auto;">
+                        <i class="fa fa-building" style="color:#e91e8c;"></i>
+                    </div>
                 </div>
-                <div class="card-val">56</div>
-                <div class="card-lbl">Jumlah Kelurahan</div>
             </div>
-            <div class="geo-card">
-                <span class="badge-change badge-up">+1.4%</span>
-                <div class="card-icon" style="background:#f3e5f5;">
-                    <i class="fa fa-users" style="color:#9c27b0;"></i>
+            <div class="col-md-3">
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">KEPADATAN WILAYAH</div>
+                        <div class="value">19.243<small>/km²</small></div>
+                    </div>
+                    <div class="card-icon" style="background:#f3e5f5; margin-left:auto;">
+                        <i class="fa fa-users" style="color:#9c27b0;"></i>
+                    </div>
                 </div>
-                <div class="card-val">19.243<span>/km²</span></div>
-                <div class="card-lbl">Kepadatan Wilayah</div>
             </div>
         </div>
 
         {{-- Middle: Charts (left) + Map (right) --}}
         <div class="geo-mid-grid">
 
-            {{-- LEFT: Bar chart + Donut --}}
+            {{-- LEFT: Bar + Donut --}}
             <div class="chart-card-left">
-                <div class="chart-card" style="margin-bottom:0;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="chart-title" style="margin-bottom:0;">Luas Wilayah per Kecamatan</div>
-                        <i class="fa fa-ellipsis-v" style="color:#ccc;cursor:pointer;"></i>
-                    </div>
-                    <div id="chart-bar-luas" style="margin-top:10px;"></div>
+                <div class="chart-card">
+                    <div class="chart-title">LUAS WILAYAH PER KECAMATAN</div>
+                    <div id="chart-bar-luas"></div>
                 </div>
-                <div class="chart-card" style="margin-bottom:0;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="chart-title" style="margin-bottom:0;">Persentase Luas Wilayah</div>
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="chart-title" style="margin-bottom:0;">PERSENTASE LUAS WILAYAH</div>
                         <div style="font-size:11px;color:#aaa;">Total {{ number_format($geo->luas_kota_km2, 1) }} km²</div>
                     </div>
-                    <div id="chart-donut-persen" style="margin-top:6px;"></div>
+                    <div id="chart-donut-persen"></div>
                 </div>
             </div>
 
-            {{-- RIGHT: Leaflet Map --}}
-            <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column; padding:14px;">
-                {{-- Tab Pilihan Layer --}}
-                <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
-                    <button class="map-tab-btn active" onclick="switchLayer('banjir')" id="tab-banjir">
-                        <i class="fa fa-tint"></i> Banjir
-                    </button>
-                    <button class="map-tab-btn" onclick="switchLayer('damkar')" id="tab-damkar">
-                        <i class="fa fa-fire-extinguisher"></i> Pos Damkar
-                    </button>
-                    <button class="map-tab-btn" onclick="switchLayer('zona')" id="tab-zona">
-                        <i class="fa fa-shield-alt"></i> Zona Aman
-                    </button>
-                </div>
+            {{-- RIGHT: Map --}}
+            <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column; gap:10px;">
+                <div class="chart-title" style="margin-bottom:0;">PETA WILAYAH JAKARTA BARAT</div>
                 <div id="geo-map"></div>
             </div>
         </div>
 
         {{-- Comparison Chart --}}
-        <div class="chart-card chart-card-compare">
+        <div class="chart-card">
             <div class="chart-title-row">
                 <div>
-                    <div class="chart-title" style="margin-bottom:2px;">Perbandingan Statistik Lanjutan</div>
-                    <div class="chart-sub">Komparasi kros-tabulasi antara luas wilayah dan densitas penduduk</div>
+                    <div class="chart-title" style="margin-bottom:2px;">PERBANDINGAN STATISTIK LANJUTAN</div>
+                    <div class="chart-sub">Komparasi antara luas wilayah dan kepadatan penduduk per kecamatan</div>
                 </div>
             </div>
             <div id="chart-compare"></div>
@@ -250,15 +248,12 @@
         {{-- Highlight Cards --}}
         @php
             $sortedLuas = $luas->sortByDesc('luas_km2');
-            $terluas  = $sortedLuas->first();
-            $terkecil = $sortedLuas->last();
-            $totalLuas = $luas->sum('luas_km2');
+            $terluas    = $sortedLuas->first();
+            $terkecil   = $sortedLuas->last();
         @endphp
         <div class="geo-highlight-grid">
             <div class="geo-hl-card">
-                <div class="hl-icon" style="background:#fff8e1;">
-                    <i class="fa fa-expand-arrows-alt" style="color:#f9a825;"></i>
-                </div>
+                <div class="hl-icon" style="background:#fff8e1;"><i class="fa fa-expand-arrows-alt" style="color:#f9a825;"></i></div>
                 <div>
                     <div class="hl-tag" style="color:#f9a825;">TERLUAS</div>
                     <div class="hl-name">Kecamatan {{ $terluas->kecamatan->nama_kecamatan }}</div>
@@ -266,9 +261,7 @@
                 </div>
             </div>
             <div class="geo-hl-card">
-                <div class="hl-icon" style="background:#e3f0ff;">
-                    <i class="fa fa-compress-arrows-alt" style="color:#1e88e5;"></i>
-                </div>
+                <div class="hl-icon" style="background:#e3f0ff;"><i class="fa fa-compress-arrows-alt" style="color:#1e88e5;"></i></div>
                 <div>
                     <div class="hl-tag" style="color:#1e88e5;">TERKECIL</div>
                     <div class="hl-name">Kecamatan {{ $terkecil->kecamatan->nama_kecamatan }}</div>
@@ -276,9 +269,7 @@
                 </div>
             </div>
             <div class="geo-hl-card">
-                <div class="hl-icon" style="background:#fce4ec;">
-                    <i class="fa fa-users" style="color:#e91e8c;"></i>
-                </div>
+                <div class="hl-icon" style="background:#fce4ec;"><i class="fa fa-users" style="color:#e91e8c;"></i></div>
                 <div>
                     <div class="hl-tag" style="color:#e91e8c;">TERPADAT</div>
                     <div class="hl-name">Kecamatan Tambora</div>
@@ -318,7 +309,7 @@
                 </tbody>
             </table>
             <div class="geo-pagination">
-                <div id="pager-info">Showing 1–4 of {{ $luas->count() }} Kecamatan</div>
+                <div id="pager-info"></div>
                 <div class="geo-pager" id="geo-pager"></div>
             </div>
         </div>
@@ -339,22 +330,24 @@
     var menu = document.getElementById('dropdownTahunMenu');
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        btn.classList.toggle('open');
+        menu.classList.toggle('show');
     });
     document.addEventListener('click', function () {
-        menu.style.display = 'none';
+        btn.classList.remove('open');
+        menu.classList.remove('show');
     });
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-
+// ── Data dari Laravel ─────────────────────────────────────────
 var namaKec  = {!! json_encode($luas->sortByDesc('luas_km2')->pluck('kecamatan.nama_kecamatan')) !!};
 var luasData = {!! json_encode($luas->sortByDesc('luas_km2')->pluck('luas_km2')->map(fn($v) => (float)$v)) !!};
 var persen   = {!! json_encode($luas->sortByDesc('luas_km2')->pluck('persentase')->map(fn($v) => (float)$v)) !!};
 
-// Warna per kecamatan (konsisten map & chart)
+// Warna konsisten map & chart
 var warnaKec = {
     'KALIDERES'         : '#f9a825',
     'CENGKARENG'        : '#fb8c00',
@@ -365,16 +358,12 @@ var warnaKec = {
     'TAMBORA'           : '#00897b',
     'TAMAN SARI'        : '#6d4c41',
 };
+function getWarna(n) { return warnaKec[n.toUpperCase()] || '#90a4ae'; }
+var warnaArr = namaKec.map(function(n){ return getWarna(n); });
 
-function getWarna(nama) {
-    return warnaKec[nama.toUpperCase()] || '#90a4ae';
-}
-
-var warnaArr = namaKec.map(function(n) { return getWarna(n); });
-
-// ── Chart Bar Luas ─────────────────────────────────────────────
+// ── Chart Bar Luas ────────────────────────────────────────────
 new ApexCharts(document.querySelector('#chart-bar-luas'), {
-    chart: { type: 'bar', height: 240, toolbar: { show: false }, sparkline: { enabled: false } },
+    chart: { type: 'bar', height: 240, toolbar: { show: false } },
     series: [{ name: 'Luas (km²)', data: luasData }],
     xaxis: { categories: namaKec, labels: { style: { fontSize: '10px' } } },
     colors: warnaArr,
@@ -384,7 +373,7 @@ new ApexCharts(document.querySelector('#chart-bar-luas'), {
     grid: { borderColor: '#f5f5f5' },
 }).render();
 
-// ── Chart Donut Persentase ─────────────────────────────────────
+// ── Chart Donut ───────────────────────────────────────────────
 new ApexCharts(document.querySelector('#chart-donut-persen'), {
     chart: { type: 'donut', height: 260 },
     series: persen,
@@ -398,224 +387,156 @@ new ApexCharts(document.querySelector('#chart-donut-persen'), {
                  formatter: function() { return '{!! number_format($geo->luas_kota_km2, 1) !!} km²'; } }
     }}}},
 }).render();
-</script>
 
-<script>
 // ── Chart Comparison ──────────────────────────────────────────
 var kepadatanData = [15421, 8543, 11234, 9876, 18234, 12543, 14321, 48243];
-var namaCompare = {!! json_encode($luas->sortByDesc('luas_km2')->pluck('kecamatan.nama_kecamatan')) !!};
-
-var chartCompare = new ApexCharts(document.querySelector('#chart-compare'), {
+new ApexCharts(document.querySelector('#chart-compare'), {
     chart: { type: 'bar', height: 300, toolbar: { show: false } },
     series: [
         { name: 'Luas Wilayah (km²)', data: luasData },
         { name: 'Kepadatan (×100/km²)', data: kepadatanData.map(function(v){ return parseFloat((v/100).toFixed(1)); }) },
     ],
     xaxis: {
-        categories: namaCompare,
-        labels: {
-            rotate: -30,
-            rotateAlways: true,
-            style: { fontSize: '10px' },
-            trim: false,
-        }
+        categories: namaKec,
+        labels: { rotate: -30, rotateAlways: true, style: { fontSize: '10px' }, trim: false }
     },
     colors: ['#f9a825', '#1e88e5'],
     dataLabels: { enabled: false },
     plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
     legend: { position: 'bottom', fontSize: '11px' },
     grid: { borderColor: '#f5f5f5' },
-});
-chartCompare.render();
+}).render();
 
 function setView(v) {
     document.getElementById('btn-chart-view').classList.toggle('active', v === 'chart');
     document.getElementById('btn-table-view').classList.toggle('active', v === 'table');
 }
+</script>
 
+<script>
 // ── Leaflet Map ───────────────────────────────────────────────
 var map = L.map('geo-map').setView([-6.15, 106.76], 12);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors', maxZoom: 19
+// Layer satelit (default) — sama seperti kependudukan
+var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri', maxZoom: 19
 }).addTo(map);
+
+var labelLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, pane: 'overlayPane'
+}).addTo(map);
+
+var jalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+});
+
+L.control.layers(
+    { 'Satelit': satelit, 'Peta Jalan': jalan },
+    { 'Label Nama': labelLayer },
+    { position: 'topright' }
+).addTo(map);
 
 var luasByNama = {};
 namaKec.forEach(function(n, i) { luasByNama[n.toUpperCase()] = luasData[i]; });
 
 var kecJakbar = Object.keys(warnaKec);
 
-// ── Data titik per layer ────────────────
-var layerData = {
-    banjir: {
-        points: [
-            { lat:-6.108, lng:106.700, label:'Banjir Prioritas 1 – Kalideres Barat',  type:'p1' },
-            { lat:-6.115, lng:106.715, label:'Banjir Prioritas 1 – Kalideres Timur',  type:'p1' },
-            { lat:-6.095, lng:106.735, label:'Banjir Prioritas 1 – Cengkareng Utara', type:'p1' },
-            { lat:-6.130, lng:106.745, label:'Banjir Prioritas 2 – Cengkareng Sel.',  type:'p2' },
-            { lat:-6.160, lng:106.725, label:'Banjir Prioritas 2 – Kembangan Utara',  type:'p2' },
-            { lat:-6.148, lng:106.760, label:'Banjir Prioritas 2 – Kebon Jeruk',      type:'p2' },
-            { lat:-6.170, lng:106.800, label:'Banjir Prioritas 3 – Palmerah',         type:'p3' },
-            { lat:-6.163, lng:106.820, label:'Banjir Prioritas 3 – Taman Sari',       type:'p3' },
-            { lat:-6.172, lng:106.835, label:'Banjir Prioritas 3 – Tambora',          type:'p3' },
-            { lat:-6.120, lng:106.780, label:'Rumah Pompa – Grogol',                  type:'pompa' },
-            { lat:-6.155, lng:106.745, label:'Rumah Pompa – Kembangan',               type:'pompa' },
-            { lat:-6.138, lng:106.810, label:'Pintu Air – Grogol Petamburan',         type:'pintuair' },
-        ],
-        legend: [
-            { color:'#e53935', emoji:'●', label:'Lokasi Banjir Prioritas 1', count:3 },
-            { color:'#fb8c00', emoji:'●', label:'Lokasi Banjir Prioritas 2', count:3 },
-            { color:'#fdd835', emoji:'●', label:'Lokasi Banjir Prioritas 3', count:3 },
-            { color:'#1e88e5', emoji:'⊕', label:'Rumah Pompa',              count:2 },
-            { color:'#43a047', emoji:'⊞', label:'Pintu Air',                count:1 },
-        ]
-    },
-    damkar: {
-        points: [
-            { lat:-6.112, lng:106.705, label:'Pos Damkar Kalideres',          type:'damkar' },
-            { lat:-6.100, lng:106.738, label:'Pos Damkar Cengkareng',         type:'damkar' },
-            { lat:-6.165, lng:106.728, label:'Pos Damkar Kembangan',          type:'damkar' },
-            { lat:-6.152, lng:106.768, label:'Pos Damkar Kebon Jeruk',        type:'damkar' },
-            { lat:-6.148, lng:106.800, label:'Pos Damkar Grogol Petamburan',  type:'damkar' },
-            { lat:-6.168, lng:106.810, label:'Pos Damkar Palmerah',           type:'damkar' },
-            { lat:-6.175, lng:106.830, label:'Pos Damkar Tambora',            type:'damkar' },
-            { lat:-6.160, lng:106.840, label:'Pos Damkar Taman Sari',         type:'damkar' },
-        ],
-        legend: [
-            { color:'#e53935', emoji:'🚒', label:'Pos Pemadam Kebakaran', count:8 },
-        ]
-    },
-    zona: {
-        points: [
-            { lat:-6.118, lng:106.710, label:'Zona Aman – Kalideres',          type:'aman' },
-            { lat:-6.107, lng:106.742, label:'Zona Aman – Cengkareng Utara',   type:'aman' },
-            { lat:-6.162, lng:106.732, label:'Zona Aman – Kembangan',          type:'aman' },
-            { lat:-6.155, lng:106.772, label:'Zona Aman – Kebon Jeruk',        type:'aman' },
-            { lat:-6.143, lng:106.806, label:'Zona Aman – Grogol',             type:'aman' },
-            { lat:-6.170, lng:106.817, label:'Zona Aman – Palmerah',           type:'aman' },
-            { lat:-6.173, lng:106.832, label:'Zona Aman – Tambora',            type:'waspada' },
-            { lat:-6.158, lng:106.842, label:'Zona Waspada – Taman Sari',      type:'waspada' },
-        ],
-        legend: [
-            { color:'#43a047', emoji:'●', label:'Zona Aman',     count:6 },
-            { color:'#fb8c00', emoji:'●', label:'Zona Waspada',  count:2 },
-        ]
-    }
-};
-
-// Warna/ikon per type marker
-var markerStyle = {
-    p1:       { color:'#e53935', size:12 },
-    p2:       { color:'#fb8c00', size:11 },
-    p3:       { color:'#fdd835', size:10 },
-    pompa:    { color:'#1e88e5', size:13 },
-    pintuair: { color:'#43a047', size:13 },
-    damkar:   { color:'#e53935', size:13 },
-    aman:     { color:'#43a047', size:12 },
-    waspada:  { color:'#fb8c00', size:12 },
-};
-
-var activeMarkers = [];
-var legendControl = null;
-var currentLayerKey = 'banjir';
-
-// ── GeoJSON Polygon ────────────────────────────────────────────
+// ── GeoJSON Polygon + Legend Kecamatan ───────────────────────
 fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
     .then(function(r) { return r.json(); })
     .then(function(data) {
         data.features = data.features.filter(function(f) {
             return kecJakbar.includes((f.properties.name || '').toUpperCase());
         });
+        var activeLayer = null;
+        var layerMap   = {};   // nama_kecamatan.toUpperCase() → layer
+
         L.geoJSON(data, {
             style: function(feature) {
-                var nama = (feature.properties.name || '').toUpperCase();
-                return { color: '#1a237e', weight: 2, fillColor: getWarna(nama), fillOpacity: 0.45 };
+                return {
+                    color: '#fff', weight: 2,
+                    fillColor: getWarna(feature.properties.name || ''),
+                    fillOpacity: 0.5,
+                };
             },
             onEachFeature: function(feature, layer) {
-                var nama = feature.properties.name || '';
+                var nama   = feature.properties.name || '';
                 var namaUp = nama.toUpperCase();
-                var luas = luasByNama[namaUp] ? luasByNama[namaUp].toFixed(2) + ' km²' : '—';
+                var luas   = luasByNama[namaUp] ? luasByNama[namaUp].toFixed(2) + ' km²' : '-';
+
+                // Simpan referensi layer
+                layerMap[namaUp] = layer;
+
                 layer.on('mouseover', function() {
-                    layer.setStyle({ fillOpacity: 0.7 });
-                    layer.bindTooltip('<b>' + nama + '</b><br>' + luas, { sticky: true }).openTooltip();
+                    if (layer !== activeLayer) layer.setStyle({ fillOpacity: 0.75 });
                 });
-                layer.on('mouseout', function() { layer.setStyle({ fillOpacity: 0.45 }); });
+                layer.on('mouseout', function() {
+                    if (layer !== activeLayer) layer.setStyle({ fillOpacity: 0.5, weight: 2, color: '#fff' });
+                });
+                layer.on('click', function() {
+                    focusKecamatan(namaUp);
+                });
             }
         }).addTo(map);
 
-        // Render layer default
-        renderMapLayer('banjir');
+        // Fungsi highlight + zoom — bisa dipanggil dari layer maupun legend
+        function focusKecamatan(namaUp) {
+            var layer = layerMap[namaUp];
+            if (!layer) return;
+            var luas = luasByNama[namaUp] ? luasByNama[namaUp].toFixed(2) + ' km²' : '-';
+
+            if (activeLayer) activeLayer.setStyle({ fillOpacity: 0.5, weight: 2, color: '#fff' });
+            layer.setStyle({ fillOpacity: 0.9, weight: 3, color: '#222' });
+            layer.bringToFront();
+            activeLayer = layer;
+
+            map.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 14 });
+            layer.bindPopup('<b>Kec. ' + namaUp + '</b><br>📐 ' + luas).openPopup();
+
+            // Highlight baris legend aktif
+            document.querySelectorAll('.legend-kec-item').forEach(function(el) {
+                el.style.fontWeight = el.dataset.nama === namaUp ? '700' : '400';
+                el.style.background = el.dataset.nama === namaUp ? '#fffbf0' : 'transparent';
+                el.style.borderRadius = '4px';
+            });
+        }
+
+        // Legend kecamatan — tiap baris bisa diklik
+        var kecLegend = L.control({ position: 'bottomright' });
+        kecLegend.onAdd = function() {
+            var div = L.DomUtil.create('div');
+            div.style.cssText = 'background:white;padding:10px;border-radius:8px;font-size:12px;line-height:20px;box-shadow:0 1px 5px rgba(0,0,0,0.2);';
+            div.innerHTML = '<b>Kecamatan</b><br>';
+            kecJakbar.forEach(function(nama) {
+                var luas = luasByNama[nama] ? luasByNama[nama].toFixed(2) + ' km²' : '-';
+                var row  = L.DomUtil.create('div', 'legend-kec-item', div);
+                row.dataset.nama  = nama;
+                row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:2px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';
+                row.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border-radius:3px;flex-shrink:0;background:' + getWarna(nama) + ';"></span>'
+                    + '<span>' + nama + ' <b>' + luas + '</b></span>';
+                row.addEventListener('mouseover', function() { if (row.style.fontWeight !== '700') row.style.background = '#f5f5f5'; });
+                row.addEventListener('mouseout',  function() { if (row.style.fontWeight !== '700') row.style.background = 'transparent'; });
+                row.addEventListener('click', function() { focusKecamatan(nama); });
+            });
+            return div;
+        };
+        kecLegend.addTo(map);
     });
-
-function makeMarkerIcon(type) {
-    var s = markerStyle[type] || { color:'#888', size:11 };
-    var emoji = (type === 'pompa')    ? '⊕'
-              : (type === 'pintuair') ? '⊞'
-              : (type === 'damkar')   ? '🚒'
-              : '';
-    var inner = emoji
-        ? '<div style="font-size:' + (s.size+4) + 'px;line-height:1;">' + emoji + '</div>'
-        : '<div style="width:' + s.size + 'px;height:' + s.size + 'px;border-radius:50%;background:' + s.color + ';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>';
-    return L.divIcon({ className:'', html: inner, iconSize:[s.size+4, s.size+4], iconAnchor:[(s.size+4)/2,(s.size+4)/2] });
-}
-
-function renderMapLayer(key) {
-    activeMarkers.forEach(function(m) { map.removeLayer(m); });
-    activeMarkers = [];
-
-    var data = layerData[key];
-    data.points.forEach(function(p) {
-        var m = L.marker([p.lat, p.lng], { icon: makeMarkerIcon(p.type) })
-            .addTo(map)
-            .bindPopup('<b>' + p.label + '</b>');
-        activeMarkers.push(m);
-    });
-
-    // Update legend
-    if (legendControl) { map.removeControl(legendControl); legendControl = null; }
-    legendControl = L.control({ position: 'topright' });
-    legendControl.onAdd = function() {
-        var div = L.DomUtil.create('div');
-        div.style.cssText = 'background:#fff;padding:10px 14px;border-radius:8px;font-size:12px;line-height:22px;box-shadow:0 1px 6px rgba(0,0,0,0.2);min-width:200px;';
-        div.innerHTML = '<b>Keterangan :</b><br>';
-        data.legend.forEach(function(item) {
-            div.innerHTML += '<span style="color:' + item.color + ';font-size:15px;margin-right:6px;vertical-align:middle;">' + item.emoji + '</span>'
-                + item.label + ' <b>: ' + item.count + '</b><br>';
-        });
-        return div;
-    };
-    legendControl.addTo(map);
-}
-
-function switchLayer(key) {
-    currentLayerKey = key;
-    // Update tab aktif
-    ['banjir','damkar','zona'].forEach(function(k) {
-        document.getElementById('tab-' + k).classList.toggle('active', k === key);
-    });
-    renderMapLayer(key);
-}
 
 // ── Table Pagination & Search ─────────────────────────────────
-var PAGE_SIZE = 4;
-var currentPage = 1;
-var filteredRows = [];
+var PAGE_SIZE = 4, currentPage = 1, filteredRows = [];
 
-function getAllRows() {
-    return Array.from(document.querySelectorAll('#geo-table-body tr'));
-}
+function getAllRows() { return Array.from(document.querySelectorAll('#geo-table-body tr')); }
 
 function filterTable() {
     var q = document.getElementById('geo-search').value.toLowerCase();
-    filteredRows = getAllRows().filter(function(r) {
-        return r.dataset.name.includes(q);
-    });
+    filteredRows = getAllRows().filter(function(r) { return r.dataset.name.includes(q); });
     currentPage = 1;
     renderTable();
 }
 
 function renderTable() {
-    var rows = filteredRows.length ? filteredRows : getAllRows();
+    var rows  = filteredRows.length ? filteredRows : getAllRows();
     var total = rows.length;
     var start = (currentPage - 1) * PAGE_SIZE;
     var end   = Math.min(start + PAGE_SIZE, total);
@@ -623,17 +544,14 @@ function renderTable() {
     getAllRows().forEach(function(r) { r.style.display = 'none'; });
     rows.slice(start, end).forEach(function(r) { r.style.display = ''; });
 
-    document.getElementById('pager-info').textContent =
-        'Showing ' + (start+1) + '–' + end + ' of ' + total + ' Kecamatan';
+    document.getElementById('pager-info').textContent = 'Showing ' + (start+1) + '–' + end + ' of ' + total + ' Kecamatan';
 
     var pages = Math.ceil(total / PAGE_SIZE);
     var pager = document.getElementById('geo-pager');
     pager.innerHTML = '';
 
-    // Prev
     var prev = document.createElement('button');
-    prev.innerHTML = '&lsaquo;';
-    prev.disabled = currentPage === 1;
+    prev.innerHTML = '&lsaquo;'; prev.disabled = currentPage === 1;
     prev.onclick = function() { currentPage--; renderTable(); };
     pager.appendChild(prev);
 
@@ -647,10 +565,8 @@ function renderTable() {
         })(p);
     }
 
-    // Next
     var next = document.createElement('button');
-    next.innerHTML = '&rsaquo;';
-    next.disabled = currentPage === pages;
+    next.innerHTML = '&rsaquo;'; next.disabled = currentPage === pages;
     next.onclick = function() { currentPage++; renderTable(); };
     pager.appendChild(next);
 }
