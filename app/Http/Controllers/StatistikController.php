@@ -25,7 +25,33 @@ class StatistikController extends Controller
             ->where('data_geografis_id', $geo->id)
             ->get();
 
-        return view('statistik.geografis', compact('geo', 'luas'));
+        // Penduduk per kecamatan (untuk kepadatan) & jumlah kelurahan per kecamatan
+        $pendudukKec = PendudukKecamatan::with('kecamatan')
+            ->where('tahun', 2024)->get()
+            ->keyBy(fn($p) => strtoupper($p->kecamatan->nama_kecamatan));
+
+        $kelurahanCount = PendudukKelurahan::with('kecamatan')
+            ->where('tahun', 2024)->get()
+            ->groupBy(fn($k) => strtoupper($k->kecamatan->nama_kecamatan))
+            ->map->count();
+
+        // Statistik per kecamatan untuk interaksi dinamis pada card
+        $kecStats = $luas->mapWithKeys(function ($row) use ($pendudukKec, $kelurahanCount) {
+            $nama     = strtoupper($row->kecamatan->nama_kecamatan);
+            $penduduk = optional($pendudukKec->get($nama))->jumlah_penduduk;
+            $kepadatan = ($penduduk && $row->luas_km2) ? $penduduk / $row->luas_km2 : null;
+
+            return [$nama => [
+                'nama'       => $row->kecamatan->nama_kecamatan,
+                'luas'       => (float) $row->luas_km2,
+                'persentase' => (float) $row->persentase,
+                'kelurahan'  => (int) $kelurahanCount->get($nama, 0),
+                'penduduk'   => $penduduk ? (int) $penduduk : null,
+                'kepadatan'  => $kepadatan ? round($kepadatan) : null,
+            ]];
+        });
+
+        return view('statistik.geografis', compact('geo', 'luas', 'kecStats'));
     }
 
     public function iklim()
