@@ -64,18 +64,20 @@
     .map-tab-btn.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
     #bencana-map { width: 100%; height: 520px; border-radius: 8px; }
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .stat-card-metric { cursor: pointer; transition: box-shadow .2s, border-color .2s, transform .1s; }
-    .stat-card-metric:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    .stat-card-metric.active { border-color: #ffbf00; box-shadow: 0 0 0 2px #ffbf00 inset; }
-    .stat-card { background: #fff; border: 1px solid #edf1f7; border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; }
-    .stat-card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
-    .stat-card-content { flex: 1; min-width: 0; }
-    .stat-card-label { font-size: 12px; font-weight: 700; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .stat-card-value { font-size: 26px; font-weight: 700; color: #2b2b2b; line-height: 1.1; }
-    .stat-card-icon.orange,
-    .stat-card-icon.red,
-    .stat-card-icon.blue,
-    .stat-card-icon.gold { background: #ffbf00; color: #fff; }
+    /* Summary cards — samakan dengan modul geografis, iklim, kependudukan */
+    .stat-summary-card {
+        background: #f9f9f9; border: 1px solid #eee;
+        border-radius: 8px; padding: 16px 24px;
+        display: flex; align-items: center; gap: 16px;
+    }
+    .stat-summary-card .card-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+    }
+    .stat-summary-card .card-text .label { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
+    .stat-summary-card .card-text .value { font-size: 28px; font-weight: 700; color: #333; line-height: 1.15; }
+    .stat-summary-card .card-text .value small { font-size: 13px; font-weight: 500; color: #888; margin-left: 3px; }
     .map-legend { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee; max-width: 300px; }
     .map-legend-title { font-weight: 700; color: #333; margin-bottom: 12px; font-size: 13px; }
     .map-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #555; }
@@ -141,42 +143,50 @@
             @endif
             </div>
 
-            {{-- ── Summary Cards (klik untuk ubah donut chart) ─── --}}
+            {{-- ── Summary Cards (menyesuaikan saat jenis di donut diklik) ─── --}}
             <div class="stat-grid">
-                <div class="stat-card stat-card-metric active" data-metric="kejadian" title="Klik untuk lihat proporsi berdasarkan kejadian">
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Total Kejadian</div>
-                        <div class="stat-card-value">{{ number_format($ringkasan['total_kejadian']) }}</div>
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">TOTAL KEJADIAN</div>
+                        <div class="value" id="sc-kejadian">{{ number_format($ringkasan['total_kejadian']) }}</div>
                     </div>
-                    <div class="stat-card-icon orange"><i class="fa fa-house-flood-water"></i></div>
+                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <i class="fa fa-house-flood-water" style="color:#fff;"></i>
+                    </div>
                 </div>
-                <div class="stat-card stat-card-metric" data-metric="korban" title="Klik untuk lihat proporsi berdasarkan korban">
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Total Korban</div>
-                        <div class="stat-card-value">{{ number_format($ringkasan['total_korban']) }}</div>
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">TOTAL KORBAN</div>
+                        <div class="value" id="sc-korban">{{ number_format($ringkasan['total_korban']) }}</div>
                     </div>
-                    <div class="stat-card-icon red"><i class="fa fa-user-injured"></i></div>
+                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <i class="fa fa-user-injured" style="color:#fff;"></i>
+                    </div>
                 </div>
-                <div class="stat-card stat-card-metric" data-metric="terdampak" title="Klik untuk lihat proporsi berdasarkan terdampak">
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Total Terdampak</div>
-                        <div class="stat-card-value">{{ number_format($ringkasan['total_terdampak']) }}</div>
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label">TOTAL TERDAMPAK</div>
+                        <div class="value" id="sc-terdampak">{{ number_format($ringkasan['total_terdampak']) }}</div>
                     </div>
-                    <div class="stat-card-icon blue"><i class="fa fa-users"></i></div>
+                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <i class="fa fa-users" style="color:#fff;"></i>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Jenis Terbanyak</div>
-                        <div class="stat-card-value" style="font-size:20px;">{{ $ringkasan['jenis_terbanyak'] }}</div>
+                <div class="stat-summary-card">
+                    <div class="card-text">
+                        <div class="label" id="sc-jenis-label">JENIS TERBANYAK</div>
+                        <div class="value" id="sc-jenis" style="font-size:20px;">{{ $ringkasan['jenis_terbanyak'] }}</div>
                     </div>
-                    <div class="stat-card-icon gold"><i class="fa fa-triangle-exclamation"></i></div>
+                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <i class="fa fa-triangle-exclamation" style="color:#fff;"></i>
+                    </div>
                 </div>
             </div>
 
             <div class="row g-3 mb-4">
                 <div class="col-lg-7 d-flex">
                     <div class="chart-card w-100 d-flex flex-column">
-                        <div class="chart-title">Proporsi Jenis Bencana <span style="color:#ffbf00;">· berdasarkan <span id="donut-metric-label">Kejadian</span></span></div>
+                        <div class="chart-title">Proporsi Jenis Bencana <span class="text-muted" style="font-weight:400;">· klik jenis untuk lihat ringkasannya</span></div>
                         <div id="chart-bencana" class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 440px;"></div>
                     </div>
                 </div>
@@ -463,16 +473,38 @@
         'terdampak' => (int) $b->jumlah_terdampak,
     ])->values()) !!};
 
-    // Agregasi per jenis untuk tiap metrik (urutan label mengikuti jenisLabels)
-    var metricKey = { kejadian: 'jumlah', korban: 'korban', terdampak: 'terdampak' };
-    var metricUnit = { kejadian: 'kejadian', korban: 'korban', terdampak: 'terdampak' };
-    function seriesByMetric(metric) {
-        var key = metricKey[metric];
-        return jenisLabels.map(function (jenis) {
-            return rawItems.reduce(function (sum, it) {
-                return it.jenis === jenis ? sum + (it[key] || 0) : sum;
-            }, 0);
-        });
+    // Total per jenis bencana (untuk menyesuaikan summary card saat slice donut diklik)
+    var totalsByJenis = {};
+    rawItems.forEach(function (it) {
+        var t = totalsByJenis[it.jenis] || { kejadian: 0, korban: 0, terdampak: 0 };
+        t.kejadian  += it.jumlah || 0;
+        t.korban    += it.korban || 0;
+        t.terdampak += it.terdampak || 0;
+        totalsByJenis[it.jenis] = t;
+    });
+    // Total keseluruhan (untuk reset)
+    var grandTotals = { kejadian: 0, korban: 0, terdampak: 0 };
+    Object.keys(totalsByJenis).forEach(function (j) {
+        grandTotals.kejadian  += totalsByJenis[j].kejadian;
+        grandTotals.korban    += totalsByJenis[j].korban;
+        grandTotals.terdampak += totalsByJenis[j].terdampak;
+    });
+
+    function fmt(n) { return Number(n).toLocaleString('en-US'); }
+    function setSummary(jenis) {
+        var t = jenis ? totalsByJenis[jenis] : grandTotals;
+        document.getElementById('sc-kejadian').textContent  = fmt(t.kejadian);
+        document.getElementById('sc-korban').textContent    = fmt(t.korban);
+        document.getElementById('sc-terdampak').textContent = fmt(t.terdampak);
+        var jenisLbl = document.getElementById('sc-jenis-label');
+        var jenisVal = document.getElementById('sc-jenis');
+        if (jenis) {
+            jenisLbl.textContent = 'Jenis Dipilih';
+            jenisVal.textContent = jenis;
+        } else {
+            jenisLbl.textContent = 'Jenis Terbanyak';
+            jenisVal.textContent = @json($ringkasan['jenis_terbanyak']);
+        }
     }
 
     var monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -495,16 +527,28 @@
     var kecamatanLabels = kecamatanEntries.map(function(item){ return item[0]; });
     var kecamatanSeries = kecamatanEntries.map(function(item){ return item[1]; });
 
-    var donutMetric = 'kejadian';
-    var donutChart = null;
+    var selectedJenis = null;
 
     if (jenisSeries.length) {
-        donutChart = new ApexCharts(document.querySelector("#chart-bencana"), {
-            chart: { type: 'donut', height: 420 },
+        var donutChart = new ApexCharts(document.querySelector("#chart-bencana"), {
+            chart: {
+                type: 'donut', height: 420,
+                events: {
+                    dataPointSelection: function (event, ctx, cfg) {
+                        // Toggle: klik jenis → tampilkan ringkasannya; klik lagi → reset
+                        var jenis = jenisLabels[cfg.dataPointIndex];
+                        selectedJenis = (selectedJenis === jenis) ? null : jenis;
+                        setSummary(selectedJenis);
+                    }
+                }
+            },
             labels: jenisLabels,
-            series: seriesByMetric(donutMetric),
+            series: jenisSeries,
             colors: jenisLabels.map(function (j) { return warnaJenis[j] || '#9e9e9e'; }),
-            legend: { position: 'bottom', horizontalAlign: 'center' },
+            legend: {
+                position: 'bottom', horizontalAlign: 'center',
+                onItemClick: { toggleDataSeries: false }
+            },
             plotOptions: {
                 pie: {
                     donut: {
@@ -521,26 +565,21 @@
                 }
             },
             dataLabels: { enabled: true, formatter: function (val) { return Math.round(val) + '%'; } },
-            tooltip: { y: { formatter: function (v) { return v + ' ' + metricUnit[donutMetric]; } } }
+            tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
         });
         donutChart.render();
 
-        // Klik summary card → ubah metrik donut
-        document.querySelectorAll('.stat-card-metric').forEach(function (card) {
-            card.addEventListener('click', function () {
-                var metric = this.getAttribute('data-metric');
-                if (metric === donutMetric) return;
-                donutMetric = metric;
-                document.querySelectorAll('.stat-card-metric').forEach(function (c) { c.classList.remove('active'); });
-                this.classList.add('active');
-                var lbl = { kejadian: 'Kejadian', korban: 'Korban', terdampak: 'Terdampak' }[donutMetric];
-                var lblEl = document.getElementById('donut-metric-label');
-                if (lblEl) lblEl.textContent = lbl;
-                donutChart.updateOptions({
-                    series: seriesByMetric(donutMetric),
-                    tooltip: { y: { formatter: function (v) { return v + ' ' + metricUnit[donutMetric]; } } }
-                });
-            });
+        // Klik legend (titik kecil di bawah donut) → ringkasan jenis tsb
+        document.querySelector('#chart-bencana').addEventListener('click', function (e) {
+            var legendItem = e.target.closest('.apexcharts-legend-series');
+            if (!legendItem) return;
+            var jenis = legendItem.getAttribute('seriesname');
+            // ApexCharts mengganti spasi pada seriesname dengan 'x' entity; cocokkan via teks
+            var text = (legendItem.textContent || '').trim();
+            var match = jenisLabels.find(function (j) { return j === text; });
+            if (!match) return;
+            selectedJenis = (selectedJenis === match) ? null : match;
+            setSummary(selectedJenis);
         });
     } else {
         document.querySelector("#chart-bencana").innerHTML =

@@ -100,12 +100,6 @@
         border-radius:12px;
         padding:12px;
         text-align:center;
-        transition:.3s;
-    }
-
-    .education-card:hover {
-        transform:translateY(-3px);
-        box-shadow:0 5px 15px rgba(0,0,0,.08);
     }
 
     .education-icon {
@@ -123,15 +117,18 @@
     }
 
     .education-label {
-        font-size:11px;
-        color:#777;
+        font-size:12px;
+        color:#888;
         font-weight:600;
+        letter-spacing:1px;
+        text-transform:uppercase;
     }
 
     .education-value {
-        font-size:20px;
-        font-weight:800;
+        font-size:22px;
+        font-weight:700;
         color:#333;
+        line-height:1.15;
     }
 
     .total-badge {

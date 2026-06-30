@@ -55,11 +55,9 @@
         gap:16px; margin-bottom:16px;
     }
     .stat-card {
-        background:#fff; border:1px solid #ebebeb; border-radius:12px;
-        padding:20px 22px 18px; position:relative; overflow:hidden;
-        transition:box-shadow .2s;
+        background:#f9f9f9; border:1px solid #eee; border-radius:8px;
+        padding:16px 24px; position:relative; overflow:hidden;
     }
-    .stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.07); }
     .sc-badge {
         font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;
         position:absolute; top:16px; right:16px;
@@ -79,8 +77,8 @@
     .sc-icon.green,
     .sc-icon.blue,
     .sc-icon.teal { background:#ffbf00; color:#fff; }
-    .sc-label { font-size:10px; font-weight:700; color:#9e9e9e; letter-spacing:.8px; text-transform:uppercase; margin-bottom:4px; }
-    .sc-value { font-size:28px; font-weight:800; color:#1a1a1a; line-height:1; margin-bottom:6px; }
+    .sc-label { font-size:12px; font-weight:600; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+    .sc-value { font-size:28px; font-weight:700; color:#333; line-height:1.15; margin-bottom:6px; }
     .sc-desc  { font-size:11px; color:#aaa; }
 
     /* ── Mid grid ───────────────────────────────────────────── */
