@@ -53,9 +53,33 @@
     }
     .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
     .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
+    .map-container { margin-bottom: 0; }
+    .map-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .map-tab-btn {
+        padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;
+        background: #fff; color: #555; font-weight: 600; font-size: 12px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .map-tab-btn:hover { border-color: #ffbf00; color: #ffbf00; }
+    .map-tab-btn.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
+    #bencana-map { width: 100%; height: 480px; border-radius: 8px; }
+    .stat-card { background: #fff; border: 1px solid #edf1f7; border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; }
+    .stat-card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .stat-card-content { flex: 1; min-width: 0; }
+    .stat-card-label { font-size: 12px; font-weight: 700; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-card-value { font-size: 26px; font-weight: 700; color: #2b2b2b; line-height: 1.1; }
+    .stat-card-icon.orange { background: #fff4e5; color: #ff9800; }
+    .stat-card-icon.red { background: #ffebee; color: #f44336; }
+    .stat-card-icon.blue { background: #e3f2fd; color: #2196f3; }
+    .stat-card-icon.gold { background: #fffde7; color: #fbc02d; }
+    .map-legend { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee; max-width: 300px; }
+    .map-legend-title { font-weight: 700; color: #333; margin-bottom: 12px; font-size: 13px; }
+    .map-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #555; }
+    .map-legend-icon { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
     @media (max-width: 768px) {
         .statistik-wrapper { flex-direction: column; }
         .table-controls .input-group { width: 100%; }
+        #bencana-map { height: 300px; }
     }
 </style>
 @endpush
@@ -101,18 +125,32 @@
                     </div>
                 </div>
                 <div class="col-lg-5">
-                    <div class="chart-card">
-                        <div class="chart-title">Tren Kejadian Bulanan</div>
-                        <div id="chart-bulanan" style="min-height: 520px;"></div>
+                    <div class="chart-card map-container">
+                        <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 8px; flex-wrap: wrap;">
+                            <div class="chart-title" style="margin-bottom: 0; flex: 1;">Peta Sebaran Bencana</div>
+                            <div class="map-tabs" style="flex-wrap: wrap;">
+                                <button class="map-tab-btn active" data-filter="all" style="font-size: 11px; padding: 6px 10px;">Semua</button>
+                                <button class="map-tab-btn" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Banjir</button>
+                                <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">Pos</button>
+                                <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">Zona</button>
+                            </div>
+                        </div>
+                        <div id="bencana-map" style="min-height: 480px;"></div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-3 mb-4">
-                <div class="col-12">
+                <div class="col-lg-7">
                     <div class="chart-card">
                         <div class="chart-title">Statistik per Kecamatan</div>
                         <div id="chart-kecamatan" style="min-height: 360px;"></div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="chart-card">
+                        <div class="chart-title">Tren Kejadian Bulanan</div>
+                        <div id="chart-bulanan" style="min-height: 360px;"></div>
                     </div>
                 </div>
             </div>
@@ -165,6 +203,8 @@
 @endsection
 
 @push('scripts')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
     (function () {
         var btn = document.getElementById('dropdownTahunBtn');
@@ -173,6 +213,82 @@
             btn.addEventListener('click', function (e) { e.stopPropagation(); btn.classList.toggle('open'); menu.classList.toggle('show'); });
             document.addEventListener('click', function () { btn.classList.remove('open'); menu.classList.remove('show'); });
         }
+
+        // Initialize Leaflet Map
+        var map = L.map('bencana-map').setView([-6.1751, 106.7272], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Define marker data
+        var markerData = {
+            'banjir-p1': [
+                { lat: -6.1751, lng: 106.7272, name: 'Lokasi Banjir Prioritas 1 - A' },
+                { lat: -6.1850, lng: 106.7350, name: 'Lokasi Banjir Prioritas 1 - B' },
+                { lat: -6.1650, lng: 106.7150, name: 'Lokasi Banjir Prioritas 1 - C' }
+            ],
+            'banjir-p2': [
+                { lat: -6.1900, lng: 106.7400, name: 'Lokasi Banjir Prioritas 2 - A' },
+                { lat: -6.1600, lng: 106.7050, name: 'Lokasi Banjir Prioritas 2 - B' }
+            ],
+            'banjir-p3': [
+                { lat: -6.1700, lng: 106.7500, name: 'Lokasi Banjir Prioritas 3 - A' },
+                { lat: -6.1800, lng: 106.7200, name: 'Lokasi Banjir Prioritas 3 - B' },
+                { lat: -6.1550, lng: 106.7300, name: 'Lokasi Banjir Prioritas 3 - C' }
+            ],
+            'pos-damkar': [
+                { lat: -6.1950, lng: 106.7100, name: 'Pos Damkar - A' },
+                { lat: -6.1500, lng: 106.7450, name: 'Pos Damkar - B' }
+            ],
+            'zona-aman': [
+                { lat: -6.1750, lng: 106.7600, name: 'Zona Aman - A' }
+            ]
+        };
+
+        var markers = {};
+        var colors = {
+            'banjir-p1': '#ff6b6b',
+            'banjir-p2': '#ffa500',
+            'banjir-p3': '#ffeb3b',
+            'pos-damkar': '#4caf50',
+            'zona-aman': '#2196f3'
+        };
+
+        // Create markers
+        Object.keys(markerData).forEach(function(type) {
+            markers[type] = [];
+            markerData[type].forEach(function(point) {
+                var marker = L.circleMarker([point.lat, point.lng], {
+                    radius: 8,
+                    fillColor: colors[type],
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).bindPopup(point.name).addTo(map);
+                markers[type].push(marker);
+            });
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.map-tab-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.map-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+                this.classList.add('active');
+                var currentFilter = this.getAttribute('data-filter');
+                
+                Object.keys(markers).forEach(function(type) {
+                    markers[type].forEach(function(marker) {
+                        if (currentFilter === 'all' || type.startsWith(currentFilter)) {
+                            map.addLayer(marker);
+                        } else {
+                            map.removeLayer(marker);
+                        }
+                    });
+                });
+            });
+        });
     })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
