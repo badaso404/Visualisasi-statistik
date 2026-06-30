@@ -48,14 +48,14 @@
     .sc-card-body  { display:flex; justify-content:space-between; align-items:flex-start; margin-top:8px; }
     .sc-card-left  { flex:1; }
     .sc-icon {
-        width:38px; height:38px; border-radius:9px;
+        width:48px; height:48px; border-radius:12px;
         display:flex; align-items:center; justify-content:center;
-        font-size:17px; flex-shrink:0; margin-left:12px;
+        font-size:22px; flex-shrink:0; margin-left:12px;
     }
-    .sc-icon.yellow { background:#fff8e1; color:#d4a017; }
-    .sc-icon.green  { background:#e8f5e9; color:#2e7d32; }
-    .sc-icon.blue   { background:#e3f2fd; color:#1565c0; }
-    .sc-icon.teal   { background:#e0f2f1; color:#00695c; }
+    .sc-icon.yellow,
+    .sc-icon.green,
+    .sc-icon.blue,
+    .sc-icon.teal { background:#ffbf00; color:#fff; }
     .sc-label { font-size:10px; font-weight:700; color:#9e9e9e; letter-spacing:.8px; text-transform:uppercase; margin-bottom:4px; }
     .sc-value { font-size:28px; font-weight:800; color:#1a1a1a; line-height:1; margin-bottom:6px; }
     .sc-desc  { font-size:11px; color:#aaa; }

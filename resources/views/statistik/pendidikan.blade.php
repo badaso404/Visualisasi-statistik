@@ -82,16 +82,17 @@
     }
 
     .education-icon {
-        width:38px;
-        height:38px;
-        border-radius:50%;
+        width:48px;
+        height:48px;
+        border-radius:12px;
         display:flex;
         align-items:center;
         justify-content:center;
         margin:auto;
         margin-bottom:6px;
-        font-size:20px;
-        background:#fff3cd;
+        font-size:22px;
+        background:#ffbf00;
+        color:#fff;
     }
 
     .education-label {

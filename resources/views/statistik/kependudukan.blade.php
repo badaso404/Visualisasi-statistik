@@ -109,34 +109,34 @@
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="card-icon" style="background:#e3f0ff;">
-                            <i class="fa fa-male" style="color:#2196f3;"></i>
-                        </div>
                         <div class="card-text">
                             <div class="label">LAKI-LAKI</div>
                             <div class="value">{{ number_format($summary->jumlah_laki_laki) }}</div>
                         </div>
+                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                            <i class="fa fa-male" style="color:#fff;"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="card-icon" style="background:#fde8f5;">
-                            <i class="fa fa-female" style="color:#e91e8c;"></i>
-                        </div>
                         <div class="card-text">
                             <div class="label">PEREMPUAN</div>
                             <div class="value">{{ number_format($summary->jumlah_perempuan) }}</div>
                         </div>
+                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                            <i class="fa fa-female" style="color:#fff;"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-summary-card">
-                        <div class="card-icon" style="background:#fff8e1;">
-                            <i class="fa fa-users" style="color:#ffbf00;"></i>
-                        </div>
                         <div class="card-text">
                             <div class="label">TOTAL PENDUDUK</div>
                             <div class="value">{{ number_format($summary->jumlah_total) }}</div>
+                        </div>
+                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                            <i class="fa fa-users" style="color:#fff;"></i>
                         </div>
                     </div>
                 </div>
@@ -201,17 +201,36 @@
     var popKecamatan  = {!! json_encode($perKecamatan->pluck('jumlah_penduduk')->map(fn($v) => (int)$v)) !!};
     var kelurahanPerKecamatan = {!! json_encode($kelurahanPerKecamatan) !!};
 
-    // Warna sinkron map & chart
-    var warnaMap = {
-        'CENGKARENG'        : '#2196f3',
-        'KALIDERES'         : '#e91e8c',
-        'KEBON JERUK'       : '#ff9800',
-        'KEMBANGAN'         : '#4caf50',
-        'TAMBORA'           : '#8bc34a',
-        'GROGOL PETAMBURAN' : '#9c27b0',
-        'PALMERAH'          : '#f44336',
-        'TAMAN SARI'        : '#00bcd4',
-    };
+    // ── Skala warna choropleth (base biru) berdasarkan jumlah penduduk ──
+    // Konsisten antara chart, peta & marker — meniru gaya modul Geografis.
+    var BLUE_LIGHT = '#E2ECFA';   // penduduk paling sedikit → biru sangat muda
+    var BLUE_DARK  = '#5B82C0';   // penduduk paling banyak  → biru slate cerah
+    var WARNA_STEPS = 5;          // jumlah tingkatan warna (choropleth bertingkat)
+
+    function lerpColor(a, b, t) {
+        var ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+        var ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+        var br = bh >> 16, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+        var rr = Math.round(ar + (br - ar) * t);
+        var rg = Math.round(ag + (bg - ag) * t);
+        var rb = Math.round(ab + (bb - ab) * t);
+        return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1);
+    }
+
+    var popMin = Math.min.apply(null, popKecamatan);
+    var popMax = Math.max.apply(null, popKecamatan);
+    function gradByPop(v) {
+        if (v == null) return '#e0e0e0';
+        var t = popMax > popMin ? (v - popMin) / (popMax - popMin) : 0.5;
+        var step = Math.round(t * (WARNA_STEPS - 1)) / (WARNA_STEPS - 1);
+        return lerpColor(BLUE_LIGHT, BLUE_DARK, step);
+    }
+
+    // Warna sinkron map & chart (key = NAMA UPPERCASE)
+    var warnaMap = {};
+    namaKecamatan.forEach(function(nama, i) {
+        warnaMap[nama.toUpperCase()] = gradByPop(popKecamatan[i]);
+    });
 
     var warnaChart = namaKecamatan.map(function(nama) {
         return warnaMap[nama.toUpperCase()] || '#ccc';
@@ -332,16 +351,21 @@
     // MAP
     var map = L.map('map-kelurahan').setView([-6.15, 106.75], 12);
 
-    // Layer satelit (Esri World Imagery) — default
+    // Tema abu (CARTO Positron) — default; latar polos agar gradien choropleth kebaca
+    var abu = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    // Layer satelit (Esri World Imagery) — alternatif
     var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
         maxZoom: 19
-    }).addTo(map);
+    });
 
-    // Overlay label (nama jalan/tempat) di atas satelit
+    // Overlay label (nama jalan/tempat) — berguna di atas satelit
     var label = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19, pane: 'overlayPane'
-    }).addTo(map);
+    });
 
     // Layer peta biasa (OSM) — alternatif
     var jalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -349,7 +373,7 @@
     });
 
     L.control.layers(
-        { 'Satelit': satelit, 'Peta Jalan': jalan },
+        { 'Tema Abu': abu, 'Satelit': satelit, 'Peta Jalan': jalan },
         { 'Label Nama': label },
         { position: 'topright' }
     ).addTo(map);
@@ -366,15 +390,15 @@
                     return {
                         color: '#fff', weight: 2,
                         fillColor: warnaMap[feature.properties.name] || '#ccc',
-                        fillOpacity: 0.5,
+                        fillOpacity: 0.8,
                     };
                 },
                 onEachFeature: function(feature, layer) {
                     var nama = feature.properties.name;
                     var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString('id-ID') + ' jiwa' : '-';
                     layer.bindPopup('<b>Kec. ' + nama + '</b><br>👥 ' + jumlah);
-                    layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.8 }); layer.openPopup(); });
-                    layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.5 }); layer.closePopup(); });
+                    layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.95 }); layer.openPopup(); });
+                    layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.8 }); layer.closePopup(); });
                 }
             }).addTo(map);
 
