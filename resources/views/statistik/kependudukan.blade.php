@@ -65,6 +65,20 @@
     }
     .stat-summary-card .card-text .value { font-size: 28px; font-weight: 700; color: #333; }
     .stat-summary-card .card-text .label { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
+
+    /* ── Responsive (tablet & HP) ──────────────────────────────── */
+    @media (max-width: 768px) {
+        .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
+        .statistik-sidebar  { width: 100%; }
+        .statistik-sidebar .nav {
+            flex-direction: row !important; flex-wrap: nowrap;
+            overflow-x: auto; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+        }
+        .statistik-sidebar .nav-link { white-space: nowrap; margin-bottom: 0; }
+        .stat-header        { font-size: 15px; padding: 12px; }
+        #map-kelurahan      { height: 360px; }
+        .stat-summary-card  { margin-bottom: 12px; }
+    }
 </style>
 @endpush
 

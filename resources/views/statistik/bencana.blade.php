@@ -54,7 +54,13 @@
     .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
     .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
     @media (max-width: 768px) {
-        .statistik-wrapper { flex-direction: column; }
+        .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
+        .statistik-sidebar  { width: 100%; }
+        .statistik-sidebar .nav {
+            flex-direction: row !important; flex-wrap: nowrap;
+            overflow-x: auto; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+        }
+        .statistik-sidebar .nav-link { white-space: nowrap; margin-bottom: 0; }
         .table-controls .input-group { width: 100%; }
     }
 </style>

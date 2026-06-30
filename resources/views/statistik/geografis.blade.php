@@ -121,13 +121,30 @@
     .geo-pager button:disabled { opacity: 0.4; cursor: default; }
 
     .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
+
+    /* ── Responsive (tablet & HP) ──────────────────────────────── */
+    @media (max-width: 992px) {
+        .geo-mid-grid       { grid-template-columns: 1fr; }
+        .geo-highlight-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
+        .statistik-sidebar  { width: 100%; }
+        .statistik-sidebar .nav {
+            flex-direction: row !important; flex-wrap: nowrap;
+            overflow-x: auto; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+        }
+        .statistik-sidebar .nav-link { white-space: nowrap; margin-bottom: 0; }
+        .stat-header        { font-size: 15px; padding: 12px; }
+        #geo-map            { height: 360px; }
+        .geo-table-wrap     { overflow-x: auto; }
+        .geo-table          { min-width: 560px; }
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-4">
-<section class="about-section">
-<div class="auto-container">
 <div class="statistik-wrapper">
 
     {{-- SIDEBAR --}}
@@ -155,7 +172,10 @@
                     <span class="arrow">&#9660;</span>
                 </div>
                 <div class="dropdown-tahun-menu" id="dropdownTahunMenu">
-                    <a href="{{ route('statistik.geografis') }}" class="active">{{ $geo->tahun }}</a>
+                    @foreach($availableTahun as $t)
+                    <a href="{{ route('statistik.geografis', ['tahun' => $t]) }}"
+                       class="{{ (int) $t === (int) $tahun ? 'active' : '' }}">{{ $t }}</a>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -323,8 +343,6 @@
 
     </div>{{-- end statistik-content --}}
 </div>{{-- end statistik-wrapper --}}
-</div>{{-- end auto-container --}}
-</section>
 </div>
 @endsection
 

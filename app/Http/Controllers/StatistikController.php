@@ -18,20 +18,28 @@ use App\Models\DataBencana;
 
 class StatistikController extends Controller
 {
-    public function geografis()
+    public function geografis(Request $request)
     {
-        $geo = DataGeografis::where('tahun', 2024)->first();
+        $availableTahun = DataGeografis::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) ($availableTahun->first() ?? $tahun);
+        }
+
+        $geo = DataGeografis::where('tahun', $tahun)->first();
         $luas = LuasKecamatan::with('kecamatan')
             ->where('data_geografis_id', $geo->id)
             ->get();
 
         // Penduduk per kecamatan (untuk kepadatan) & jumlah kelurahan per kecamatan
         $pendudukKec = PendudukKecamatan::with('kecamatan')
-            ->where('tahun', 2024)->get()
+            ->where('tahun', $tahun)->get()
             ->keyBy(fn($p) => strtoupper($p->kecamatan->nama_kecamatan));
 
         $kelurahanCount = PendudukKelurahan::with('kecamatan')
-            ->where('tahun', 2024)->get()
+            ->where('tahun', $tahun)->get()
             ->groupBy(fn($k) => strtoupper($k->kecamatan->nama_kecamatan))
             ->map->count();
 
@@ -51,14 +59,22 @@ class StatistikController extends Controller
             ]];
         });
 
-        return view('statistik.geografis', compact('geo', 'luas', 'kecStats'));
+        return view('statistik.geografis', compact('geo', 'luas', 'kecStats', 'tahun', 'availableTahun'));
     }
 
-    public function iklim()
+    public function iklim(Request $request)
     {
-        $iklim = DataIklim::where('tahun', 2024)->orderBy('bulan')->get();
+        $availableTahun = DataIklim::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
 
-        return view('statistik.iklim', compact('iklim'));
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) ($availableTahun->first() ?? $tahun);
+        }
+
+        $iklim = DataIklim::where('tahun', $tahun)->orderBy('bulan')->get();
+
+        return view('statistik.iklim', compact('iklim', 'tahun', 'availableTahun'));
     }
 
     public function kependudukan(Request $request)
@@ -97,30 +113,46 @@ class StatistikController extends Controller
         ));
     }
 
-    public function pendidikan()
+    public function pendidikan(Request $request)
     {
-        $summary = DataPendidikan::where('tahun', 2024)->first();
+        $availableTahun = DataPendidikan::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) ($availableTahun->first() ?? $tahun);
+        }
+
+        $summary = DataPendidikan::where('tahun', $tahun)->first();
         $perKecamatan = PendidikanKecamatan::with('kecamatan')
-            ->where('tahun', 2024)
+            ->where('tahun', $tahun)
             ->orderByDesc('jumlah_pelajar')
             ->get();
 
-        return view('statistik.pendidikan', compact('summary', 'perKecamatan'));
+        return view('statistik.pendidikan', compact('summary', 'perKecamatan', 'tahun', 'availableTahun'));
     }
 
-    public function kesehatan()
+    public function kesehatan(Request $request)
     {
-        $summary = DataKesehatan::where('tahun', 2024)->first();
+        $availableTahun = DataKesehatan::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) ($availableTahun->first() ?? $tahun);
+        }
+
+        $summary = DataKesehatan::where('tahun', $tahun)->first();
         $tenaga = TenagaKesehatanKecamatan::with('kecamatan')
-            ->where('tahun', 2024)
+            ->where('tahun', $tahun)
             ->orderByDesc('jumlah_total')
             ->get();
         $fasilitas = FasilitasKesehatanKecamatan::with('kecamatan')
-            ->where('tahun', 2024)
+            ->where('tahun', $tahun)
             ->orderByDesc('jumlah_total')
             ->get();
 
-        return view('statistik.kesehatan', compact('summary', 'tenaga', 'fasilitas'));
+        return view('statistik.kesehatan', compact('summary', 'tenaga', 'fasilitas', 'tahun', 'availableTahun'));
     }
 
     public function bencana(Request $request)

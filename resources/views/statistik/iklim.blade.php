@@ -131,7 +131,19 @@
     .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
 
     @media (max-width: 1100px) { .chart-row { grid-template-columns: 1fr; } }
-    @media (max-width: 768px)  { .statistik-sidebar { display: none; } }
+    @media (max-width: 768px) {
+        .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
+        .statistik-sidebar  { width: 100%; }
+        .statistik-sidebar .nav {
+            flex-direction: row !important; flex-wrap: nowrap;
+            overflow-x: auto; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+        }
+        .statistik-sidebar .nav-link { white-space: nowrap; margin-bottom: 0; }
+        .stat-header        { font-size: 15px; padding: 12px; }
+        #iklim-table        { min-width: 640px; }
+    }
+    /* Bungkus tabel agar bisa scroll horizontal di layar kecil */
+    .iklim-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
 @endpush
 
@@ -187,6 +199,19 @@
     $pctST = round($sangat_tinggi / $totalBulan * 100);
     $pctT  = round($tinggi        / $totalBulan * 100);
     $pctS  = round($sedang        / $totalBulan * 100);
+
+    // Data per bulan untuk relasi card ↔ chart tren hari hujan
+    $iklimBulanJs = $iklim->map(function ($d) use ($bulanLabel, $rainCat) {
+        [$st, $stClass] = $rainCat($d->hari_hujan);
+        return [
+            'bulan'       => $bulanLabel[$d->bulan] ?? $d->bulan,
+            'suhu'        => round((float) $d->suhu_udara, 1),
+            'hari_hujan'  => round((float) $d->hari_hujan, 1),
+            'kelembaban'  => round((float) $d->kelembaban_udara, 0),
+            'status'      => $st,
+            'statusClass' => $stClass,
+        ];
+    })->values();
 @endphp
 
 @section('content')
@@ -210,15 +235,18 @@
 
             {{-- Header --}}
             <div class="stat-header-wrap">
-                <div class="stat-header">IKLIM JAKARTA BARAT 2024</div>
+                <div class="stat-header">IKLIM JAKARTA BARAT {{ $tahun }}</div>
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                         <i class="fa fa-calendar"></i>
-                        2024
+                        {{ $tahun }}
                         <span class="arrow">&#9660;</span>
                     </div>
                     <div class="dropdown-tahun-menu" id="dropdownTahunMenu">
-                        <a href="{{ route('statistik.iklim') }}" class="active">2024</a>
+                        @foreach($availableTahun as $t)
+                        <a href="{{ route('statistik.iklim', ['tahun' => $t]) }}"
+                           class="{{ (int) $t === (int) $tahun ? 'active' : '' }}">{{ $t }}</a>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -228,8 +256,8 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label">RATA-RATA SUHU UDARA (°C)</div>
-                        <div class="value">{{ number_format($avgSuhu, 2) }}</div>
+                        <div class="label" id="lbl-suhu">RATA-RATA SUHU UDARA (°C)</div>
+                        <div class="value" id="val-suhu">{{ number_format($avgSuhu, 2) }}</div>
                     </div>
                     <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
                         <i class="fa fa-thermometer-half" style="color:#fff;"></i>
@@ -239,8 +267,8 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label">RATA-RATA HARI HUJAN (HARI/BLN)</div>
-                        <div class="value">{{ number_format($avgHariHujan, 1) }}</div>
+                        <div class="label" id="lbl-hujan">RATA-RATA HARI HUJAN (HARI/BLN)</div>
+                        <div class="value" id="val-hujan">{{ number_format($avgHariHujan, 1) }}</div>
                     </div>
                     <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
                         <i class="fa fa-tint" style="color:#fff;"></i>
@@ -250,8 +278,8 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label">KELEMBABAN UDARA (%)</div>
-                        <div class="value">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
+                        <div class="label" id="lbl-lembab">KELEMBABAN UDARA (%)</div>
+                        <div class="value" id="val-lembab">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
                     </div>
                     <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
                         <i class="fa fa-water" style="color:#fff;"></i>
@@ -261,8 +289,8 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label">STATUS CURAH HUJAN</div>
-                        <div class="value-status" style="margin-top:4px;">
+                        <div class="label" id="lbl-status">STATUS CURAH HUJAN</div>
+                        <div class="value-status" id="val-status" style="margin-top:4px;">
                             <span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;">
                                 <span class="dot"></span>{{ $statusWilayah }}
                             </span>
@@ -307,7 +335,10 @@
             {{-- Bar: Tren Hari Hujan Bulanan --}}
             <div class="chart-card" id="chart-bar">
                 <div class="chart-title-row">
-                    <div class="chart-title">TREN HARI HUJAN BULANAN</div>
+                    <div>
+                        <div class="chart-title">TREN HARI HUJAN BULANAN</div>
+                        <div style="font-size:11px; color:#aaa; margin-top:2px;">Klik salah satu bulan untuk melihat detailnya di kartu ringkasan</div>
+                    </div>
                     <span class="chart-total-badge">Rata-rata: {{ number_format($avgHariHujan, 1) }} hari/bln</span>
                 </div>
                 <div id="chart-bar-hujan"></div>
@@ -320,6 +351,7 @@
                 <div class="chart-title" style="margin-bottom:0;">DATA IKLIM PER BULAN</div>
             </div>
 
+            <div class="iklim-table-scroll">
             <table class="iklim-table" id="iklim-table">
                 <thead>
                     <tr>
@@ -361,6 +393,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
 
             <div class="geo-pagination">
                 <div id="iklim-pager-info"></div>
@@ -448,6 +481,37 @@
     });
     var activeBar = null;
 
+    // ── Relasi card ringkasan ↔ chart tren hari hujan ─────────────
+    var iklimData = {!! json_encode($iklimBulanJs) !!};
+    var idID = 'id-ID';
+    function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
+    function setHTML(id, h) { var el = document.getElementById(id); if (el) el.innerHTML = h; }
+    function fmt1(v) { return Number(v).toLocaleString(idID, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+    var cardDefaults = {
+        suhuLbl:   'RATA-RATA SUHU UDARA (°C)',          suhuVal:   '{{ number_format($avgSuhu, 2) }}',
+        hujanLbl:  'RATA-RATA HARI HUJAN (HARI/BLN)',    hujanVal:  '{{ number_format($avgHariHujan, 1) }}',
+        lembabLbl: 'KELEMBABAN UDARA (%)',               lembabVal: '{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small>',
+        statusLbl: 'STATUS CURAH HUJAN',                 statusVal: '<span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>{{ $statusWilayah }}</span>',
+    };
+
+    function updateCards(i) {
+        var d = iklimData[i];
+        if (!d) return;
+        var bln = d.bulan.toUpperCase();
+        setText('lbl-suhu',   'SUHU — ' + bln);          setText('val-suhu',   fmt1(d.suhu));
+        setText('lbl-hujan',  'HARI HUJAN — ' + bln);    setText('val-hujan',  fmt1(d.hari_hujan));
+        setText('lbl-lembab', 'KELEMBABAN — ' + bln);    setHTML('val-lembab', d.kelembaban + '<small style="font-size:13px; font-weight:500; color:#888;">%</small>');
+        setText('lbl-status', 'STATUS — ' + bln);        setHTML('val-status', '<span class="cat-badge ' + d.statusClass + '" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>' + d.status + '</span>');
+    }
+
+    function resetCards() {
+        setText('lbl-suhu',   cardDefaults.suhuLbl);    setText('val-suhu',   cardDefaults.suhuVal);
+        setText('lbl-hujan',  cardDefaults.hujanLbl);   setText('val-hujan',  cardDefaults.hujanVal);
+        setText('lbl-lembab', cardDefaults.lembabLbl);  setHTML('val-lembab', cardDefaults.lembabVal);
+        setText('lbl-status', cardDefaults.statusLbl);  setHTML('val-status', cardDefaults.statusVal);
+    }
+
     // Label putih untuk bar gelap, abu gelap untuk bar terang
     function labelColor(hex) {
         var c = parseInt(hex.slice(1), 16);
@@ -472,6 +536,7 @@
                             fill:   { colors: barColors },
                             dataLabels: { style: { colors: barLabelColors } }
                         });
+                        resetCards();
                         return;
                     }
                     activeBar = idx;
@@ -482,6 +547,7 @@
                         fill:   { colors: fadedColors },
                         dataLabels: { style: { colors: fadedLabels } }
                     });
+                    updateCards(idx);
                 },
                 click: function(e, ctx, cfg) {
                     if (cfg.dataPointIndex === undefined || cfg.dataPointIndex < 0) {
@@ -491,6 +557,7 @@
                             fill:   { colors: barColors },
                             dataLabels: { style: { colors: barLabelColors } }
                         });
+                        resetCards();
                     }
                 }
             }
