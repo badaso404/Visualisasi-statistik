@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\KesehatanController;
 use App\Http\Controllers\Admin\TenagaKesehatanController;
 use App\Http\Controllers\Admin\FasilitasKesehatanController;
 use App\Http\Controllers\Admin\BencanaController;
+use App\Http\Controllers\Admin\TitikBencanaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,5 +95,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Monitor Bencana
         Route::resource('bencana', BencanaController::class)->except('show');
+        Route::resource('titik-bencana', TitikBencanaController::class)
+            ->parameters(['titik-bencana' => 'titikBencana'])
+            ->except('show');
     });
 });

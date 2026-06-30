@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PendidikanSeeder::class,
             KesehatanSeeder::class,
             BencanaSeeder::class,      // butuh Kecamatan sudah ada
+            TitikBencanaSeeder::class, // titik POI peta bencana (butuh Kecamatan)
             AdminSeeder::class,        // akun admin (login panel)
         ]);
     }

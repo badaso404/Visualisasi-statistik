@@ -190,8 +190,29 @@ class StatistikController extends Controller
             'Lainnya'       => '#9e9e9e',
         ];
 
+        // Daftar kecamatan Jakarta Barat untuk overlay batas wilayah pada peta
+        $kecamatanNames = \App\Models\Kecamatan::orderBy('nama_kecamatan')->pluck('nama_kecamatan');
+
+        // Titik referensi peta: zona rawan banjir (level), pos damkar, zona aman
+        $titikBencana = \App\Models\TitikBencana::all()->groupBy(function ($t) {
+            return match ($t->kategori) {
+                'banjir_rawan' => 'banjir-p' . ($t->level ?? 3),
+                'pos_damkar'   => 'pos-damkar',
+                'zona_aman'    => 'zona-aman',
+                default        => 'lainnya',
+            };
+        })->map(function ($rows) {
+            return $rows->map(fn($t) => [
+                'lat'  => (float) $t->latitude,
+                'lng'  => (float) $t->longitude,
+                'name' => $t->nama,
+                'ket'  => $t->keterangan,
+                'link' => $t->link_maps,
+            ])->values();
+        });
+
         return view('statistik.bencana', compact(
-            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis'
+            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis', 'kecamatanNames', 'titikBencana'
         ));
     }
 }

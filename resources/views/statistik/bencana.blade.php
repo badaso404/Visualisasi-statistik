@@ -62,21 +62,39 @@
     }
     .map-tab-btn:hover { border-color: #ffbf00; color: #ffbf00; }
     .map-tab-btn.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
-    #bencana-map { width: 100%; height: 480px; border-radius: 8px; }
+    #bencana-map { width: 100%; height: 520px; border-radius: 8px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card-metric { cursor: pointer; transition: box-shadow .2s, border-color .2s, transform .1s; }
+    .stat-card-metric:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .stat-card-metric.active { border-color: #ffbf00; box-shadow: 0 0 0 2px #ffbf00 inset; }
     .stat-card { background: #fff; border: 1px solid #edf1f7; border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; }
     .stat-card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
     .stat-card-content { flex: 1; min-width: 0; }
     .stat-card-label { font-size: 12px; font-weight: 700; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
     .stat-card-value { font-size: 26px; font-weight: 700; color: #2b2b2b; line-height: 1.1; }
-    .stat-card-icon.orange { background: #fff4e5; color: #ff9800; }
-    .stat-card-icon.red { background: #ffebee; color: #f44336; }
-    .stat-card-icon.blue { background: #e3f2fd; color: #2196f3; }
-    .stat-card-icon.gold { background: #fffde7; color: #fbc02d; }
+    .stat-card-icon.orange,
+    .stat-card-icon.red,
+    .stat-card-icon.blue,
+    .stat-card-icon.gold { background: #ffbf00; color: #fff; }
     .map-legend { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee; max-width: 300px; }
     .map-legend-title { font-weight: 700; color: #333; margin-bottom: 12px; font-size: 13px; }
     .map-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #555; }
     .map-legend-icon { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+    /* Legend overlay peta (pojok kanan atas) */
+    .map-legend-box { background: #fff; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.2); font-size: 13px; min-width: 240px; }
+    .map-legend-box .legend-title { text-align: center; font-weight: 700; color: #333; margin-bottom: 10px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .legend-row:last-child { margin-bottom: 0; }
+    .legend-row .lr-icon { width: 20px; text-align: center; flex-shrink: 0; font-size: 15px; }
+    .legend-row .lr-label { flex: 1; font-weight: 600; color: #333; white-space: nowrap; }
+    .legend-row .lr-sep { color: #333; }
+    .legend-row .lr-count { font-weight: 700; color: #333; min-width: 22px; text-align: right; }
+    /* Marker damkar & zona aman pada peta */
+    .damkar-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #e53935; color: #fff; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    .zona-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #2e7d32; color: #fff; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    @media (max-width: 992px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) {
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
         .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
         .statistik-sidebar  { width: 100%; }
         .statistik-sidebar .nav {
@@ -123,25 +141,56 @@
             @endif
             </div>
 
+            {{-- ── Summary Cards (klik untuk ubah donut chart) ─── --}}
+            <div class="stat-grid">
+                <div class="stat-card stat-card-metric active" data-metric="kejadian" title="Klik untuk lihat proporsi berdasarkan kejadian">
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">Total Kejadian</div>
+                        <div class="stat-card-value">{{ number_format($ringkasan['total_kejadian']) }}</div>
+                    </div>
+                    <div class="stat-card-icon orange"><i class="fa fa-house-flood-water"></i></div>
+                </div>
+                <div class="stat-card stat-card-metric" data-metric="korban" title="Klik untuk lihat proporsi berdasarkan korban">
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">Total Korban</div>
+                        <div class="stat-card-value">{{ number_format($ringkasan['total_korban']) }}</div>
+                    </div>
+                    <div class="stat-card-icon red"><i class="fa fa-user-injured"></i></div>
+                </div>
+                <div class="stat-card stat-card-metric" data-metric="terdampak" title="Klik untuk lihat proporsi berdasarkan terdampak">
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">Total Terdampak</div>
+                        <div class="stat-card-value">{{ number_format($ringkasan['total_terdampak']) }}</div>
+                    </div>
+                    <div class="stat-card-icon blue"><i class="fa fa-users"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">Jenis Terbanyak</div>
+                        <div class="stat-card-value" style="font-size:20px;">{{ $ringkasan['jenis_terbanyak'] }}</div>
+                    </div>
+                    <div class="stat-card-icon gold"><i class="fa fa-triangle-exclamation"></i></div>
+                </div>
+            </div>
+
             <div class="row g-3 mb-4">
-                <div class="col-lg-7">
-                    <div class="chart-card">
-                        <div class="chart-title">Proporsi Jenis Bencana</div>
-                        <div id="chart-bencana" style="min-height: 520px;"></div>
+                <div class="col-lg-7 d-flex">
+                    <div class="chart-card w-100 d-flex flex-column">
+                        <div class="chart-title">Proporsi Jenis Bencana <span style="color:#ffbf00;">· berdasarkan <span id="donut-metric-label">Kejadian</span></span></div>
+                        <div id="chart-bencana" class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 440px;"></div>
                     </div>
                 </div>
-                <div class="col-lg-5">
-                    <div class="chart-card map-container">
+                <div class="col-lg-5 d-flex">
+                    <div class="chart-card map-container w-100">
                         <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 8px; flex-wrap: wrap;">
                             <div class="chart-title" style="margin-bottom: 0; flex: 1;">Peta Sebaran Bencana</div>
                             <div class="map-tabs" style="flex-wrap: wrap;">
-                                <button class="map-tab-btn active" data-filter="all" style="font-size: 11px; padding: 6px 10px;">Semua</button>
-                                <button class="map-tab-btn" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Banjir</button>
-                                <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">Pos</button>
-                                <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">Zona</button>
+                                <button class="map-tab-btn active" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Banjir</button>
+                                <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">Damkar</button>
+                                <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">Zona Aman</button>
                             </div>
                         </div>
-                        <div id="bencana-map" style="min-height: 480px;"></div>
+                        <div id="bencana-map" style="min-height: 520px;"></div>
                     </div>
                 </div>
             </div>
@@ -222,79 +271,181 @@
 
         // Initialize Leaflet Map
         var map = L.map('bencana-map').setView([-6.1751, 106.7272], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
 
-        // Define marker data
-        var markerData = {
-            'banjir-p1': [
-                { lat: -6.1751, lng: 106.7272, name: 'Lokasi Banjir Prioritas 1 - A' },
-                { lat: -6.1850, lng: 106.7350, name: 'Lokasi Banjir Prioritas 1 - B' },
-                { lat: -6.1650, lng: 106.7150, name: 'Lokasi Banjir Prioritas 1 - C' }
-            ],
-            'banjir-p2': [
-                { lat: -6.1900, lng: 106.7400, name: 'Lokasi Banjir Prioritas 2 - A' },
-                { lat: -6.1600, lng: 106.7050, name: 'Lokasi Banjir Prioritas 2 - B' }
-            ],
-            'banjir-p3': [
-                { lat: -6.1700, lng: 106.7500, name: 'Lokasi Banjir Prioritas 3 - A' },
-                { lat: -6.1800, lng: 106.7200, name: 'Lokasi Banjir Prioritas 3 - B' },
-                { lat: -6.1550, lng: 106.7300, name: 'Lokasi Banjir Prioritas 3 - C' }
-            ],
-            'pos-damkar': [
-                { lat: -6.1950, lng: 106.7100, name: 'Pos Damkar - A' },
-                { lat: -6.1500, lng: 106.7450, name: 'Pos Damkar - B' }
-            ],
-            'zona-aman': [
-                { lat: -6.1750, lng: 106.7600, name: 'Zona Aman - A' }
-            ]
+        // Pilihan basemap: Peta Terang (default), Satelit, Peta Jalan
+        var petaTerang = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
+        }).addTo(map);
+        var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles © Esri', maxZoom: 19
+        });
+        var petaJalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors', maxZoom: 19
+        });
+        L.control.layers(
+            { 'Peta Terang': petaTerang, 'Satelit': satelit, 'Peta Jalan': petaJalan },
+            {},
+            { position: 'bottomleft' }
+        ).addTo(map);
+
+        // Legend overlay (pojok kanan atas) — isinya berubah sesuai tab aktif
+        var legendControl = L.control({ position: 'topright' });
+        legendControl.onAdd = function () {
+            var div = L.DomUtil.create('div', 'map-legend-box');
+            L.DomEvent.disableClickPropagation(div);
+            this._div = div;
+            return div;
         };
+        legendControl.addTo(map);
+
+        // ── Overlay batas wilayah kecamatan (mark keseluruhan) ──
+        // Pane khusus dengan z-index rendah agar polygon tidak menutupi titik (circle marker banjir)
+        map.createPane('kecamatanPane');
+        map.getPane('kecamatanPane').style.zIndex = 350;
+
+        var kecJakbar = {!! json_encode($kecamatanNames->map(fn($n) => strtoupper($n))->values()) !!};
+        fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                data.features = data.features.filter(function(f) {
+                    return kecJakbar.includes((f.properties.name || '').toUpperCase());
+                });
+                var geoLayer = L.geoJSON(data, {
+                    pane: 'kecamatanPane',
+                    style: function() {
+                        return { color: '#42a5f5', weight: 1.5, fillColor: '#90caf9', fillOpacity: 0.18, dashArray: '4' };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindTooltip(feature.properties.name || '', { sticky: true, direction: 'top' });
+                        layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.30 }); });
+                        layer.on('mouseout', function() { layer.setStyle({ fillOpacity: 0.18 }); });
+                    }
+                }).addTo(map);
+                if (geoLayer.getBounds().isValid()) {
+                    map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
+                }
+            });
+
+        // Data titik dari database (zona rawan banjir, pos damkar, zona aman)
+        var markerData = Object.assign(
+            { 'banjir-p1': [], 'banjir-p2': [], 'banjir-p3': [], 'pos-damkar': [], 'zona-aman': [] },
+            {!! json_encode($titikBencana) !!}
+        );
 
         var markers = {};
-        var colors = {
+        var banjirColors = {
             'banjir-p1': '#ff6b6b',
             'banjir-p2': '#ffa500',
-            'banjir-p3': '#ffeb3b',
-            'pos-damkar': '#4caf50',
-            'zona-aman': '#2196f3'
+            'banjir-p3': '#ffeb3b'
         };
+
+        // Icon kustom Damkar & Zona Aman (Font Awesome di dalam divIcon)
+        var damkarIcon = L.divIcon({
+            className: '', html: '<div class="damkar-marker"><i class="fa fa-fire-extinguisher"></i></div>',
+            iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+        });
+        var zonaIcon = L.divIcon({
+            className: '', html: '<div class="zona-marker"><i class="fa fa-shield-halved"></i></div>',
+            iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+        });
+        // Pin banjir berwarna sesuai prioritas (selaras dengan legend)
+        function banjirIcon(color) {
+            return L.divIcon({
+                className: '',
+                html: '<i class="fa fa-location-dot" style="color:' + color + ';font-size:28px;text-shadow:0 1px 2px rgba(0,0,0,.45);"></i>',
+                iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26]
+            });
+        }
 
         // Create markers
         Object.keys(markerData).forEach(function(type) {
             markers[type] = [];
             markerData[type].forEach(function(point) {
-                var marker = L.circleMarker([point.lat, point.lng], {
-                    radius: 8,
-                    fillColor: colors[type],
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).bindPopup(point.name).addTo(map);
+                var marker;
+                var ket = point.ket ? '<br><span style="color:#777;">' + point.ket + '</span>' : '';
+                // Tombol ke Google Maps: pakai link manual bila ada, jika tidak pakai koordinat
+                var mapsUrl = point.link
+                    ? point.link
+                    : 'https://www.google.com/maps/search/?api=1&query=' + point.lat + ',' + point.lng;
+                var navBtn = '<br><a href="' + mapsUrl + '" target="_blank" rel="noopener" '
+                    + 'style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;'
+                    + 'background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">'
+                    + '<i class="fa fa-location-dot"></i> Buka Maps</a>';
+                if (type === 'pos-damkar') {
+                    marker = L.marker([point.lat, point.lng], { icon: damkarIcon })
+                        .bindPopup('<b><i class="fa fa-fire-extinguisher"></i> ' + point.name + '</b>' + ket + navBtn);
+                } else if (type === 'zona-aman') {
+                    // Bentuk mark area aman + titik kumpul
+                    var area = L.circle([point.lat, point.lng], {
+                        radius: 350, color: '#2e7d32', fillColor: '#2e7d32', weight: 2, fillOpacity: 0.12
+                    });
+                    marker = L.marker([point.lat, point.lng], { icon: zonaIcon })
+                        .bindPopup('<b><i class="fa fa-shield-halved"></i> ' + point.name + '</b>' + (ket || '<br>Area aman evakuasi') + navBtn);
+                    marker._areaLayer = area;
+                } else {
+                    var labelP = type === 'banjir-p1' ? 'Prioritas 1' : (type === 'banjir-p2' ? 'Prioritas 2' : 'Prioritas 3');
+                    marker = L.marker([point.lat, point.lng], { icon: banjirIcon(banjirColors[type]) })
+                        .bindPopup('<b>' + point.name + '</b><br>Rawan Banjir ' + labelP + ket);
+                }
+                marker.addTo(map);
+                if (marker._areaLayer) marker._areaLayer.addTo(map);
                 markers[type].push(marker);
             });
         });
+
+        // ── Legend overlay: isi sesuai tab aktif + jumlah titik per kategori ──
+        function legendRow(iconHtml, label, count) {
+            return '<div class="legend-row">'
+                + '<span class="lr-icon">' + iconHtml + '</span>'
+                + '<span class="lr-label">' + label + '</span>'
+                + '<span class="lr-sep">:</span>'
+                + '<span class="lr-count">' + count + '</span></div>';
+        }
+        function cnt(type) { return (markerData[type] || []).length; }
+        function pin(color) { return '<i class="fa fa-location-dot" style="color:' + color + ';"></i>'; }
+        var damkarMini = '<span class="damkar-marker" style="width:18px;height:18px;font-size:9px;"><i class="fa fa-fire-extinguisher"></i></span>';
+        var zonaMini   = '<span class="zona-marker" style="width:18px;height:18px;font-size:9px;border-radius:4px;"><i class="fa fa-shield-halved"></i></span>';
+
+        function updateLegend(filter) {
+            var html = '<div class="legend-title">Keterangan :</div>';
+            if (filter === 'banjir') {
+                html += legendRow(pin('#ff6b6b'), 'Lokasi Banjir Prioritas 1', cnt('banjir-p1'));
+                html += legendRow(pin('#ffa500'), 'Lokasi Banjir Prioritas 2', cnt('banjir-p2'));
+                html += legendRow(pin('#ffeb3b'), 'Lokasi Banjir Prioritas 3', cnt('banjir-p3'));
+            } else if (filter === 'pos-damkar') {
+                html += legendRow(damkarMini, 'Pos Damkar', cnt('pos-damkar'));
+            } else if (filter === 'zona-aman') {
+                html += legendRow(zonaMini, 'Zona Aman / Evakuasi', cnt('zona-aman'));
+            }
+            if (legendControl._div) legendControl._div.innerHTML = html;
+        }
+
+        function setMarkerVisible(marker, show) {
+            if (show) { map.addLayer(marker); if (marker._areaLayer) map.addLayer(marker._areaLayer); }
+            else { map.removeLayer(marker); if (marker._areaLayer) map.removeLayer(marker._areaLayer); }
+        }
+
+        function applyFilter(filter) {
+            Object.keys(markers).forEach(function(type) {
+                markers[type].forEach(function(marker) {
+                    setMarkerVisible(marker, filter === 'all' || type.startsWith(filter));
+                });
+            });
+            updateLegend(filter);
+        }
 
         // Filter functionality
         document.querySelectorAll('.map-tab-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.map-tab-btn').forEach(function(b){ b.classList.remove('active'); });
                 this.classList.add('active');
-                var currentFilter = this.getAttribute('data-filter');
-                
-                Object.keys(markers).forEach(function(type) {
-                    markers[type].forEach(function(marker) {
-                        if (currentFilter === 'all' || type.startsWith(currentFilter)) {
-                            map.addLayer(marker);
-                        } else {
-                            map.removeLayer(marker);
-                        }
-                    });
-                });
+                applyFilter(this.getAttribute('data-filter'));
             });
         });
+
+        // Filter awal sesuai tab aktif (default: Banjir)
+        var activeBtn = document.querySelector('.map-tab-btn.active');
+        applyFilter(activeBtn ? activeBtn.getAttribute('data-filter') : 'banjir');
     })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -306,8 +457,23 @@
     var rawItems = {!! json_encode($items->map(fn($b) => [
         'tanggal' => $b->tanggal_kejadian,
         'kecamatan' => $b->kecamatan->nama_kecamatan ?? '-',
+        'jenis' => $b->jenis_bencana,
         'jumlah' => (int) $b->jumlah_kejadian,
+        'korban' => (int) $b->jumlah_korban,
+        'terdampak' => (int) $b->jumlah_terdampak,
     ])->values()) !!};
+
+    // Agregasi per jenis untuk tiap metrik (urutan label mengikuti jenisLabels)
+    var metricKey = { kejadian: 'jumlah', korban: 'korban', terdampak: 'terdampak' };
+    var metricUnit = { kejadian: 'kejadian', korban: 'korban', terdampak: 'terdampak' };
+    function seriesByMetric(metric) {
+        var key = metricKey[metric];
+        return jenisLabels.map(function (jenis) {
+            return rawItems.reduce(function (sum, it) {
+                return it.jenis === jenis ? sum + (it[key] || 0) : sum;
+            }, 0);
+        });
+    }
 
     var monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     var monthData = Array(12).fill(0);
@@ -329,11 +495,14 @@
     var kecamatanLabels = kecamatanEntries.map(function(item){ return item[0]; });
     var kecamatanSeries = kecamatanEntries.map(function(item){ return item[1]; });
 
+    var donutMetric = 'kejadian';
+    var donutChart = null;
+
     if (jenisSeries.length) {
-        new ApexCharts(document.querySelector("#chart-bencana"), {
+        donutChart = new ApexCharts(document.querySelector("#chart-bencana"), {
             chart: { type: 'donut', height: 420 },
             labels: jenisLabels,
-            series: jenisSeries,
+            series: seriesByMetric(donutMetric),
             colors: jenisLabels.map(function (j) { return warnaJenis[j] || '#9e9e9e'; }),
             legend: { position: 'bottom', horizontalAlign: 'center' },
             plotOptions: {
@@ -352,8 +521,27 @@
                 }
             },
             dataLabels: { enabled: true, formatter: function (val) { return Math.round(val) + '%'; } },
-            tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
-        }).render();
+            tooltip: { y: { formatter: function (v) { return v + ' ' + metricUnit[donutMetric]; } } }
+        });
+        donutChart.render();
+
+        // Klik summary card → ubah metrik donut
+        document.querySelectorAll('.stat-card-metric').forEach(function (card) {
+            card.addEventListener('click', function () {
+                var metric = this.getAttribute('data-metric');
+                if (metric === donutMetric) return;
+                donutMetric = metric;
+                document.querySelectorAll('.stat-card-metric').forEach(function (c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                var lbl = { kejadian: 'Kejadian', korban: 'Korban', terdampak: 'Terdampak' }[donutMetric];
+                var lblEl = document.getElementById('donut-metric-label');
+                if (lblEl) lblEl.textContent = lbl;
+                donutChart.updateOptions({
+                    series: seriesByMetric(donutMetric),
+                    tooltip: { y: { formatter: function (v) { return v + ' ' + metricUnit[donutMetric]; } } }
+                });
+            });
+        });
     } else {
         document.querySelector("#chart-bencana").innerHTML =
             '<p style="text-align:center;color:#999;padding:40px 0;">Belum ada data.</p>';

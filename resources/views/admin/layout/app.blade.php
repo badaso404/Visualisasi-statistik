@@ -29,6 +29,7 @@
         <a href="{{ route('admin.pendidikan.index') }}" class="{{ request()->routeIs('admin.pendidikan.*') ? 'active' : '' }}"><i class="bi bi-mortarboard"></i> Pendidikan</a>
         <a href="{{ route('admin.kesehatan.index') }}" class="{{ request()->routeIs('admin.kesehatan.*') ? 'active' : '' }}"><i class="bi bi-heart-pulse"></i> Kesehatan</a>
         <a href="{{ route('admin.bencana.index') }}" class="{{ request()->routeIs('admin.bencana.*') ? 'active' : '' }}"><i class="bi bi-exclamation-triangle"></i> Monitor Bencana</a>
+        <a href="{{ route('admin.titik-bencana.index') }}" class="{{ request()->routeIs('admin.titik-bencana.*') ? 'active' : '' }}"><i class="bi bi-geo-fill"></i> Titik Peta Bencana</a>
     </nav>
 
     <div class="content">
