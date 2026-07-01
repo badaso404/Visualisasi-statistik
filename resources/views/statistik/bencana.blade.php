@@ -53,6 +53,14 @@
     }
     .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
     .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
+    .page-btn {
+        min-width: 34px; height: 34px; padding: 0 10px; border: 1px solid #ddd;
+        border-radius: 6px; background: #fff; color: #555; font-weight: 600;
+        font-size: 13px; cursor: pointer; transition: all .15s;
+    }
+    .page-btn:hover:not(:disabled) { border-color: #ffbf00; color: #b8860b; }
+    .page-btn.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
+    .page-btn:disabled { opacity: .45; cursor: not-allowed; }
     .map-container { margin-bottom: 0; }
     .map-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .map-tab-btn {
@@ -229,9 +237,8 @@
             <div class="d-flex flex-wrap gap-2 table-controls">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Cari berdasarkan lokasi atau jenis">
+                    <input type="text" id="bencana-search" class="form-control" placeholder="Cari berdasarkan lokasi atau jenis">
                 </div>
-                <button class="btn btn-outline-secondary btn-sm"><i class="fa fa-sort"></i> Sort</button>
             </div>
         </div>
         <div style="overflow-x:auto;">
@@ -242,9 +249,9 @@
                         <th>Kejadian</th><th>Korban</th><th>Terdampak</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="bencana-tbody">
                     @forelse($items as $b)
-                    <tr>
+                    <tr class="bencana-row" data-search="{{ strtolower($b->nama_lokasi . ' ' . $b->jenis_bencana . ' ' . ($b->kecamatan->nama_kecamatan ?? '')) }}">
                         <td>{{ $b->tanggal_kejadian ? \Carbon\Carbon::parse($b->tanggal_kejadian)->translatedFormat('d M Y') : '-' }}</td>
                         <td><span class="badge-jenis" style="background: {{ $warnaJenis[$b->jenis_bencana] ?? '#9e9e9e' }};">{{ $b->jenis_bencana }}</span></td>
                         <td>{{ $b->nama_lokasi }}</td>
@@ -256,9 +263,16 @@
                     @empty
                     <tr><td colspan="7" style="text-align:center; color:#999; padding:24px;">Belum ada data bencana untuk tahun ini.</td></tr>
                     @endforelse
+                    <tr id="bencana-empty-search" style="display:none;"><td colspan="7" style="text-align:center; color:#999; padding:24px;">Tidak ada data yang cocok dengan pencarian.</td></tr>
                 </tbody>
             </table>
         </div>
+        @if($items->isNotEmpty())
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-3">
+            <div class="text-muted" id="bencana-page-info" style="font-size:13px;"></div>
+            <div class="d-flex gap-1" id="bencana-pagination"></div>
+        </div>
+        @endif
     </div>
 
     <div class="sumber">Sumber: {{ $items->first()->sumber ?? 'BPBD DKI Jakarta' }}</div>
@@ -456,6 +470,70 @@
         // Filter awal sesuai tab aktif (default: Banjir)
         var activeBtn = document.querySelector('.map-tab-btn.active');
         applyFilter(activeBtn ? activeBtn.getAttribute('data-filter') : 'banjir');
+    })();
+
+    // ── Tabel: pencarian + pagination (client-side) ──
+    (function () {
+        var perPage = 10;
+        var allRows = Array.prototype.slice.call(document.querySelectorAll('#bencana-tbody .bencana-row'));
+        if (!allRows.length) return;
+
+        var searchEl = document.getElementById('bencana-search');
+        var infoEl   = document.getElementById('bencana-page-info');
+        var pagEl    = document.getElementById('bencana-pagination');
+        var emptyEl  = document.getElementById('bencana-empty-search');
+        var currentPage = 1;
+        var filtered = allRows;
+
+        function render() {
+            var totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            allRows.forEach(function (r) { r.style.display = 'none'; });
+            var start = (currentPage - 1) * perPage;
+            var pageRows = filtered.slice(start, start + perPage);
+            pageRows.forEach(function (r) { r.style.display = ''; });
+
+            emptyEl.style.display = filtered.length ? 'none' : '';
+
+            if (filtered.length) {
+                infoEl.textContent = 'Menampilkan ' + (start + 1) + '–' + (start + pageRows.length) + ' dari ' + filtered.length + ' laporan';
+            } else {
+                infoEl.textContent = '';
+            }
+
+            // Bangun tombol halaman
+            pagEl.innerHTML = '';
+            if (filtered.length) {
+                pagEl.appendChild(pageButton('‹', currentPage - 1, currentPage === 1));
+                for (var p = 1; p <= totalPages; p++) {
+                    pagEl.appendChild(pageButton(p, p, false, p === currentPage));
+                }
+                pagEl.appendChild(pageButton('›', currentPage + 1, currentPage === totalPages));
+            }
+        }
+
+        function pageButton(label, page, disabled, active) {
+            var b = document.createElement('button');
+            b.className = 'page-btn' + (active ? ' active' : '');
+            b.textContent = label;
+            if (disabled) b.disabled = true;
+            b.addEventListener('click', function () { currentPage = page; render(); });
+            return b;
+        }
+
+        if (searchEl) {
+            searchEl.addEventListener('input', function () {
+                var q = this.value.trim().toLowerCase();
+                filtered = q
+                    ? allRows.filter(function (r) { return (r.getAttribute('data-search') || '').indexOf(q) !== -1; })
+                    : allRows;
+                currentPage = 1;
+                render();
+            });
+        }
+
+        render();
     })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
