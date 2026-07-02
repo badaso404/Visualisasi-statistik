@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\TenagaKesehatanController;
 use App\Http\Controllers\Admin\FasilitasKesehatanController;
 use App\Http\Controllers\Admin\BencanaController;
 use App\Http\Controllers\Admin\TitikBencanaController;
+use App\Http\Controllers\Admin\InfrastrukturDigitalController;
+use App\Http\Controllers\Admin\JakWifiController;
+use App\Http\Controllers\Admin\CctvController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +39,7 @@ Route::prefix('statistik')->name('statistik.')->group(function () {
     Route::get('/pendidikan',   [StatistikController::class, 'pendidikan'])->name('pendidikan');
     Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
     Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
+    Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
 });
 
 /*
@@ -98,5 +102,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('titik-bencana', TitikBencanaController::class)
             ->parameters(['titik-bencana' => 'titikBencana'])
             ->except('show');
+
+        // Infrastruktur Digital (JakWiFi & CCTV)
+        Route::get('infrastruktur-digital', [InfrastrukturDigitalController::class, 'index'])
+            ->name('infrastruktur-digital.index');
+        Route::resource('jak-wifi', JakWifiController::class)
+            ->parameters(['jak-wifi' => 'jakWifi'])
+            ->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('cctv', CctvController::class)
+            ->only(['create', 'store', 'edit', 'update', 'destroy']);
     });
 });

@@ -1,5 +1,5 @@
 @extends('admin.layout.app')
-@section('title', 'Monitor Bencana')
+@section('title', 'Kebencanaan')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">

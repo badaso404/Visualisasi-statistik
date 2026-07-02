@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             KesehatanSeeder::class,
             BencanaSeeder::class,      // butuh Kecamatan sudah ada
             TitikBencanaSeeder::class, // titik POI peta bencana (butuh Kecamatan)
+            InfrastrukturDigitalSeeder::class, // JakWiFi & CCTV per kecamatan (butuh Kecamatan)
             AdminSeeder::class,        // akun admin (login panel)
         ]);
     }

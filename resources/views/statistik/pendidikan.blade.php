@@ -204,7 +204,10 @@
             </a>
 
             <a class="nav-link" href="{{ route('statistik.bencana') }}">
-                <i class="fa fa-house-flood-water"></i> Monitor Bencana
+                <i class="fa fa-house-flood-water"></i> Kebencanaan
+            </a>
+            <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}">
+                <i class="fa fa-wifi"></i> Infrastruktur Digital
             </a>
 
         </nav>

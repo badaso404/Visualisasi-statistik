@@ -15,6 +15,8 @@ use App\Models\DataKesehatan;
 use App\Models\TenagaKesehatanKecamatan;
 use App\Models\FasilitasKesehatanKecamatan;
 use App\Models\DataBencana;
+use App\Models\JakWifiKecamatan;
+use App\Models\CctvKecamatan;
 
 class StatistikController extends Controller
 {
@@ -213,6 +215,41 @@ class StatistikController extends Controller
 
         return view('statistik.bencana', compact(
             'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis', 'kecamatanNames', 'titikBencana'
+        ));
+    }
+
+    public function infrastrukturDigital(Request $request)
+    {
+        // Gabungan tahun dari kedua sumber data (JakWiFi & CCTV)
+        $availableTahun = JakWifiKecamatan::query()->select('tahun')
+            ->union(CctvKecamatan::query()->select('tahun'))
+            ->pluck('tahun')->unique()->sortDesc()->values();
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if ($availableTahun->isNotEmpty() && !$availableTahun->contains($tahun)) {
+            $tahun = (int) $availableTahun->first();
+        }
+
+        $jakWifi = JakWifiKecamatan::with('kecamatan')
+            ->where('tahun', $tahun)
+            ->orderByDesc('jumlah_titik')
+            ->get();
+        $cctv = CctvKecamatan::with('kecamatan')
+            ->where('tahun', $tahun)
+            ->orderByDesc('jumlah_unit')
+            ->get();
+
+        $ringkasan = [
+            'total_titik_wifi' => $jakWifi->sum('jumlah_titik'),
+            'wifi_aktif'       => $jakWifi->sum('titik_aktif'),
+            'total_pengguna'   => $jakWifi->sum('jumlah_pengguna'),
+            'total_cctv'       => $cctv->sum('jumlah_unit'),
+            'cctv_aktif'       => $cctv->sum('unit_aktif'),
+            'cctv_terintegrasi'=> $cctv->sum('terintegrasi'),
+        ];
+
+        return view('statistik.infrastruktur-digital', compact(
+            'jakWifi', 'cctv', 'ringkasan', 'tahun', 'availableTahun'
         ));
     }
 }
