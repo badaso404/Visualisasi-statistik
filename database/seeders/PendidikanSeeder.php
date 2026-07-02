@@ -25,25 +25,26 @@ class PendidikanSeeder extends Seeder
 
         // Per kecamatan
         $data = [
-            ['nama' => 'Cengkareng',        'murid' => 61621, 'guru' => 3187, 'sekolah' => 0],
-            ['nama' => 'Kalideres',         'murid' => 56327, 'guru' => 3111, 'sekolah' => 0],
-            ['nama' => 'Kembangan',         'murid' => 43099, 'guru' => 2444, 'sekolah' => 0],
-            ['nama' => 'Kebon Jeruk',       'murid' => 39072, 'guru' => 2133, 'sekolah' => 0],
-            ['nama' => 'Grogol Petamburan', 'murid' => 27434, 'guru' => 1536, 'sekolah' => 0],
-            ['nama' => 'Palmerah',          'murid' => 22292, 'guru' => 1125, 'sekolah' => 0],
-            ['nama' => 'Tambora',           'murid' => 18876, 'guru' => 1064, 'sekolah' => 0],
-            ['nama' => 'Taman Sari',        'murid' => 11584, 'guru' => 688,  'sekolah' => 0],
+            ['nama' => 'Cengkareng',        'pelajar' => 61621, 'pendidik' => 3187, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Kalideres',         'pelajar' => 56327, 'pendidik' => 3111, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Kembangan',         'pelajar' => 43099, 'pendidik' => 2444, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Kebon Jeruk',       'pelajar' => 39072, 'pendidik' => 2133, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Grogol Petamburan', 'pelajar' => 27434, 'pendidik' => 1536, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Palmerah',          'pelajar' => 22292, 'pendidik' => 1125, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Tambora',           'pelajar' => 18876, 'pendidik' => 1064, 'negeri' => 0, 'swasta' => 0],
+            ['nama' => 'Taman Sari',        'pelajar' => 11584, 'pendidik' => 688,  'negeri' => 0, 'swasta' => 0],
         ];
 
         foreach ($data as $item) {
             $kec = Kecamatan::where('nama_kecamatan', $item['nama'])->first();
             if ($kec) {
                 PendidikanKecamatan::create([
-                    'kecamatan_id'  => $kec->id,
-                    'tahun'         => 2024,
-                    'jumlah_murid'  => $item['murid'],
-                    'jumlah_guru'   => $item['guru'],
-                    'jumlah_sekolah' => $item['sekolah'],
+                    'kecamatan_id'          => $kec->id,
+                    'tahun'                 => 2024,
+                    'jumlah_pelajar'        => $item['pelajar'],
+                    'jumlah_pendidik'       => $item['pendidik'],
+                    'jumlah_sekolah_negeri' => $item['negeri'],
+                    'jumlah_sekolah_swasta' => $item['swasta'],
                 ]);
             }
         }
