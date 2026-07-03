@@ -218,18 +218,7 @@
 <div class="container-fluid px-4">
     <div class="statistik-wrapper">
 
-        {{-- SIDEBAR --}}
-        <div class="statistik-sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('statistik.geografis') }}"><i class="fa fa-map"></i> Geografis</a>
-                <a class="nav-link active" href="{{ route('statistik.iklim') }}"><i class="fa fa-cloud"></i> Iklim</a>
-                <a class="nav-link" href="{{ route('statistik.kependudukan') }}"><i class="fa fa-users"></i> Kependudukan</a>
-                <a class="nav-link" href="{{ route('statistik.pendidikan') }}"><i class="fa fa-graduation-cap"></i> Pendidikan</a>
-                <a class="nav-link" href="{{ route('statistik.kesehatan') }}"><i class="fa fa-plus-circle"></i> Kesehatan</a>
-                <a class="nav-link" href="{{ route('statistik.bencana') }}"><i class="fa fa-house-flood-water"></i> Kebencanaan</a>
-                <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}"><i class="fa fa-wifi"></i> Infrastruktur Digital</a>
-            </nav>
-        </div>
+        @include('statistik.partials.sidebar')
 
         {{-- KONTEN --}}
         <div class="statistik-content">
@@ -260,7 +249,7 @@
                         <div class="label" id="lbl-suhu">RATA-RATA SUHU UDARA (°C)</div>
                         <div class="value" id="val-suhu">{{ number_format($avgSuhu, 2) }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#e34948; margin-left:auto;">
                         <i class="fa fa-thermometer-half" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -271,7 +260,7 @@
                         <div class="label" id="lbl-hujan">RATA-RATA HARI HUJAN (HARI/BLN)</div>
                         <div class="value" id="val-hujan">{{ number_format($avgHariHujan, 1) }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-tint" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -282,7 +271,7 @@
                         <div class="label" id="lbl-lembab">KELEMBABAN UDARA (%)</div>
                         <div class="value" id="val-lembab">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#1baf7a; margin-left:auto;">
                         <i class="fa fa-water" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -297,7 +286,7 @@
                             </span>
                         </div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#eb6834; margin-left:auto;">
                         <i class="fa fa-info-circle" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -461,9 +450,8 @@
     var hariHujan      = {!! json_encode($hariHujanBulanan->values()) !!};
     var avgHariHujan   = {{ round($avgHariHujan, 1) }};
 
-    // Palet biru bertingkat berdasarkan nilai (konsisten dengan tema geografis)
-    var BLUE_LIGHT = '#E2ECFA';
-    var BLUE_DARK  = '#34527A';
+    // ── Palet kategorikal warna-warni (colorblind-safe, tervalidasi) ──
+    var CAT_COLORS = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834'];
     function lerpColor(a, b, t) {
         var ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
         var ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -475,11 +463,20 @@
     }
     var hMin = Math.min.apply(null, hariHujan);
     var hMax = Math.max.apply(null, hariHujan);
-    var barColors = hariHujan.map(function(v) {
+    // Satu warna khas per bulan (urut tetap, siklus palet)
+    var barColors = hariHujan.map(function(v, i) {
+        return CAT_COLORS[i % CAT_COLORS.length];
+    });
+
+    /* ── WARNA LAMA (gradasi biru monokrom berdasarkan nilai hari hujan) — disimpan untuk referensi ──
+    var BLUE_LIGHT = '#E2ECFA';
+    var BLUE_DARK  = '#34527A';
+    var barColorsLama = hariHujan.map(function(v) {
         var t = hMax > hMin ? (v - hMin) / (hMax - hMin) : 0.5;
         var step = Math.round(t * 4) / 4;   // 5 tingkatan agar mudah dibedakan
         return lerpColor(BLUE_LIGHT, BLUE_DARK, step);
     });
+    */
     var activeBar = null;
 
     // ── Relasi card ringkasan ↔ chart tren hari hujan ─────────────
@@ -608,7 +605,9 @@
 
     var donutValues  = [{{ $pctST }}, {{ $pctT }}, {{ $pctS }}];
     var donutLabels  = ['Sangat Tinggi', 'Tinggi', 'Sedang'];
-    var donutColors  = ['#34527A', '#5B82C0', '#A9C0E0'];
+    // Warna kategorikal per level intensitas (warna-warni)
+    var donutColors  = ['#e34948', '#eb6834', '#eda100'];   // Sangat Tinggi / Tinggi / Sedang
+    // var donutColors  = ['#34527A', '#5B82C0', '#A9C0E0'];   // WARNA LAMA (gradasi biru)
     var donutMain    = Math.round({{ $pctT + $pctST }});
 
     var donutChart = new ApexCharts(document.querySelector('#chart-donut'), {

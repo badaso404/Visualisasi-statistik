@@ -112,9 +112,13 @@
         margin:auto;
         margin-bottom:6px;
         font-size:22px;
-        background:#ffbf00;
+        background:#2a78d6;   /* WARNA LAMA: #ffbf00 */
         color:#fff;
     }
+    /* Icon warna-warni per jenjang */
+    .education-icon.ic-blue   { background:#2a78d6; }
+    .education-icon.ic-green  { background:#008300; }
+    .education-icon.ic-violet { background:#4a3aa7; }
 
     .education-label {
         font-size:12px;
@@ -179,39 +183,7 @@
 
 <div class="statistik-wrapper">
 
-    {{-- SIDEBAR --}}
-    <div class="statistik-sidebar">
-        <nav class="nav flex-column">
-
-            <a class="nav-link" href="{{ route('statistik.geografis') }}">
-                <i class="fa fa-map"></i> Geografis
-            </a>
-
-            <a class="nav-link" href="{{ route('statistik.iklim') }}">
-                <i class="fa fa-cloud"></i> Iklim
-            </a>
-
-            <a class="nav-link" href="{{ route('statistik.kependudukan') }}">
-                <i class="fa fa-users"></i> Kependudukan
-            </a>
-
-            <a class="nav-link active" href="{{ route('statistik.pendidikan') }}">
-                <i class="fa fa-graduation-cap"></i> Pendidikan
-            </a>
-
-            <a class="nav-link" href="{{ route('statistik.kesehatan') }}">
-                <i class="fa fa-plus-circle"></i> Kesehatan
-            </a>
-
-            <a class="nav-link" href="{{ route('statistik.bencana') }}">
-                <i class="fa fa-house-flood-water"></i> Kebencanaan
-            </a>
-            <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}">
-                <i class="fa fa-wifi"></i> Infrastruktur Digital
-            </a>
-
-        </nav>
-    </div>
+    @include('statistik.partials.sidebar')
 
 
     {{-- CONTENT --}}
@@ -244,7 +216,7 @@
                     <div class="row g-2">
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-book"></i></div>
+                                <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
                                 <div class="education-label">SD</div>
                                 <div class="education-value">{{ $summary->apm_sd_mi }}</div>
                             </div>
@@ -252,7 +224,7 @@
 
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-book-open"></i></div>
+                                <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
                                 <div class="education-label">SMP</div>
                                 <div class="education-value">{{ $summary->apm_smp_mts }}</div>
                             </div>
@@ -260,7 +232,7 @@
 
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-graduation-cap"></i></div>
+                                <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
                                 <div class="education-label">SMA</div>
                                 <div class="education-value">{{ $summary->apm_sma_smk_man }}</div>
                             </div>
@@ -277,7 +249,7 @@
                     <div class="row g-2">
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-book"></i></div>
+                                <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
                                 <div class="education-label">SD</div>
                                 <div class="education-value">{{ $summary->apk_sd_mi }}</div>
                             </div>
@@ -285,7 +257,7 @@
 
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-book-open"></i></div>
+                                <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
                                 <div class="education-label">SMP</div>
                                 <div class="education-value">{{ $summary->apk_smp_mts }}</div>
                             </div>
@@ -293,7 +265,7 @@
 
                         <div class="col-4">
                             <div class="education-card">
-                                <div class="education-icon"><i class="fa fa-graduation-cap"></i></div>
+                                <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
                                 <div class="education-label">SMA</div>
                                 <div class="education-value">{{ $summary->apk_sma_smk_man }}</div>
                             </div>
@@ -397,6 +369,7 @@
 
 
 @push('scripts')
+@include('statistik.partials.warna-kecamatan')
 <script>
     // Dropdown tahun (selaras dengan modul lain)
     (function () {
@@ -428,12 +401,8 @@ const total = negeri.map((n,i)=>n+swasta[i]);
 const idID = 'id-ID';
 const fmt  = v => Number(v).toLocaleString(idID);
 
-// Tiap chart punya hue berbeda tapi tetap selaras (gradient muda → tua per nilai)
-const PALETTE = {
-    biru:   { light: '#E2ECFA', dark: '#34527A' },
-    hijau:  { light: '#E4F3E7', dark: '#2F7D4F' },
-    oranye: { light: '#FCEBD6', dark: '#C77A1A' },
-};
+// ── Palet kategorikal warna-warni (colorblind-safe, tervalidasi) ──
+const CAT_COLORS = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834'];
 function lerpColor(a, b, t) {
     const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
     const ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -443,7 +412,18 @@ function lerpColor(a, b, t) {
     const rb = Math.round(ab + (bb - ab) * t);
     return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1);
 }
+// Satu warna khas per batang (urut tetap, warna-warni)
 function gradientColors(data, hue) {
+    return data.map(function (v, i) { return CAT_COLORS[i % CAT_COLORS.length]; });
+}
+
+/* ── WARNA LAMA (gradient monokrom per-hue, muda → tua per nilai) — disimpan untuk referensi ──
+const PALETTE = {
+    biru:   { light: '#E2ECFA', dark: '#34527A' },
+    hijau:  { light: '#E4F3E7', dark: '#2F7D4F' },
+    oranye: { light: '#FCEBD6', dark: '#C77A1A' },
+};
+function gradientColorsLama(data, hue) {
     const pal = PALETTE[hue] || PALETTE.biru;
     const min = Math.min.apply(null, data), max = Math.max.apply(null, data);
     return data.map(function (v) {
@@ -452,10 +432,12 @@ function gradientColors(data, hue) {
         return lerpColor(pal.light, pal.dark, step);
     });
 }
+*/
 
 // ── Bar distribusi gradien + interaktif (klik untuk menyorot) ──
 function distributedBar(sel, data, label, hue) {
-    const base   = gradientColors(data, hue);
+    // Warna per kecamatan (konsisten antar modul) — categories = `nama`
+    const base   = nama.map(function (n) { return window.warnaKecamatan(n); });
     let   active = null;
 
     const chart = new ApexCharts(document.querySelector(sel), {
@@ -525,7 +507,8 @@ new ApexCharts(document.querySelector("#chart-sekolah"), {
         axisBorder: { show: false }, axisTicks: { show: false }
     },
     yaxis: { labels: { formatter: fmt, style: { fontSize: '10px', colors: '#aaa' } } },
-    colors: ['#ffbf00', '#5B82C0'],
+    colors: ['#2a78d6', '#eb6834'],
+    // colors: ['#ffbf00', '#5B82C0'],   // WARNA LAMA
     plotOptions: { bar: { borderRadius: 4, columnWidth: '58%' } },
     dataLabels: { enabled: false },
     legend: { position: 'bottom', fontSize: '11px', markers: { width: 11, height: 11, radius: 3 } },

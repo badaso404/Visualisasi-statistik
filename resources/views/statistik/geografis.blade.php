@@ -147,18 +147,7 @@
 <div class="container-fluid px-4">
 <div class="statistik-wrapper">
 
-    {{-- SIDEBAR --}}
-    <div class="statistik-sidebar">
-        <nav class="nav flex-column">
-            <a class="nav-link active" href="{{ route('statistik.geografis') }}"><i class="fa fa-map"></i> Geografis</a>
-            <a class="nav-link" href="{{ route('statistik.iklim') }}"><i class="fa fa-cloud"></i> Iklim</a>
-            <a class="nav-link" href="{{ route('statistik.kependudukan') }}"><i class="fa fa-users"></i> Kependudukan</a>
-            <a class="nav-link" href="{{ route('statistik.pendidikan') }}"><i class="fa fa-graduation-cap"></i> Pendidikan</a>
-            <a class="nav-link" href="{{ route('statistik.kesehatan') }}"><i class="fa fa-plus-circle"></i> Kesehatan</a>
-            <a class="nav-link" href="{{ route('statistik.bencana') }}"><i class="fa fa-house-flood-water"></i> Kebencanaan</a>
-            <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}"><i class="fa fa-wifi"></i> Infrastruktur Digital</a>
-        </nav>
-    </div>
+    @include('statistik.partials.sidebar')
 
     {{-- KONTEN --}}
     <div class="statistik-content">
@@ -196,7 +185,7 @@
                         <div class="label" id="lbl-luas">LUAS WILAYAH</div>
                         <div class="value"><span id="val-luas">{{ number_format($geo->luas_kota_km2, 2) }}</span><small>km²</small></div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-map" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -207,7 +196,7 @@
                         <div class="label" id="lbl-kec">JUMLAH KECAMATAN</div>
                         <div class="value"><span id="val-kec">{{ $jumlahKecamatan }}</span><small id="unit-kec"></small></div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#008300; margin-left:auto;">
                         <i class="fa fa-map-marker-alt" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -218,7 +207,7 @@
                         <div class="label" id="lbl-kel">JUMLAH KELURAHAN</div>
                         <div class="value"><span id="val-kel">{{ $totalKelurahan }}</span></div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#eb6834; margin-left:auto;">
                         <i class="fa fa-building" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -229,7 +218,7 @@
                         <div class="label" id="lbl-padat">KEPADATAN WILAYAH</div>
                         <div class="value"><span id="val-padat">{{ number_format($totalKepadatan, 0, ',', '.') }}</span><small>/km²</small></div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#4a3aa7; margin-left:auto;">
                         <i class="fa fa-users" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -348,6 +337,7 @@
 @endsection
 
 @push('scripts')
+@include('statistik.partials.warna-kecamatan')
 <script>
 (function () {
     var btn  = document.getElementById('dropdownTahunBtn');
@@ -414,9 +404,7 @@ var luasMax = Math.max.apply(null, luasData);
 var luasLookup = {};
 namaKec.forEach(function(n, i) { luasLookup[n.toUpperCase()] = luasData[i]; });
 
-var YEL_LIGHT = '#E2ECFA';   // luas terkecil → biru sangat muda
-var YEL_DARK  = '#5B82C0';   // luas terbesar → biru slate cerah
-
+// ── Warna per kecamatan: dari sumber tunggal window.warnaKecamatan (konsisten antar modul) ──
 function lerpColor(a, b, t) {
     var ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
     var ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -426,8 +414,16 @@ function lerpColor(a, b, t) {
     var rb = Math.round(ab + (bb - ab) * t);
     return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1);
 }
-var WARNA_STEPS = 5;   // jumlah tingkatan warna (choropleth bertingkat)
 function getWarna(n) {
+    return window.warnaKecamatan(n);
+}
+var warnaArr = namaKec.map(function(n){ return getWarna(n); });
+
+/* ── WARNA LAMA (gradasi biru monokrom berdasarkan luas) — disimpan untuk referensi ──
+var YEL_LIGHT = '#E2ECFA';   // luas terkecil → biru sangat muda
+var YEL_DARK  = '#5B82C0';   // luas terbesar → biru slate cerah
+var WARNA_STEPS = 5;   // jumlah tingkatan warna (choropleth bertingkat)
+function getWarnaLama(n) {
     var v = luasLookup[(n || '').toUpperCase()];
     if (v == null) return '#e0e0e0';
     var t = luasMax > luasMin ? (v - luasMin) / (luasMax - luasMin) : 0.5;
@@ -435,7 +431,7 @@ function getWarna(n) {
     var step = Math.round(t * (WARNA_STEPS - 1)) / (WARNA_STEPS - 1);
     return lerpColor(YEL_LIGHT, YEL_DARK, step);
 }
-var warnaArr = namaKec.map(function(n){ return getWarna(n); });
+*/
 
 // Klik elemen chart → fokuskan kecamatan (berelasi dengan peta & card)
 function chartClickFocus(index) {

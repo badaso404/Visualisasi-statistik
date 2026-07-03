@@ -248,8 +248,85 @@ class StatistikController extends Controller
             'cctv_terintegrasi'=> $cctv->sum('terintegrasi'),
         ];
 
+        // Tren titik WiFi dibanding tahun sebelumnya
+        $prevWifi = JakWifiKecamatan::where('tahun', $tahun - 1)->sum('jumlah_titik');
+        $ringkasan['tren_wifi'] = $prevWifi > 0
+            ? round(($ringkasan['total_titik_wifi'] - $prevWifi) / $prevWifi * 100, 1)
+            : null;
+
+        // Persentase online & keseluruhan perangkat aktif
+        $ringkasan['wifi_online_pct'] = $ringkasan['total_titik_wifi'] > 0
+            ? round($ringkasan['wifi_aktif'] / $ringkasan['total_titik_wifi'] * 100) : 0;
+        $ringkasan['cctv_online_pct'] = $ringkasan['total_cctv'] > 0
+            ? round($ringkasan['cctv_aktif'] / $ringkasan['total_cctv'] * 100) : 0;
+
+        $totalUnit  = $ringkasan['total_titik_wifi'] + $ringkasan['total_cctv'];
+        $totalAktif = $ringkasan['wifi_aktif'] + $ringkasan['cctv_aktif'];
+        $ringkasan['perangkat_aktif_pct'] = $totalUnit > 0
+            ? round($totalAktif / $totalUnit * 100, 1) : 0;
+
+        // Distribusi gabungan per kecamatan (untuk chart & tabel rincian)
+        $distribusi = [];
+        foreach ($jakWifi as $w) {
+            $distribusi[$w->kecamatan_id] = [
+                'nama'       => $w->kecamatan->nama_kecamatan ?? '-',
+                'wifi'       => (int) $w->jumlah_titik,
+                'wifi_aktif' => (int) $w->titik_aktif,
+                'cctv'       => 0,
+                'cctv_aktif' => 0,
+            ];
+        }
+        foreach ($cctv as $c) {
+            $row = $distribusi[$c->kecamatan_id] ?? [
+                'nama' => $c->kecamatan->nama_kecamatan ?? '-',
+                'wifi' => 0, 'wifi_aktif' => 0, 'cctv' => 0, 'cctv_aktif' => 0,
+            ];
+            $row['cctv']       = (int) $c->jumlah_unit;
+            $row['cctv_aktif'] = (int) $c->unit_aktif;
+            $distribusi[$c->kecamatan_id] = $row;
+        }
+        $distribusi = collect($distribusi)
+            ->sortByDesc(fn ($r) => $r['wifi'] + $r['cctv'])
+            ->values();
+
+        // Baris rincian unit (per kecamatan per jenis) untuk tabel
+        $unitRows = collect();
+        foreach ($jakWifi as $w) {
+            $unitRows->push([
+                'kecamatan' => $w->kecamatan->nama_kecamatan ?? '-',
+                'tipe'      => 'JAKWIFI',
+                'total'     => (int) $w->jumlah_titik,
+                'aktif'     => (int) $w->titik_aktif,
+                'pengguna'  => (int) $w->jumlah_pengguna,
+            ]);
+        }
+        foreach ($cctv as $c) {
+            $unitRows->push([
+                'kecamatan' => $c->kecamatan->nama_kecamatan ?? '-',
+                'tipe'      => 'CCTV',
+                'total'     => (int) $c->jumlah_unit,
+                'aktif'     => (int) $c->unit_aktif,
+                'pengguna'  => null,
+            ]);
+        }
+        // Kelompokkan per jenis dulu (CCTV lalu JakWiFi), baru urut total desc,
+        // supaya baris JakWiFi tidak "nyempil" di tengah barisan CCTV.
+        $unitRows = $unitRows->sort(function ($a, $b) {
+            return [$a['tipe'], -$a['total']] <=> [$b['tipe'], -$b['total']];
+        })->values();
+
+        // Jumlah titik ilustratif per kecamatan untuk peta sebaran.
+        // Kepadatan mengikuti data agregat asli (skala 1:8 agar peta ringan);
+        // posisi tiap titik digenerate di sisi klien DI DALAM polygon kecamatan
+        // (batas wilayah Jakarta Barat) supaya rapi & tidak keluar wilayah.
+        $sebaranKec = $distribusi->map(fn ($r) => [
+            'nama' => $r['nama'],
+            'wifi' => $r['wifi'] > 0 ? max(1, (int) round($r['wifi'] / 8)) : 0,
+            'cctv' => $r['cctv'] > 0 ? max(1, (int) round($r['cctv'] / 8)) : 0,
+        ])->values();
+
         return view('statistik.infrastruktur-digital', compact(
-            'jakWifi', 'cctv', 'ringkasan', 'tahun', 'availableTahun'
+            'jakWifi', 'cctv', 'ringkasan', 'distribusi', 'unitRows', 'sebaranKec', 'tahun', 'availableTahun'
         ));
     }
 }

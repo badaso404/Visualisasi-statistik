@@ -86,18 +86,7 @@
 <div class="container-fluid px-4">
     <div class="statistik-wrapper">
 
-        {{-- SIDEBAR --}}
-        <div class="statistik-sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('statistik.geografis') }}"><i class="fa fa-map"></i> Geografis</a>
-                <a class="nav-link" href="{{ route('statistik.iklim') }}"><i class="fa fa-cloud"></i> Iklim</a>
-                <a class="nav-link active" href="{{ route('statistik.kependudukan') }}"><i class="fa fa-users"></i> Kependudukan</a>
-                <a class="nav-link" href="{{ route('statistik.pendidikan') }}"><i class="fa fa-graduation-cap"></i> Pendidikan</a>
-                <a class="nav-link" href="{{ route('statistik.kesehatan') }}"><i class="fa fa-plus-circle"></i> Kesehatan</a>
-                <a class="nav-link" href="{{ route('statistik.bencana') }}"><i class="fa fa-house-flood-water"></i> Kebencanaan</a>
-                <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}"><i class="fa fa-wifi"></i> Infrastruktur Digital</a>
-            </nav>
-        </div>
+        @include('statistik.partials.sidebar')
 
         {{-- KONTEN --}}
         <div class="statistik-content">
@@ -128,7 +117,7 @@
                             <div class="label">LAKI-LAKI</div>
                             <div class="value">{{ number_format($summary->jumlah_laki_laki) }}</div>
                         </div>
-                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                             <i class="fa fa-male" style="color:#fff;"></i>
                         </div>
                     </div>
@@ -139,7 +128,7 @@
                             <div class="label">PEREMPUAN</div>
                             <div class="value">{{ number_format($summary->jumlah_perempuan) }}</div>
                         </div>
-                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <div class="card-icon" style="background:#e87ba4; margin-left:auto;">
                             <i class="fa fa-female" style="color:#fff;"></i>
                         </div>
                     </div>
@@ -150,7 +139,7 @@
                             <div class="label">TOTAL PENDUDUK</div>
                             <div class="value">{{ number_format($summary->jumlah_total) }}</div>
                         </div>
-                        <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                        <div class="card-icon" style="background:#008300; margin-left:auto;">
                             <i class="fa fa-users" style="color:#fff;"></i>
                         </div>
                     </div>
@@ -193,6 +182,7 @@
 @endsection
 
 @push('scripts')
+@include('statistik.partials.warna-kecamatan')
 <script>
     (function () {
         var btn  = document.getElementById('dropdownTahunBtn');
@@ -218,10 +208,7 @@
 
     // ── Skala warna choropleth (base biru) berdasarkan jumlah penduduk ──
     // Konsisten antara chart, peta & marker — meniru gaya modul Geografis.
-    var BLUE_LIGHT = '#E2ECFA';   // penduduk paling sedikit → biru sangat muda
-    var BLUE_DARK  = '#5B82C0';   // penduduk paling banyak  → biru slate cerah
-    var WARNA_STEPS = 5;          // jumlah tingkatan warna (choropleth bertingkat)
-
+    // ── Warna per kecamatan: dari sumber tunggal window.warnaKecamatan (konsisten antar modul) ──
     function lerpColor(a, b, t) {
         var ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
         var ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -234,18 +221,24 @@
 
     var popMin = Math.min.apply(null, popKecamatan);
     var popMax = Math.max.apply(null, popKecamatan);
+
+    // Warna sinkron map & chart (satu warna khas per kecamatan; key = NAMA UPPERCASE)
+    var warnaMap = {};
+    namaKecamatan.forEach(function(nama, i) {
+        warnaMap[nama.toUpperCase()] = window.warnaKecamatan(nama);
+    });
+
+    /* ── WARNA LAMA (gradasi biru monokrom berdasarkan jumlah penduduk) — disimpan untuk referensi ──
+    var BLUE_LIGHT = '#E2ECFA';   // penduduk paling sedikit → biru sangat muda
+    var BLUE_DARK  = '#5B82C0';   // penduduk paling banyak  → biru slate cerah
+    var WARNA_STEPS = 5;          // jumlah tingkatan warna (choropleth bertingkat)
     function gradByPop(v) {
         if (v == null) return '#e0e0e0';
         var t = popMax > popMin ? (v - popMin) / (popMax - popMin) : 0.5;
         var step = Math.round(t * (WARNA_STEPS - 1)) / (WARNA_STEPS - 1);
         return lerpColor(BLUE_LIGHT, BLUE_DARK, step);
     }
-
-    // Warna sinkron map & chart (key = NAMA UPPERCASE)
-    var warnaMap = {};
-    namaKecamatan.forEach(function(nama, i) {
-        warnaMap[nama.toUpperCase()] = gradByPop(popKecamatan[i]);
-    });
+    */
 
     var warnaChart = namaKecamatan.map(function(nama) {
         return warnaMap[nama.toUpperCase()] || '#ccc';

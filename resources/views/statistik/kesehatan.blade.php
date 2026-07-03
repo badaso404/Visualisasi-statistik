@@ -73,10 +73,13 @@
         display:flex; align-items:center; justify-content:center;
         font-size:22px; flex-shrink:0; margin-left:12px;
     }
-    .sc-icon.yellow,
-    .sc-icon.green,
-    .sc-icon.blue,
-    .sc-icon.teal { background:#ffbf00; color:#fff; }
+    /* Icon warna-warni per kartu */
+    .sc-icon { color:#fff; }
+    .sc-icon.yellow { background:#eda100; }
+    .sc-icon.green  { background:#008300; }
+    .sc-icon.blue   { background:#2a78d6; }
+    .sc-icon.teal   { background:#1baf7a; }
+    /* .sc-icon.yellow, .sc-icon.green, .sc-icon.blue, .sc-icon.teal { background:#ffbf00; color:#fff; }  WARNA LAMA */
     .sc-label { font-size:12px; font-weight:600; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
     .sc-value { font-size:28px; font-weight:700; color:#333; line-height:1.15; margin-bottom:6px; }
     .sc-desc  { font-size:11px; color:#aaa; }
@@ -190,32 +193,7 @@
 <div class="container-fluid px-4">
     <div class="kes-wrapper">
 
-        {{-- ── SIDEBAR ─────────────────────────────────── --}}
-        <div class="kes-sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('statistik.geografis') }}">
-                    <i class="fa fa-map"></i> Geografis
-                </a>
-                <a class="nav-link" href="{{ route('statistik.iklim') }}">
-                    <i class="fa fa-cloud"></i> Iklim
-                </a>
-                <a class="nav-link" href="{{ route('statistik.kependudukan') }}">
-                    <i class="fa fa-users"></i> Kependudukan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.pendidikan') }}">
-                    <i class="fa fa-graduation-cap"></i> Pendidikan
-                </a>
-                <a class="nav-link active" href="{{ route('statistik.kesehatan') }}">
-                    <i class="fa fa-plus-circle"></i> Kesehatan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.bencana') }}">
-                    <i class="fa fa-house-flood-water"></i> Kebencanaan
-                </a>
-                <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}">
-                    <i class="fa fa-wifi"></i> Infrastruktur Digital
-                </a>
-            </nav>
-        </div>
+        @include('statistik.partials.sidebar')
 
         {{-- ── KONTEN ───────────────────────────────────── --}}
         <div class="kes-content">
@@ -375,6 +353,7 @@
 @endsection
 
 @push('scripts')
+@include('statistik.partials.warna-kecamatan')
 <script>
     // Dropdown tahun (selaras dengan modul lain)
     (function () {
@@ -397,11 +376,8 @@
     var idID = 'id-ID';
     var fmt  = function (v) { return Number(v).toLocaleString(idID); };
 
-    // ── Palet gradien profesional (muda → tua per nilai) ──────────
-    var PALETTE = {
-        biru: { light: '#E2ECFA', dark: '#34527A' },
-        teal: { light: '#E1F0EE', dark: '#2C6E63' },
-    };
+    // ── Palet kategorikal warna-warni (colorblind-safe, tervalidasi) ──
+    var CAT_COLORS = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834'];
     function lerpColor(a, b, t) {
         var ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
         var ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -411,7 +387,17 @@
         var rb = Math.round(ab + (bb - ab) * t);
         return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1);
     }
+    // Satu warna khas per batang (urut tetap, warna-warni)
     function gradientColors(data, hue) {
+        return data.map(function (v, i) { return CAT_COLORS[i % CAT_COLORS.length]; });
+    }
+
+    /* ── WARNA LAMA (gradien monokrom muda → tua per nilai) — disimpan untuk referensi ──
+    var PALETTE = {
+        biru: { light: '#E2ECFA', dark: '#34527A' },
+        teal: { light: '#E1F0EE', dark: '#2C6E63' },
+    };
+    function gradientColorsLama(data, hue) {
         var pal = PALETTE[hue] || PALETTE.biru;
         var min = Math.min.apply(null, data), max = Math.max.apply(null, data);
         return data.map(function (v) {
@@ -420,6 +406,7 @@
             return lerpColor(pal.light, pal.dark, step);
         });
     }
+    */
     // Label putih untuk batang gelap, abu gelap untuk batang terang
     function labelColor(hex) {
         var c = parseInt(hex.slice(1), 16);
@@ -454,7 +441,8 @@
 
     // ── Pabrik bar horizontal: gradien + klik untuk fokus card ────
     function makeKesBar(sel, kecArr, dataArr, label, hue) {
-        var base    = gradientColors(dataArr, hue);
+        // Warna per kecamatan (konsisten antar modul)
+        var base    = kecArr.map(function (n) { return window.warnaKecamatan(n); });
         var lblCols = base.map(labelColor);
         var active  = null;
         var chart = new ApexCharts(document.querySelector(sel), {
@@ -540,7 +528,8 @@
             },
             tickAmount: 4,
         },
-        colors: ['#ffbf00', '#5B82C0'],
+        colors: ['#2a78d6', '#eb6834'],
+        // colors: ['#ffbf00', '#5B82C0'],   // WARNA LAMA
         plotOptions: {
             bar: {
                 borderRadius: 2,

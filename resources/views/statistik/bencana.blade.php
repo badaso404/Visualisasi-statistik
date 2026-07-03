@@ -122,18 +122,7 @@
 <div class="container-fluid px-4">
     <div class="statistik-wrapper">
 
-        {{-- SIDEBAR --}}
-        <div class="statistik-sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('statistik.geografis') }}"><i class="fa fa-map"></i> Geografis</a>
-                <a class="nav-link" href="{{ route('statistik.iklim') }}"><i class="fa fa-cloud"></i> Iklim</a>
-                <a class="nav-link" href="{{ route('statistik.kependudukan') }}"><i class="fa fa-users"></i> Kependudukan</a>
-                <a class="nav-link" href="{{ route('statistik.pendidikan') }}"><i class="fa fa-graduation-cap"></i> Pendidikan</a>
-                <a class="nav-link" href="{{ route('statistik.kesehatan') }}"><i class="fa fa-plus-circle"></i> Kesehatan</a>
-                <a class="nav-link active" href="{{ route('statistik.bencana') }}"><i class="fa fa-house-flood-water"></i> Kebencanaan</a>
-                <a class="nav-link" href="{{ route('statistik.infrastruktur-digital') }}"><i class="fa fa-wifi"></i> Infrastruktur Digital</a>
-            </nav>
-        </div>
+        @include('statistik.partials.sidebar')
 
         <div class="statistik-content">
             <div class="stat-header-wrap">
@@ -159,7 +148,7 @@
                         <div class="label">TOTAL KEJADIAN</div>
                         <div class="value" id="sc-kejadian">{{ number_format($ringkasan['total_kejadian']) }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-house-flood-water" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -168,7 +157,7 @@
                         <div class="label">TOTAL KORBAN</div>
                         <div class="value" id="sc-korban">{{ number_format($ringkasan['total_korban']) }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#e34948; margin-left:auto;">
                         <i class="fa fa-user-injured" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -177,7 +166,7 @@
                         <div class="label">TOTAL TERDAMPAK</div>
                         <div class="value" id="sc-terdampak">{{ number_format($ringkasan['total_terdampak']) }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#008300; margin-left:auto;">
                         <i class="fa fa-users" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -186,7 +175,7 @@
                         <div class="label" id="sc-jenis-label">JENIS TERBANYAK</div>
                         <div class="value" id="sc-jenis" style="font-size:20px;">{{ $ringkasan['jenis_terbanyak'] }}</div>
                     </div>
-                    <div class="card-icon" style="background:#ffbf00; margin-left:auto;">
+                    <div class="card-icon" style="background:#eb6834; margin-left:auto;">
                         <i class="fa fa-triangle-exclamation" style="color:#fff;"></i>
                     </div>
                 </div>
@@ -283,6 +272,7 @@
 @endsection
 
 @push('scripts')
+@include('statistik.partials.warna-kecamatan')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -667,6 +657,7 @@
 
     new ApexCharts(document.querySelector("#chart-bulanan"), {
         chart: { type: 'area', height: 360, toolbar: { show: false } },
+        colors: ['#2a78d6'],
         stroke: { curve: 'smooth', width: 3 },
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.72, opacityTo: 0.18, stops: [0, 90, 100] } },
         series: [{ name: 'Kejadian', data: monthData }],
@@ -678,12 +669,14 @@
 
     new ApexCharts(document.querySelector("#chart-kecamatan"), {
         chart: { type: 'bar', height: 360, toolbar: { show: false } },
-        plotOptions: { bar: { horizontal: true, barHeight: '50%' } },
+        plotOptions: { bar: { horizontal: true, barHeight: '50%', distributed: true } },
         series: [{ name: 'Kejadian', data: kecamatanSeries }],
-        xaxis: { labels: { formatter: function(val) { return val.toFixed(0); } } },
-        yaxis: { categories: kecamatanLabels },
+        xaxis: { categories: kecamatanLabels, labels: { formatter: function(val) { return val.toFixed(0); } } },
         dataLabels: { enabled: true },
-        colors: ['#ffbf00']
+        legend: { show: false },
+        // Warna per kecamatan (konsisten antar modul)
+        colors: kecamatanLabels.map(function (n) { return window.warnaKecamatan(n); })
+        // colors: ['#ffbf00']   // WARNA LAMA (amber tunggal)
     }).render();
 
 </script>
