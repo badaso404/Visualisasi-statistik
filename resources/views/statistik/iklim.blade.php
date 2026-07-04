@@ -82,7 +82,8 @@
     .donut-legend-pct { font-weight: 700; color: #333; }
 
     /* Table */
-    .iklim-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    /* table-layout: fixed → lebar kolom stabil, tidak bergeser saat ganti halaman */
+    .iklim-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
     .iklim-table thead th {
         padding: 8px 12px; text-align: center; color: #777; font-weight: 600;
         border-bottom: 2px solid #f0f0f0;
@@ -127,6 +128,22 @@
     }
     .geo-pager button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; font-weight: 700; }
     .geo-pager button:disabled { opacity: 0.4; cursor: default; }
+
+    /* Tombol export CSV (sama seperti geografis) */
+    .btn-export-csv {
+        display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        border: 1px solid #1e8e3e; background: #eaf6ec; color: #1e8e3e;
+        font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 6px;
+        cursor: pointer; transition: background .15s, color .15s;
+    }
+    .btn-export-csv:hover { background: #1e8e3e; color: #fff; }
+
+    /* Animasi nilai card saat bulan dipilih dari bar chart (halus, fade + naik) */
+    @keyframes cardValueIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .stat-summary-card .card-anim { animation: cardValueIn .35s ease both; }
 
     .sumber { text-align: right; font-size: 12px; color: #999; margin-top: 16px; }
 
@@ -300,22 +317,24 @@
             <div class="chart-card">
                 <div class="chart-title">DISTRIBUSI CURAH HUJAN</div>
                 <div id="chart-donut"></div>
+                {{-- Warna dot legenda WAJIB sama dgn segmen donut (donutColors di script) --}}
+                {{-- WARNA LAMA (gradasi biru): #34527A / #5B82C0 / #A9C0E0 --}}
                 <div class="donut-legend">
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#34527A;"></span> Sangat Tinggi
+                            <span class="donut-legend-dot" style="background:#e34948;"></span> Sangat Tinggi
                         </div>
                         <span class="donut-legend-pct">{{ $pctST }}%</span>
                     </div>
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#5B82C0;"></span> Tinggi
+                            <span class="donut-legend-dot" style="background:#eb6834;"></span> Tinggi
                         </div>
                         <span class="donut-legend-pct">{{ $pctT }}%</span>
                     </div>
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#A9C0E0;"></span> Sedang
+                            <span class="donut-legend-dot" style="background:#eda100;"></span> Sedang
                         </div>
                         <span class="donut-legend-pct">{{ $pctS }}%</span>
                     </div>
@@ -339,10 +358,17 @@
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div class="chart-title" style="margin-bottom:0;">DATA IKLIM PER BULAN</div>
+                <button type="button" class="btn-export-csv" onclick="exportIklimCSV()">
+                    <i class="fa fa-file-csv"></i> Export CSV
+                </button>
             </div>
 
             <div class="iklim-table-scroll">
             <table class="iklim-table" id="iklim-table">
+                <colgroup>
+                    <col style="width:13%"> <col style="width:11%"> <col style="width:10%"> <col style="width:13%">
+                    <col style="width:11%"> <col style="width:12%"> <col style="width:14%"> <col style="width:16%">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Bulan</th>
@@ -463,10 +489,13 @@
     }
     var hMin = Math.min.apply(null, hariHujan);
     var hMax = Math.max.apply(null, hariHujan);
-    // Satu warna khas per bulan (urut tetap, siklus palet)
+    // Warna bar ikut kategori curah hujan BMKG — dihitung setelah iklimData (lihat di bawah)
+
+    /* ── WARNA LAMA (kategorikal per bulan, siklus CAT_COLORS — berulang tiap 8 bulan, April=Desember) ──
     var barColors = hariHujan.map(function(v, i) {
         return CAT_COLORS[i % CAT_COLORS.length];
     });
+    */
 
     /* ── WARNA LAMA (gradasi biru monokrom berdasarkan nilai hari hujan) — disimpan untuk referensi ──
     var BLUE_LIGHT = '#E2ECFA';
@@ -481,10 +510,25 @@
 
     // ── Relasi card ringkasan ↔ chart tren hari hujan ─────────────
     var iklimData = {!! json_encode($iklimBulanJs) !!};
+
+    // ── Warna bar = kategori curah hujan BMKG (selaras dgn badge tabel & kartu status) ──
+    // Normal=hijau, Waspada=kuning, Siaga=oranye, Awas=merah. Bulan berwarna sama = kategori sama.
+    var CAT_HEX = { 'cat-green': '#43a047', 'cat-yellow': '#f9a825', 'cat-orange': '#fb8c00', 'cat-red': '#e53935' };
+    var barColors = iklimData.map(function(d) { return CAT_HEX[d.statusClass] || CAT_HEX['cat-green']; });
+
     var idID = 'id-ID';
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     function setHTML(id, h) { var el = document.getElementById(id); if (el) el.innerHTML = h; }
     function fmt1(v) { return Number(v).toLocaleString(idID, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+    // Animasi halus (fade + naik) pada isi card saat nilainya berubah (sama seperti geografis)
+    function animateCards() {
+        document.querySelectorAll('.stat-summary-card .card-text').forEach(function(el) {
+            el.classList.remove('card-anim');
+            void el.offsetWidth;   // retrigger animasi
+            el.classList.add('card-anim');
+        });
+    }
 
     var cardDefaults = {
         suhuLbl:   'RATA-RATA SUHU UDARA (°C)',          suhuVal:   '{{ number_format($avgSuhu, 2) }}',
@@ -501,6 +545,7 @@
         setText('lbl-hujan',  'HARI HUJAN — ' + bln);    setText('val-hujan',  fmt1(d.hari_hujan));
         setText('lbl-lembab', 'KELEMBABAN — ' + bln);    setHTML('val-lembab', d.kelembaban + '<small style="font-size:13px; font-weight:500; color:#888;">%</small>');
         setText('lbl-status', 'STATUS — ' + bln);        setHTML('val-status', '<span class="cat-badge ' + d.statusClass + '" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>' + d.status + '</span>');
+        animateCards();
     }
 
     function resetCards() {
@@ -508,6 +553,7 @@
         setText('lbl-hujan',  cardDefaults.hujanLbl);   setText('val-hujan',  cardDefaults.hujanVal);
         setText('lbl-lembab', cardDefaults.lembabLbl);  setHTML('val-lembab', cardDefaults.lembabVal);
         setText('lbl-status', cardDefaults.statusLbl);  setHTML('val-status', cardDefaults.statusVal);
+        animateCards();
     }
 
     // Label putih untuk bar gelap, abu gelap untuk bar terang
@@ -610,6 +656,19 @@
     // var donutColors  = ['#34527A', '#5B82C0', '#A9C0E0'];   // WARNA LAMA (gradasi biru)
     var donutMain    = Math.round({{ $pctT + $pctST }});
 
+    // State pilihan donut + highlight legenda (bisa di-toggle balik ke "semua")
+    var activeDonut = null;
+    var suppressDonutEvent = false;   // cegah event ganda saat toggle diprogram
+    function highlightDonutLegend(idx) {
+        document.querySelectorAll('.donut-legend-item').forEach(function(item, i) {
+            var isActive = (idx !== null && i === idx);
+            item.style.opacity    = (idx === null || isActive) ? '1' : '0.35';
+            item.style.fontWeight = isActive ? '700' : '400';
+            item.style.transform  = isActive ? 'scale(1.03)' : 'scale(1)';
+            item.style.transition = 'all .2s';
+        });
+    }
+
     var donutChart = new ApexCharts(document.querySelector('#chart-donut'), {
         chart: {
             type: 'donut',
@@ -617,25 +676,21 @@
             toolbar: { show: false },
             animations: { enabled: true, easing: 'easeinout', speed: 500 },
             events: {
-                // Klik segment: update center label & highlight legend
+                // Klik segment donut: pilih → highlight legenda; klik lagi segmen sama → balik ke "semua"
                 dataPointSelection: function(e, ctx, cfg) {
-                    var idx = cfg.dataPointIndex;
-                    var el  = document.querySelectorAll('.donut-legend-item')[idx];
-                    document.querySelectorAll('.donut-legend-item').forEach(function(item, i) {
-                        item.style.opacity   = i === idx ? '1' : '0.35';
-                        item.style.fontWeight = i === idx ? '700' : '400';
-                        item.style.transform = i === idx ? 'scale(1.03)' : 'scale(1)';
-                        item.style.transition = 'all .2s';
-                    });
+                    if (suppressDonutEvent) return;
+                    var sel = (cfg.selectedDataPoints && cfg.selectedDataPoints[0]) || [];
+                    activeDonut = sel.length ? cfg.dataPointIndex : null;   // kosong = ter-deselect
+                    highlightDonutLegend(activeDonut);
                 },
-                // Reset legend saat klik di luar
+                // Klik area kosong: reset ke semua + lepas segmen yang aktif
                 click: function(e, ctx, cfg) {
-                    if (cfg.dataPointIndex === undefined || cfg.dataPointIndex < 0) {
-                        document.querySelectorAll('.donut-legend-item').forEach(function(item) {
-                            item.style.opacity   = '1';
-                            item.style.fontWeight = '400';
-                            item.style.transform = 'scale(1)';
-                        });
+                    if ((cfg.dataPointIndex === undefined || cfg.dataPointIndex < 0) && activeDonut !== null) {
+                        suppressDonutEvent = true;
+                        donutChart.toggleDataPointSelection(0, activeDonut);
+                        suppressDonutEvent = false;
+                        activeDonut = null;
+                        highlightDonutLegend(null);
                     }
                 }
             }
@@ -679,18 +734,24 @@
     });
     donutChart.render();
 
-    // Legend items — klik untuk toggle segment donut
+    // Legend items — klik untuk toggle segment donut (sinkron dgn state activeDonut)
     document.querySelectorAll('.donut-legend-item').forEach(function(item, idx) {
         item.style.cursor = 'pointer';
         item.style.transition = 'all .2s';
         item.addEventListener('click', function() {
-            donutChart.toggleDataPointSelection(0, idx);
+            var goingActive = (activeDonut !== idx);
+            suppressDonutEvent = true;
+            if (activeDonut !== null && activeDonut !== idx) donutChart.toggleDataPointSelection(0, activeDonut); // lepas pilihan lama
+            donutChart.toggleDataPointSelection(0, idx);   // pilih / lepas segmen ini
+            suppressDonutEvent = false;
+            activeDonut = goingActive ? idx : null;
+            highlightDonutLegend(activeDonut);
         });
         item.addEventListener('mouseenter', function() {
-            if (item.style.opacity !== '0.35') item.style.transform = 'scale(1.03)';
+            if (activeDonut === null || activeDonut === idx) item.style.transform = 'scale(1.03)';
         });
         item.addEventListener('mouseleave', function() {
-            if (item.style.opacity !== '0.35') item.style.transform = 'scale(1)';
+            item.style.transform = (activeDonut === idx) ? 'scale(1.03)' : 'scale(1)';
         });
     });
 
@@ -736,5 +797,42 @@
     }
 
     renderIklimTable();
+
+    // ── Export CSV tabel iklim (semua bulan, abaikan pagination) ───
+    function exportIklimCSV() {
+        var table = document.getElementById('iklim-table');
+        var rows = [];
+
+        // Header
+        var head = [];
+        table.querySelectorAll('thead th').forEach(function(th) { head.push(th.textContent.trim()); });
+        rows.push(head);
+
+        // Semua baris; angka default PHP "1,008.5" → buang pemisah ribuan & simbol %
+        table.querySelectorAll('tbody tr').forEach(function(tr) {
+            var row = [];
+            tr.querySelectorAll('td').forEach(function(td, i) {
+                var txt = td.textContent.trim();
+                if (i > 0) txt = txt.replace(/,/g, '').replace('%', '');   // "1,008.5" → "1008.5"
+                row.push(txt);
+            });
+            rows.push(row);
+        });
+
+        var csv = rows.map(function(r) {
+            return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\r\n');
+
+        // BOM agar UTF-8 terbaca benar di Excel
+        var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href = url;
+        a.download = 'data-iklim-jakarta-barat-{{ $tahun }}.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 </script>
 @endpush
