@@ -491,11 +491,32 @@ distributedBar('#chart-pelajar',       pelajar, 'Pelajar',       'biru');
 distributedBar('#chart-pendidik',      pendidik, 'Pendidik',      'hijau');
 distributedBar('#chart-total-sekolah', total,    'Total Sekolah', 'oranye');
 
-// ── Negeri vs Swasta (stacked, warna tema) ────────────────────
-new ApexCharts(document.querySelector("#chart-sekolah"), {
+// ── Negeri vs Swasta (AREA tumpang-tindih — tipe yang dianimasikan ApexCharts saat update) ──
+// Tidak stacked: tiap area diukur dari nol, jadi nilai lebih besar tampak lebih tinggi.
+// Bar tak bisa animasi saat toggle; area/line bisa. Klik legend dialihkan ke updateSeries
+// agar dynamicAnimation benar-benar terpicu → transisi mulus.
+const sekolahOff = [false, false];   // 0=Negeri, 1=Swasta
+
+const chartSekolah = new ApexCharts(document.querySelector("#chart-sekolah"), {
     chart: {
-        type: 'bar', height: 250, stacked: true, toolbar: { show: false },
-        fontFamily: 'inherit', animations: { enabled: true, speed: 550 }
+        type: 'area', height: 250, stacked: false, toolbar: { show: false },
+        fontFamily: 'inherit',
+        animations: {
+            enabled: true, easing: 'easeinout', speed: 550,
+            animateGradually: { enabled: false },
+            dynamicAnimation: { enabled: true, speed: 700 }   // transisi toggle mengalir
+        },
+        events: {
+            legendClick: function (ctx, seriesIndex) {
+                sekolahOff[seriesIndex] = !sekolahOff[seriesIndex];
+                chartSekolah.updateSeries([
+                    { name: 'Negeri', data: sekolahOff[0] ? negeri.map(function(){return 0;}) : negeri },
+                    { name: 'Swasta', data: sekolahOff[1] ? swasta.map(function(){return 0;}) : swasta }
+                ]);   // tanpa arg kedua = animate:true → dynamicAnimation aktif
+                const items = document.querySelectorAll('#chart-sekolah .apexcharts-legend-series');
+                if (items[seriesIndex]) items[seriesIndex].style.opacity = sekolahOff[seriesIndex] ? 0.4 : 1;
+            }
+        }
     },
     series: [
         { name: 'Negeri', data: negeri },
@@ -506,15 +527,23 @@ new ApexCharts(document.querySelector("#chart-sekolah"), {
         labels: { rotate: -30, rotateAlways: true, trim: false, style: { fontSize: '10px', colors: '#888' } },
         axisBorder: { show: false }, axisTicks: { show: false }
     },
-    yaxis: { labels: { formatter: fmt, style: { fontSize: '10px', colors: '#aaa' } } },
+    yaxis: { min: 0, max: Math.max.apply(null, negeri.concat(swasta)),   // kunci skala (nilai terbesar antar-seri)
+             forceNiceScale: true,
+             labels: { formatter: function (v) { return fmt(Math.round(v)); },   // bulatkan → tanpa koma
+                       style: { fontSize: '10px', colors: '#aaa' } } },
     colors: ['#2a78d6', '#eb6834'],
-    // colors: ['#ffbf00', '#5B82C0'],   // WARNA LAMA
-    plotOptions: { bar: { borderRadius: 4, columnWidth: '58%' } },
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.55, opacityTo: 0.15 } },
+    markers: { size: 3, strokeWidth: 0, hover: { size: 5 } },
     dataLabels: { enabled: false },
-    legend: { position: 'bottom', fontSize: '11px', markers: { width: 11, height: 11, radius: 3 } },
+    legend: {
+        position: 'bottom', fontSize: '11px', markers: { width: 11, height: 11, radius: 3 },
+        onItemClick: { toggleDataSeries: false }   // matikan toggle bawaan (yang snap)
+    },
     grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
     tooltip: { y: { formatter: fmt } }
-}).render();
+});
+chartSekolah.render();
 
 </script>
 @endpush

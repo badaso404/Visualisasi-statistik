@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use App\Models\DataGeografis;
 use App\Models\LuasKecamatan;
 use App\Models\DataIklim;
@@ -112,6 +114,103 @@ class StatistikController extends Controller
             'kelurahanPerKecamatan',
             'tahun',
             'availableTahun'
+        ));
+    }
+
+    /**
+     * UJI COBA — Piramida penduduk dari API Satu Data Jakarta
+     * (jumlah penduduk per kelompok usia & jenis kelamin, 2013-2016).
+     */
+    public function kependudukanApi(Request $request)
+    {
+        // Slug tanpa embel tahun = dataset paling lengkap (2013,2014,2015,2016,2018,2020,2021)
+        $url = 'https://ws.jakarta.go.id/gateway/DataPortalSatuDataJakarta/1.0/satudata'
+             . '?kategori=dataset&tipe=detail'
+             . '&url=data-jumlah-penduduk-provinsi-dki-jakarta-berdasarkan-kelompok-usia-dan-jenis-kelamin';
+
+        // Data ~60rb baris → cache 6 jam biar tidak fetch tiap request
+        $rows = Cache::remember('satudata_penduduk_usia_v2', now()->addHours(6), function () use ($url) {
+            $res = Http::timeout(90)->retry(2, 500)->get($url);
+            return $res->successful() ? ($res->json('data') ?? []) : [];
+        });
+
+        // Label usia rusak/tidak konsisten antar tahun (Excel + variasi ejaan)
+        $fixUsia = fn($u) => match (trim($u)) {
+            '00-04'                     => '0-4',
+            '9-May'                     => '5-9',
+            '14-Oct', '10-Jan'          => '10-14',
+            '75+', '75-ke atas'         => '>75',
+            default                     => trim($u),
+        };
+        // Jenis kelamin: "Laki laki" / "Laki-laki" / "Laki-Laki"
+        $fixJk = fn($jk) => str_starts_with(strtolower(trim($jk)), 'laki') ? 'L' : 'P';
+        // Kolom jumlah bisa bernama 'jumlah' atau 'jumlah_penduduk'
+        $getJumlah = fn($r) => (int) ($r['jumlah'] ?? $r['jumlah_penduduk'] ?? 0);
+
+        $urutanUsia = ['0-4','5-9','10-14','15-19','20-24','25-29','30-34','35-39',
+                       '40-44','45-49','50-54','55-59','60-64','65-69','70-74','>75'];
+
+        // Fokus Jakarta Barat saja
+        $kota = 'JAKARTA BARAT';
+
+        $availableTahun = collect($rows)
+            ->where('nama_kabupaten_kota', $kota)
+            ->pluck('tahun')->unique()->sort()->values(); // 2013-2016 saja
+
+        // Default ke tahun terbaru (2021) — 2013 dilewati karena inflasi
+        $tahun = (string) $request->get('tahun', $availableTahun->last() ?? '2021');
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (string) ($availableTahun->last() ?? '2021');
+        }
+
+        // Baris Jakarta Barat pada tahun terpilih
+        $rowsJb = collect($rows)->filter(fn($r) =>
+            ($r['nama_kabupaten_kota'] ?? null) === $kota && ($r['tahun'] ?? null) === $tahun
+        );
+
+        // 1) Piramida: usia => ['L' => n, 'P' => n]
+        $agg = [];
+        foreach ($rowsJb as $r) {
+            $u  = $fixUsia($r['usia'] ?? '');
+            $jk = $fixJk($r['jenis_kelamin'] ?? '');
+            $agg[$u][$jk] = ($agg[$u][$jk] ?? 0) + $getJumlah($r);
+        }
+        $labels    = $urutanUsia;
+        $laki      = array_map(fn($u) => -($agg[$u]['L'] ?? 0), $urutanUsia); // negatif utk piramida
+        $perempuan = array_map(fn($u) =>  ($agg[$u]['P'] ?? 0), $urutanUsia);
+        $totalL = array_sum(array_map('abs', $laki));
+        $totalP = array_sum($perempuan);
+
+        // 2) Total penduduk per kecamatan (urut desc)
+        $perKecamatan = $rowsJb
+            ->groupBy('nama_kecamatan')
+            ->map(fn($items, $nama) => [
+                'nama'   => $nama,
+                'jumlah' => $items->sum($getJumlah),
+            ])
+            ->sortByDesc('jumlah')
+            ->values();
+
+        // 3) Total penduduk per kelurahan, dikelompokkan per kecamatan (utk drill-down)
+        $kelurahanPerKecamatan = $rowsJb
+            ->groupBy('nama_kecamatan')
+            ->map(function ($items) use ($getJumlah) {
+                $perKel = $items->groupBy('nama_kelurahan')
+                    ->map(fn($k) => $k->sum($getJumlah))
+                    ->sortDesc();
+                return [
+                    'labels' => $perKel->keys()->values(),
+                    'data'   => $perKel->values(),
+                ];
+            });
+
+        // 2013 angkanya inflasi ~1.7x di sumber → beri penanda di view
+        $inflated = ($tahun === '2013');
+
+        return view('statistik.kependudukan-api', compact(
+            'labels', 'laki', 'perempuan', 'totalL', 'totalP',
+            'tahun', 'kota', 'availableTahun', 'inflated',
+            'perKecamatan', 'kelurahanPerKecamatan'
         ));
     }
 

@@ -71,9 +71,42 @@
 </div>
 
 {{-- Per Kelurahan --}}
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h6 class="mb-0">Penduduk per Kelurahan</h6>
-    <a href="{{ route('admin.penduduk-kelurahan.create') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('admin.penduduk-kelurahan.export') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-download"></i> Export CSV</a>
+        <a href="{{ route('admin.penduduk-kelurahan.template') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-arrow-down"></i> Template</a>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportKelurahan"><i class="bi bi-upload"></i> Import CSV</button>
+        <a href="{{ route('admin.penduduk-kelurahan.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+    </div>
+</div>
+
+{{-- Modal Import CSV --}}
+<div class="modal fade" id="modalImportKelurahan" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ route('admin.penduduk-kelurahan.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+            @csrf
+            <div class="modal-header">
+                <h6 class="modal-title">Import Data Kelurahan (CSV)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Pilih file CSV</label>
+                    <input type="file" name="file" accept=".csv,.txt" class="form-control" required>
+                </div>
+                <div class="small text-muted">
+                    Kolom: <code>kecamatan, tahun, nama_kelurahan, latitude, longitude, jumlah_penduduk</code>.<br>
+                    Baris dicocokkan per <b>nama_kelurahan + tahun</b> — data yang sudah ada akan <b>diperbarui</b> (termasuk lat/lng), bukan diduplikat.
+                    Belum punya format? <a href="{{ route('admin.penduduk-kelurahan.template') }}">Unduh template</a>.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Import</button>
+            </div>
+        </form>
+    </div>
 </div>
 <div class="card border-0 shadow-sm">
     <div class="table-responsive">

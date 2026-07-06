@@ -140,6 +140,14 @@
     /* ── Footer ──────────────────────────────────────────────── */
     .kes-footer { font-size:11px; color:#bbb; text-align:right; margin-top:8px; }
 
+    /* Animasi nilai card saat kecamatan dipilih (halus, fade + naik) —
+       selaras dengan modul Geografis & Iklim */
+    @keyframes cardValueIn {
+        from { opacity:0; transform:translateY(6px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .stat-card .sc-card-left.card-anim { animation: cardValueIn .35s ease both; }
+
     /* ── Responsive (tablet & HP) ──────────────────────────────── */
     @media (max-width: 992px) {
         .stat-grid { grid-template-columns: repeat(2,1fr); }
@@ -165,7 +173,16 @@
 
 @section('content')
 @php
-    $tahun          = $tahun ?? $summary->tahun ?? 2024;
+    $tahun = $tahun ?? optional($summary)->tahun ?? 2024;
+
+    // Fallback bila tak ada baris ringkasan untuk tahun terpilih (hindari error null).
+    $summary = $summary ?? new \App\Models\DataKesehatan([
+        'tahun'                   => $tahun,
+        'jumlah_tempat_tidur_rs'  => 0,
+        'cakupan_imunisasi_dasar' => 0,
+        'sumber'                  => 'Dinas Kesehatan Jakarta Barat',
+    ]);
+
     $totalTenaga    = $tenaga->sum('jumlah_total');
     $totalFasilitas = $fasilitas->sum('jumlah_total');
     $maxTenaga      = $tenaga->max('jumlah_total') ?: 1;
@@ -176,8 +193,13 @@
     $kesStatsData = [];
     foreach ($tenaga as $t) {
         $namaU = strtoupper($t->kecamatan->nama_kecamatan);
-        $kesStatsData[$namaU]['nama']   = $t->kecamatan->nama_kecamatan;
-        $kesStatsData[$namaU]['tenaga'] = (int) $t->jumlah_total;
+        $kesStatsData[$namaU]['nama']      = $t->kecamatan->nama_kecamatan;
+        $kesStatsData[$namaU]['tenaga']    = (int) $t->jumlah_total;
+        $kesStatsData[$namaU]['dokter']    = (int) $t->dokter;
+        $kesStatsData[$namaU]['perawat']   = (int) $t->perawat;
+        $kesStatsData[$namaU]['bidan']     = (int) $t->bidan;
+        $kesStatsData[$namaU]['ahli_gizi'] = (int) $t->ahli_gizi;
+        $kesStatsData[$namaU]['farmasi']   = (int) $t->farmasi;
     }
     foreach ($fasilitas as $f) {
         $namaU = strtoupper($f->kecamatan->nama_kecamatan);
@@ -297,12 +319,8 @@
             <div class="detail-card">
                 <div class="detail-header">
                     <div>
-                        <div class="detail-title">Perbandingan Tenaga &amp; Fasilitas per Kecamatan</div>
-                        <div class="detail-sub">Data tahun {{ $tahun }} — seluruh kecamatan Jakarta Barat</div>
-                    </div>
-                    <div class="detail-legend">
-                        <span><span class="leg-dot" style="background:#ffbf00;"></span>Tenaga Medis</span>
-                        <span><span class="leg-dot" style="background:#5B82C0;"></span>Fasilitas</span>
+                        <div class="detail-title">Perbandingan Statistik Lanjutan</div>
+                        <div class="detail-sub">Komparasi jumlah tenaga medis dan unit fasilitas kesehatan per kecamatan — {{ $tahun }}</div>
                     </div>
                 </div>
                 <div id="chart-detail" style="min-height:280px;"></div>
@@ -423,24 +441,45 @@
         l3: 'Total Tenaga Kesehatan',   v3: '{{ number_format($totalTenaga) }}',                               d3: 'Terbanyak: {{ $topTenaga?->kecamatan->nama_kecamatan ?? '-' }}',
         l4: 'Total Fasilitas Kesehatan',v4: '{{ number_format($totalFasilitas) }}',                            d4: 'RS, Puskesmas, Klinik & Posyandu',
     };
-    function updateCards(namaUp) {
+    // Animasi fade halus pada isi kartu saat nilainya berubah (selaras modul Geo & Iklim)
+    function animateCards() {
+        document.querySelectorAll('.stat-card .sc-card-left').forEach(function (el) {
+            el.classList.remove('card-anim');
+            void el.offsetWidth;   // retrigger animasi
+            el.classList.add('card-anim');
+        });
+    }
+
+    // Isi kartu mengikuti chart yang diklik:
+    //  - mode 'tenaga'    → rincian profesi nakes
+    //  - mode 'fasilitas' → rincian unit fasilitas
+    function updateCards(namaUp, mode) {
         var s = kesStats[namaUp];
         if (!s) return;
         var nm = (s.nama || namaUp);
-        setText('kc-lbl-1', 'Rumah Sakit');       setText('kc-val-1', fmt(s.rs || 0));        setText('kc-desc-1', 'Unit RS di ' + nm);
-        setText('kc-lbl-2', 'Puskesmas');         setText('kc-val-2', fmt(s.puskesmas || 0)); setText('kc-desc-2', 'Unit puskesmas di ' + nm);
-        setText('kc-lbl-3', 'Tenaga Kesehatan');  setText('kc-val-3', fmt(s.tenaga || 0));    setText('kc-desc-3', 'Personel medis di ' + nm);
-        setText('kc-lbl-4', 'Total Fasilitas');   setText('kc-val-4', fmt(s.fasilitas || 0)); setText('kc-desc-4', 'Klinik ' + fmt(s.klinik || 0) + ' · Posyandu ' + fmt(s.posyandu || 0));
+        if (mode === 'tenaga') {
+            setText('kc-lbl-1', 'Dokter');                 setText('kc-val-1', fmt(s.dokter || 0));  setText('kc-desc-1', 'Dokter di ' + nm);
+            setText('kc-lbl-2', 'Perawat');                setText('kc-val-2', fmt(s.perawat || 0)); setText('kc-desc-2', 'Perawat di ' + nm);
+            setText('kc-lbl-3', 'Bidan');                  setText('kc-val-3', fmt(s.bidan || 0));   setText('kc-desc-3', 'Bidan di ' + nm);
+            setText('kc-lbl-4', 'Total Tenaga Kesehatan'); setText('kc-val-4', fmt(s.tenaga || 0));  setText('kc-desc-4', 'Farmasi ' + fmt(s.farmasi || 0) + ' · Gizi ' + fmt(s.ahli_gizi || 0));
+        } else {
+            setText('kc-lbl-1', 'Rumah Sakit');      setText('kc-val-1', fmt(s.rs || 0));        setText('kc-desc-1', 'Unit RS di ' + nm);
+            setText('kc-lbl-2', 'Puskesmas');        setText('kc-val-2', fmt(s.puskesmas || 0)); setText('kc-desc-2', 'Unit puskesmas di ' + nm);
+            setText('kc-lbl-3', 'Klinik Kesehatan'); setText('kc-val-3', fmt(s.klinik || 0));    setText('kc-desc-3', 'Klinik di ' + nm);
+            setText('kc-lbl-4', 'Total Fasilitas');  setText('kc-val-4', fmt(s.fasilitas || 0)); setText('kc-desc-4', 'Posyandu ' + fmt(s.posyandu || 0) + ' unit');
+        }
+        animateCards();
     }
     function resetCards() {
         setText('kc-lbl-1', cardDefaults.l1); setText('kc-val-1', cardDefaults.v1); setText('kc-desc-1', cardDefaults.d1);
         setText('kc-lbl-2', cardDefaults.l2); setText('kc-val-2', cardDefaults.v2); setText('kc-desc-2', cardDefaults.d2);
         setText('kc-lbl-3', cardDefaults.l3); setText('kc-val-3', cardDefaults.v3); setText('kc-desc-3', cardDefaults.d3);
         setText('kc-lbl-4', cardDefaults.l4); setText('kc-val-4', cardDefaults.v4); setText('kc-desc-4', cardDefaults.d4);
+        animateCards();
     }
 
     // ── Pabrik bar horizontal: gradien + klik untuk fokus card ────
-    function makeKesBar(sel, kecArr, dataArr, label, hue) {
+    function makeKesBar(sel, kecArr, dataArr, label, mode) {
         // Warna per kecamatan (konsisten antar modul)
         var base    = kecArr.map(function (n) { return window.warnaKecamatan(n); });
         var lblCols = base.map(labelColor);
@@ -462,7 +501,7 @@
                         var fc = base.map(function (c, j) { return j === i ? c : c + '38'; });
                         var fl = lblCols.map(function (c, j) { return j === i ? c : c + '38'; });
                         chart.updateOptions({ colors: fc, fill: { colors: fc }, dataLabels: { style: { colors: fl } } });
-                        updateCards((kecArr[i] || '').toUpperCase());
+                        updateCards((kecArr[i] || '').toUpperCase(), mode);
                     }
                 }
             },
@@ -488,15 +527,15 @@
     // ── Chart Tenaga (gradien biru) ───────────────────────────────
     var tenagaKec  = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
     var tenagaData = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('jumlah_total')->map(fn($v) => (int)$v)->values()) !!};
-    makeKesBar('#chart-tenaga', tenagaKec, tenagaData, 'Tenaga Kesehatan', 'biru');
+    makeKesBar('#chart-tenaga', tenagaKec, tenagaData, 'Tenaga Kesehatan', 'tenaga');
 
     // ── Chart Fasilitas (gradien teal) ────────────────────────────
     var fasKec  = {!! json_encode($fasilitas->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
     var fasData = {!! json_encode($fasilitas->sortByDesc('jumlah_total')->pluck('jumlah_total')->map(fn($v) => (int)$v)->values()) !!};
-    makeKesBar('#chart-fasilitas', fasKec, fasData, 'Fasilitas Kesehatan', 'teal');
+    makeKesBar('#chart-fasilitas', fasKec, fasData, 'Fasilitas Kesehatan', 'fasilitas');
 
     // ── Chart Detail Grouped Bar ──────────────────────────────
-    var kec          = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->map(fn($v) => \Illuminate\Support\Str::limit($v, 12))->values()) !!};
+    var kec          = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
     var dataTenaga   = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('jumlah_total')->map(fn($v) => (int)$v)->values()) !!};
     var dataFasilitas = {!! json_encode(
         $tenaga->sortByDesc('jumlah_total')->map(fn($t) =>
@@ -504,6 +543,8 @@
         )->values()
     ) !!};
 
+    // Dua sumbu terpisah (mengikuti chart "Perbandingan Statistik Lanjutan" modul Geografis):
+    // skala tenaga (ribuan) & fasilitas (ratusan) mandiri, jadi bar fasilitas tak lagi kekecilan.
     new ApexCharts(document.querySelector("#chart-detail"), {
         chart: {
             type: 'bar', height: 320,
@@ -517,26 +558,23 @@
         ],
         xaxis: {
             categories: kec,
-            labels: { style: { fontSize: '11px', colors: '#aaa' } },
+            labels: { rotate: -30, rotateAlways: true, trim: false, style: { fontSize: '10px', colors: '#888' } },
             axisBorder: { show: false },
             axisTicks:  { show: false },
         },
-        yaxis: {
-            labels: {
-                style: { fontSize: '11px', colors: '#ccc' },
-                formatter: v => v.toLocaleString('id-ID'),
-            },
-            tickAmount: 4,
-        },
+        yaxis: [
+            { seriesName: 'Tenaga Medis',
+              title: { text: 'Tenaga Medis', style: { fontSize: '9px', color: '#2a78d6' } },
+              labels: { style: { fontSize: '9px', colors: '#2a78d6' },
+                        formatter: function (v) { return v >= 1000 ? (v / 1000).toFixed(0) + 'rb' : v.toFixed(0); } } },
+            { seriesName: 'Fasilitas', opposite: true,
+              title: { text: 'Fasilitas', style: { fontSize: '9px', color: '#eb6834' } },
+              labels: { style: { fontSize: '9px', colors: '#eb6834' },
+                        formatter: function (v) { return v.toFixed(0); } } },
+        ],
         colors: ['#2a78d6', '#eb6834'],
         // colors: ['#ffbf00', '#5B82C0'],   // WARNA LAMA
-        plotOptions: {
-            bar: {
-                borderRadius: 2,
-                columnWidth: '65%',
-                dataLabels: { position: 'top' },
-            }
-        },
+        plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
         dataLabels: { enabled: false },
         legend: {
             show: true,
@@ -551,9 +589,14 @@
             strokeDashArray: 3,
             xaxis: { lines: { show: false } },
         },
+        // Hover menampilkan kedua nilai sekaligus
         tooltip: {
             theme: 'light',
-            y: { formatter: v => v.toLocaleString('id-ID') }
+            shared: true, intersect: false,
+            y: [
+                { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' orang'; } },
+                { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' unit'; } },
+            ],
         },
     }).render();
 })();

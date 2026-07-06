@@ -66,6 +66,13 @@
     .stat-summary-card .card-text .value { font-size: 28px; font-weight: 700; color: #333; }
     .stat-summary-card .card-text .label { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
 
+    /* Animasi nilai card saat kecamatan dipilih (halus, fade + naik) — samakan dgn Geografis/Iklim */
+    @keyframes cardValueIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .stat-summary-card .card-anim { animation: cardValueIn .35s ease both; }
+
     /* ── Responsive (tablet & HP) ──────────────────────────────── */
     @media (max-width: 768px) {
         .statistik-wrapper  { flex-direction: column; padding: 20px 0; gap: 16px; }
@@ -109,38 +116,38 @@
                 </div>
             </div>
 
-            {{-- Summary --}}
+            {{-- Summary (dinamis: ikut berubah saat klik chart kecamatan) --}}
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="stat-summary-card">
                         <div class="card-text">
-                            <div class="label">LAKI-LAKI</div>
-                            <div class="value">{{ number_format($summary->jumlah_laki_laki) }}</div>
+                            <div class="label" id="sum-label-1">LAKI-LAKI</div>
+                            <div class="value" id="sum-value-1">{{ number_format($summary->jumlah_laki_laki) }}</div>
                         </div>
-                        <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
-                            <i class="fa fa-male" style="color:#fff;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-summary-card">
-                        <div class="card-text">
-                            <div class="label">PEREMPUAN</div>
-                            <div class="value">{{ number_format($summary->jumlah_perempuan) }}</div>
-                        </div>
-                        <div class="card-icon" style="background:#e87ba4; margin-left:auto;">
-                            <i class="fa fa-female" style="color:#fff;"></i>
+                        <div class="card-icon" id="sum-icon-1" style="background:#2a78d6; margin-left:auto;">
+                            <i class="fa fa-male" id="sum-i-1" style="color:#fff;"></i>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-summary-card">
                         <div class="card-text">
-                            <div class="label">TOTAL PENDUDUK</div>
-                            <div class="value">{{ number_format($summary->jumlah_total) }}</div>
+                            <div class="label" id="sum-label-2">PEREMPUAN</div>
+                            <div class="value" id="sum-value-2">{{ number_format($summary->jumlah_perempuan) }}</div>
                         </div>
-                        <div class="card-icon" style="background:#008300; margin-left:auto;">
-                            <i class="fa fa-users" style="color:#fff;"></i>
+                        <div class="card-icon" id="sum-icon-2" style="background:#e87ba4; margin-left:auto;">
+                            <i class="fa fa-female" id="sum-i-2" style="color:#fff;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-summary-card">
+                        <div class="card-text">
+                            <div class="label" id="sum-label-3">TOTAL PENDUDUK</div>
+                            <div class="value" id="sum-value-3">{{ number_format($summary->jumlah_total) }}</div>
+                        </div>
+                        <div class="card-icon" id="sum-icon-3" style="background:#008300; margin-left:auto;">
+                            <i class="fa fa-users" id="sum-i-3" style="color:#fff;"></i>
                         </div>
                     </div>
                 </div>
@@ -249,6 +256,54 @@
         pendudukMap[nama.toUpperCase()] = popKecamatan[i];
     });
 
+    // ── Summary card dinamis ──────────────────────────────────────────────
+    var totalJakbar = popKecamatan.reduce(function(a, b) { return a + b; }, 0);
+
+    // Kondisi default (Jakarta Barat keseluruhan) — dari data_kependudukan
+    var SUMMARY_DEFAULT = [
+        { bg: '#2a78d6', icon: 'fa-male',   label: 'LAKI-LAKI',      value: {{ (int) $summary->jumlah_laki_laki }} },
+        { bg: '#e87ba4', icon: 'fa-female', label: 'PEREMPUAN',      value: {{ (int) $summary->jumlah_perempuan }} },
+        { bg: '#008300', icon: 'fa-users',  label: 'TOTAL PENDUDUK', value: {{ (int) $summary->jumlah_total }} },
+    ];
+
+    function setCard(i, bg, icon, label, valueText) {
+        document.getElementById('sum-icon-' + i).style.background = bg;
+        document.getElementById('sum-i-' + i).className = 'fa ' + icon;
+        document.getElementById('sum-label-' + i).textContent = label;
+        document.getElementById('sum-value-' + i).textContent = valueText;
+    }
+
+    // Retrigger animasi fade+naik pada semua card (meniru Geografis & Iklim)
+    function animateCards() {
+        document.querySelectorAll('.stat-summary-card .card-text').forEach(function(el) {
+            el.classList.remove('card-anim');
+            void el.offsetWidth;   // paksa reflow agar animasi terulang
+            el.classList.add('card-anim');
+        });
+    }
+
+    function resetSummary() {
+        SUMMARY_DEFAULT.forEach(function(c, idx) {
+            setCard(idx + 1, c.bg, c.icon, c.label, c.value.toLocaleString('id-ID'));
+        });
+        animateCards();
+    }
+
+    // Per kecamatan hanya tersedia total (bukan L/P), jadi tampilkan metrik yang relevan
+    function showKecamatanSummary(namaKec) {
+        var key    = namaKec.toUpperCase();
+        var total  = pendudukMap[key] || 0;
+        var warna  = warnaMap[key] || '#26a0fc';
+        var k      = kelurahanPerKecamatan[namaKec];
+        var jmlKel = (k && k.labels) ? k.labels.length : 0;
+        var persen = totalJakbar ? (total / totalJakbar * 100) : 0;
+
+        setCard(1, warna,     'fa-users',      'PENDUDUK KECAMATAN', total.toLocaleString('id-ID'));
+        setCard(2, '#6c5ce7', 'fa-building',   'JUMLAH KELURAHAN',   jmlKel.toString());
+        setCard(3, '#e17055', 'fa-chart-pie',  'KONTRIBUSI JAKBAR',  persen.toFixed(1) + '%');
+        animateCards();
+    }
+
     // Chart Kelurahan (drill-down)
     var chartKelurahan = new ApexCharts(document.querySelector("#chart-kelurahan"), {
         chart: { type: 'bar', height: 320, toolbar: { show: false } },
@@ -343,7 +398,21 @@
         });
 
         filterMarkerMap(namaKec);
+        showKecamatanSummary(namaKec);
+        flyToKecamatan(namaKec);
         document.getElementById('btn-back').style.display = 'inline-block';
+    }
+
+    // Terbang & zoom ke polygon kecamatan (meniru animasi map di Geografis)
+    function flyToKecamatan(namaKec) {
+        var layer = kecLayers[namaKec.toUpperCase()];
+        if (!layer || typeof map === 'undefined') return;
+        var bounds = layer.getBounds();
+        var fitZoom = map.getBoundsZoom(bounds, false, L.point(30, 30));
+        var targetZoom = Math.max(13, Math.min(14, fitZoom));
+        map.flyTo(bounds.getCenter(), targetZoom);
+        layer.bringToFront();
+        layer.openPopup();
     }
 
     // Kembali
@@ -353,26 +422,28 @@
             title: { text: '👆 Klik bar untuk lihat kelurahan', align: 'center', style: { fontSize: '11px', color: '#999' } }
         });
         resetMarkerMap();
+        resetSummary();
+        if (typeof map !== 'undefined') { map.closePopup(); map.flyTo([-6.15, 106.75], 12); }
         document.getElementById('btn-back').style.display = 'none';
     }
 
     // MAP
     var map = L.map('map-kelurahan').setView([-6.15, 106.75], 12);
 
-    // Tema abu (CARTO Positron) — default; latar polos agar gradien choropleth kebaca
-    var abu = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
-    }).addTo(map);
-
-    // Layer satelit (Esri World Imagery) — alternatif
+    // Layer satelit (Esri World Imagery) — DEFAULT
     var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
         maxZoom: 19
-    });
+    }).addTo(map);
 
-    // Overlay label (nama jalan/tempat) — berguna di atas satelit
+    // Overlay label (nama jalan/tempat) — otomatis aktif agar nama kebaca di atas satelit
     var label = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19, pane: 'overlayPane'
+    }).addTo(map);
+
+    // Tema abu (CARTO Positron) — alternatif
+    var abu = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
     });
 
     // Layer peta biasa (OSM) — alternatif
@@ -381,12 +452,13 @@
     });
 
     L.control.layers(
-        { 'Tema Abu': abu, 'Satelit': satelit, 'Peta Jalan': jalan },
+        { 'Satelit': satelit, 'Tema Abu': abu, 'Peta Jalan': jalan },
         { 'Label Nama': label },
         { position: 'topright' }
     ).addTo(map);
 
     var kecJakbar = Object.keys(warnaMap);
+    var kecLayers = {};   // referensi layer polygon per kecamatan (untuk flyTo)
 
     // GeoJSON Polygon Kecamatan
     fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
@@ -396,17 +468,18 @@
             L.geoJSON(data, {
                 style: function(feature) {
                     return {
-                        color: '#fff', weight: 2,
+                        color: '#fff', weight: 1.5,
                         fillColor: warnaMap[feature.properties.name] || '#ccc',
-                        fillOpacity: 0.8,
+                        fillOpacity: 0.62,   // samakan dengan modul Geografis
                     };
                 },
                 onEachFeature: function(feature, layer) {
                     var nama = feature.properties.name;
+                    kecLayers[nama.toUpperCase()] = layer;
                     var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString('id-ID') + ' jiwa' : '-';
                     layer.bindPopup('<b>Kec. ' + nama + '</b><br>👥 ' + jumlah);
-                    layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.95 }); layer.openPopup(); });
-                    layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.8 }); layer.closePopup(); });
+                    layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.8 }); layer.openPopup(); });
+                    layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.62 }); layer.closePopup(); });
                 }
             }).addTo(map);
 
@@ -441,7 +514,7 @@
         var warna = warnaMap[k.kecamatan.toUpperCase()] || '#ccc';
         var icon = L.divIcon({
             className: '',
-            html: '<div style="background:' + warna + ';width:10px;height:10px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
+            html: '<div style="background:' + warna + ';opacity:0.8;width:10px;height:10px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
             iconSize: [10, 10],
             iconAnchor: [5, 5],
         });

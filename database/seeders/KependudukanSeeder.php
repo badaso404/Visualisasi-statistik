@@ -145,19 +145,55 @@ class KependudukanSeeder extends Seeder
             ['nama' => 'Krendang',              'kecamatan' => 'Tambora',           'jumlah' => 19909,  'lat' => -6.152040690405676,  'lng' => 106.80179075302496],
         ];
 
-        $scaleFactor = [2024 => 1.00, 2025 => 1.01, 2026 => 1.02];
+        // Kelompokkan kelurahan per kecamatan (dari data dasar 2024)
+        $kelurahanByKec = [];
+        foreach ($kelurahan2024 as $item) {
+            $kelurahanByKec[$item['kecamatan']][] = $item;
+        }
 
-        foreach ($scaleFactor as $tahun => $factor) {
-            foreach ($kelurahan2024 as $item) {
-                $kec = Kecamatan::where('nama_kecamatan', $item['kecamatan'])->first();
-                if ($kec) {
+        // Skala kelurahan agar Σ kelurahan == total kecamatan (per tahun).
+        // Distribusi relatif antar kelurahan dipertahankan; sisa pembulatan
+        // dibebankan ke kelurahan terbesar supaya jumlahnya tepat sama.
+        foreach ($kecamatanData as $tahun => $kecList) {
+            foreach ($kecList as $namaKec => $totalKec) {
+                $items = $kelurahanByKec[$namaKec] ?? [];
+                if (empty($items)) {
+                    continue;
+                }
+
+                $kec = Kecamatan::where('nama_kecamatan', $namaKec)->first();
+                if (!$kec) {
+                    continue;
+                }
+
+                $baseSum = array_sum(array_column($items, 'jumlah'));
+                $factor  = $baseSum > 0 ? $totalKec / $baseSum : 0;
+
+                $scaled = [];
+                foreach ($items as $it) {
+                    $scaled[] = ['item' => $it, 'val' => (int) round($it['jumlah'] * $factor)];
+                }
+
+                // Koreksi selisih pembulatan → tambahkan ke kelurahan terbesar
+                $selisih = $totalKec - array_sum(array_column($scaled, 'val'));
+                if ($selisih !== 0) {
+                    $idxMax = 0;
+                    foreach ($scaled as $i => $s) {
+                        if ($s['val'] > $scaled[$idxMax]['val']) {
+                            $idxMax = $i;
+                        }
+                    }
+                    $scaled[$idxMax]['val'] += $selisih;
+                }
+
+                foreach ($scaled as $s) {
                     PendudukKelurahan::create([
                         'kecamatan_id'    => $kec->id,
                         'tahun'           => $tahun,
-                        'nama_kelurahan'  => $item['nama'],
-                        'latitude'        => $item['lat'],
-                        'longitude'       => $item['lng'],
-                        'jumlah_penduduk' => (int) round($item['jumlah'] * $factor),
+                        'nama_kelurahan'  => $s['item']['nama'],
+                        'latitude'        => $s['item']['lat'],
+                        'longitude'       => $s['item']['lng'],
+                        'jumlah_penduduk' => $s['val'],
                     ]);
                 }
             }

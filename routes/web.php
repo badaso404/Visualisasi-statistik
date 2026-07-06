@@ -36,6 +36,7 @@ Route::prefix('statistik')->name('statistik.')->group(function () {
     Route::get('/geografis',    [StatistikController::class, 'geografis'])->name('geografis');
     Route::get('/iklim',        [StatistikController::class, 'iklim'])->name('iklim');
     Route::get('/kependudukan', [StatistikController::class, 'kependudukan'])->name('kependudukan');
+    Route::get('/kependudukan-api', [StatistikController::class, 'kependudukanApi'])->name('kependudukan-api'); // uji coba API Satu Data
     Route::get('/pendidikan',   [StatistikController::class, 'pendidikan'])->name('pendidikan');
     Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
     Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
@@ -81,6 +82,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('penduduk-kelurahan', PendudukKelurahanController::class)
             ->parameters(['penduduk-kelurahan' => 'pendudukKelurahan'])
             ->only(['create', 'store', 'edit', 'update', 'destroy']);
+        // Import/Export CSV kelurahan (backup lat/lng agar tak perlu input ulang)
+        Route::get('penduduk-kelurahan/template', [PendudukKelurahanController::class, 'template'])->name('penduduk-kelurahan.template');
+        Route::get('penduduk-kelurahan/export', [PendudukKelurahanController::class, 'export'])->name('penduduk-kelurahan.export');
+        Route::post('penduduk-kelurahan/import', [PendudukKelurahanController::class, 'import'])->name('penduduk-kelurahan.import');
 
         // Pendidikan + detail
         Route::resource('pendidikan', PendidikanController::class)->except('show');
