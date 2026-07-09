@@ -71,6 +71,9 @@
     .map-tab-btn:hover { border-color: #ffbf00; color: #ffbf00; }
     .map-tab-btn.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
     #bencana-map { width: 100%; height: 520px; border-radius: 8px; }
+    /* Hilangkan kotak outline saat polygon kecamatan diklik/fokus */
+    #bencana-map .leaflet-interactive:focus,
+    #bencana-map path.leaflet-interactive:focus { outline: none; }
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     /* Summary cards — samakan dengan modul geografis, iklim, kependudukan */
     .stat-summary-card {
@@ -91,17 +94,29 @@
     .map-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #555; }
     .map-legend-icon { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
     /* Legend overlay peta (pojok kanan atas) */
-    .map-legend-box { background: #fff; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.2); font-size: 13px; min-width: 240px; }
-    .map-legend-box .legend-title { text-align: center; font-weight: 700; color: #333; margin-bottom: 10px; }
-    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .map-legend-box { background: #fff; padding: 8px 11px; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.18); font-size: 11px; min-width: 175px; }
+    .map-legend-box .legend-title { text-align: center; font-weight: 700; color: #333; margin-bottom: 6px; font-size: 11px; }
+    .legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
     .legend-row:last-child { margin-bottom: 0; }
-    .legend-row .lr-icon { width: 20px; text-align: center; flex-shrink: 0; font-size: 15px; }
+    .legend-row .lr-icon { width: 15px; text-align: center; flex-shrink: 0; font-size: 12px; }
     .legend-row .lr-label { flex: 1; font-weight: 600; color: #333; white-space: nowrap; }
     .legend-row .lr-sep { color: #333; }
-    .legend-row .lr-count { font-weight: 700; color: #333; min-width: 22px; text-align: right; }
+    .legend-row .lr-count { font-weight: 700; color: #333; min-width: 18px; text-align: right; }
     /* Marker damkar & zona aman pada peta */
     .damkar-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #e53935; color: #fff; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
     .zona-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #2e7d32; color: #fff; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    .pintu-air-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #1e88e5; color: #fff; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    .pompa-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #5e35b1; color: #fff; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    .posko-marker { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f9a825; color: #fff; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 13px; }
+    .pintu-air-marker.siaga, .pompa-marker.siaga, .posko-marker.siaga { background: #e53935; }
+    /* Card popup peta lebih ringkas */
+    #bencana-map .leaflet-popup-content-wrapper { border-radius: 8px; }
+    #bencana-map .leaflet-popup-content { font-size: 11px; line-height: 1.45; margin: 8px 12px; min-width: 0; }
+    #bencana-map .leaflet-popup-content b { font-size: 11.5px; }
+    /* Badge merah berdenyut pada pin banjir yang berstatus siaga */
+    .siaga-badge { position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; background: #e53935; border: 1.5px solid #fff; border-radius: 50%; z-index: 2; }
+    .siaga-badge::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid rgba(229,57,53,.6); animation: siagaPulse 1.4s ease-out infinite; }
+    @keyframes siagaPulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(2.2); opacity: 0; } }
     @media (max-width: 992px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) {
         .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -193,7 +208,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 8px; flex-wrap: wrap;">
                             <div class="chart-title" style="margin-bottom: 0; flex: 1;">Peta Sebaran Bencana</div>
                             <div class="map-tabs" style="flex-wrap: wrap;">
-                                <button class="map-tab-btn active" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Banjir</button>
+                                <button class="map-tab-btn active" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Pantau Banjir</button>
                                 <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">Damkar</button>
                                 <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">Zona Aman</button>
                             </div>
@@ -225,6 +240,12 @@
                 <div class="text-muted" style="font-size:13px;">Update terakhir: 10 Menit yang lalu</div>
             </div>
             <div class="d-flex flex-wrap gap-2 table-controls">
+                <select id="bencana-jenis-filter" class="form-select form-select-sm" style="width:auto;">
+                    <option value="all">Semua jenis</option>
+                    @foreach($items->pluck('jenis_bencana')->unique()->sort()->values() as $j)
+                    <option value="{{ $j }}">{{ $j }}</option>
+                    @endforeach
+                </select>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
                     <input type="text" id="bencana-search" class="form-control" placeholder="Cari berdasarkan lokasi atau jenis">
@@ -241,7 +262,7 @@
                 </thead>
                 <tbody id="bencana-tbody">
                     @forelse($items as $b)
-                    <tr class="bencana-row" data-search="{{ strtolower($b->nama_lokasi . ' ' . $b->jenis_bencana . ' ' . ($b->kecamatan->nama_kecamatan ?? '')) }}">
+                    <tr class="bencana-row" data-jenis="{{ $b->jenis_bencana }}" data-search="{{ strtolower($b->nama_lokasi . ' ' . $b->jenis_bencana . ' ' . ($b->kecamatan->nama_kecamatan ?? '')) }}">
                         <td>{{ $b->tanggal_kejadian ? \Carbon\Carbon::parse($b->tanggal_kejadian)->translatedFormat('d M Y') : '-' }}</td>
                         <td><span class="badge-jenis" style="background: {{ $warnaJenis[$b->jenis_bencana] ?? '#9e9e9e' }};">{{ $b->jenis_bencana }}</span></td>
                         <td>{{ $b->nama_lokasi }}</td>
@@ -287,18 +308,18 @@
         // Initialize Leaflet Map
         var map = L.map('bencana-map').setView([-6.1751, 106.7272], 12);
 
-        // Pilihan basemap: Peta Terang (default), Satelit, Peta Jalan
-        var petaTerang = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
-        }).addTo(map);
+        // Pilihan basemap: Satelit (default), Peta Terang, Peta Jalan
         var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles © Esri', maxZoom: 19
+        }).addTo(map);
+        var petaTerang = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19
         });
         var petaJalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors', maxZoom: 19
         });
         L.control.layers(
-            { 'Peta Terang': petaTerang, 'Satelit': satelit, 'Peta Jalan': petaJalan },
+            { 'Satelit': satelit, 'Peta Terang': petaTerang, 'Peta Jalan': petaJalan },
             {},
             { position: 'bottomleft' }
         ).addTo(map);
@@ -327,13 +348,14 @@
                 });
                 var geoLayer = L.geoJSON(data, {
                     pane: 'kecamatanPane',
-                    style: function() {
-                        return { color: '#42a5f5', weight: 1.5, fillColor: '#90caf9', fillOpacity: 0.18, dashArray: '4' };
+                    style: function(feature) {
+                        var w = window.warnaKecamatan(feature.properties.name || '');
+                        return { color: w, weight: 2, fillColor: w, fillOpacity: 0.15 };
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindTooltip(feature.properties.name || '', { sticky: true, direction: 'top' });
-                        layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.30 }); });
-                        layer.on('mouseout', function() { layer.setStyle({ fillOpacity: 0.18 }); });
+                        layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.28 }); });
+                        layer.on('mouseout', function() { layer.setStyle({ fillOpacity: 0.15 }); });
                     }
                 }).addTo(map);
                 if (geoLayer.getBounds().isValid()) {
@@ -341,10 +363,11 @@
                 }
             });
 
-        // Data titik dari database (zona rawan banjir, pos damkar, zona aman)
+        // Data titik dari database (banjir, pos damkar, zona aman) + live DSDA (pantau air, gabung ke banjir)
         var markerData = Object.assign(
-            { 'banjir-p1': [], 'banjir-p2': [], 'banjir-p3': [], 'pos-damkar': [], 'zona-aman': [] },
-            {!! json_encode($titikBencana) !!}
+            { 'banjir-p1': [], 'banjir-p2': [], 'banjir-p3': [], 'banjir-air': [], 'pos-damkar': [], 'zona-aman': [] },
+            {!! json_encode($titikBencana) !!},
+            {!! json_encode($tmaTitik) !!}
         );
 
         var markers = {};
@@ -363,12 +386,27 @@
             className: '', html: '<div class="zona-marker"><i class="fa fa-shield-halved"></i></div>',
             iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
         });
-        // Pin banjir berwarna sesuai prioritas (selaras dengan legend)
-        function banjirIcon(color) {
+        // Ikon titik pantau air: pintu air / rumah pompa / posko (merah bila status siaga)
+        var tmaStyle = {
+            'pintu-air':   { cls: 'pintu-air-marker', fa: 'fa-water',       label: 'Pintu Air' },
+            'rumah-pompa': { cls: 'pompa-marker',     fa: 'fa-fan',         label: 'Rumah Pompa' },
+            'posko':       { cls: 'posko-marker',     fa: 'fa-tower-observation', label: 'Posko SDA' }
+        };
+        function tmaIcon(kind, siaga) {
+            var s = tmaStyle[kind] || tmaStyle['pintu-air'];
+            return L.divIcon({
+                className: '', html: '<div class="' + s.cls + (siaga ? ' siaga' : '') + '"><i class="fa ' + s.fa + '"></i></div>',
+                iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+            });
+        }
+        // Pin banjir berwarna sesuai prioritas (selaras dengan legend). Badge merah bila siaga.
+        function banjirIcon(color, siaga) {
+            var badge = siaga ? '<span class="siaga-badge"></span>' : '';
             return L.divIcon({
                 className: '',
-                html: '<i class="fa fa-location-dot" style="color:' + color + ';font-size:28px;text-shadow:0 1px 2px rgba(0,0,0,.45);"></i>',
-                iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26]
+                html: '<div style="position:relative;width:19px;height:19px;">' + badge
+                    + '<i class="fa fa-location-dot" style="color:' + color + ';font-size:19px;text-shadow:0 1px 2px rgba(0,0,0,.45);"></i></div>',
+                iconSize: [19, 19], iconAnchor: [9, 19], popupAnchor: [0, -17]
             });
         }
 
@@ -397,10 +435,29 @@
                     marker = L.marker([point.lat, point.lng], { icon: zonaIcon })
                         .bindPopup('<b><i class="fa fa-shield-halved"></i> ' + point.name + '</b>' + (ket || '<br>Area aman evakuasi') + navBtn);
                     marker._areaLayer = area;
+                } else if (type === 'banjir-air') {
+                    var isSiaga = /siaga/i.test(point.status || '');
+                    var statusColor = isSiaga ? '#e53935' : '#2e7d32';
+                    var st = tmaStyle[point.kind] || tmaStyle['pintu-air'];
+                    var tinggi = (point.tinggi !== null && point.tinggi !== undefined) ? '<br>Tinggi air: <b>' + point.tinggi + ' cm</b>' : '';
+                    var waktu = point.tanggal ? '<br><span style="color:#999;font-size:11px;">Update: ' + point.tanggal.replace('T', ' ').slice(0, 16) + '</span>' : '';
+                    marker = L.marker([point.lat, point.lng], { icon: tmaIcon(point.kind, isSiaga) })
+                        .bindPopup('<b><i class="fa ' + st.fa + '"></i> ' + point.name + '</b><br><span style="color:#777;">' + st.label + '</span>'
+                            + '<br>Status: <b style="color:' + statusColor + ';">' + (point.status || '-').replace('Status : ', '') + '</b>'
+                            + tinggi + waktu
+                            + '<br><span style="color:#bbb;font-size:10px;">Sumber: DSDA DKI Jakarta (real-time)</span>');
                 } else {
                     var labelP = type === 'banjir-p1' ? 'Prioritas 1' : (type === 'banjir-p2' ? 'Prioritas 2' : 'Prioritas 3');
-                    marker = L.marker([point.lat, point.lng], { icon: banjirIcon(banjirColors[type]) })
-                        .bindPopup('<b>' + point.name + '</b><br>Rawan Banjir ' + labelP + ket);
+                    var isSiaga = /siaga/i.test(point.status || '');
+                    var statusLine = '';
+                    if (point.status) {
+                        statusLine = '<br>Status: <b style="color:' + (isSiaga ? '#e53935' : '#2e7d32') + ';">'
+                            + point.status.replace('Status : ', '') + '</b>'
+                            + (point.tinggi !== null && point.tinggi !== undefined ? ' · TMA ' + point.tinggi + ' cm' : '')
+                            + (point.dari ? '<br><span style="color:#999;font-size:11px;">Acuan pos terdekat: ' + point.dari + ' (' + point.jarak + ' km)</span>' : '');
+                    }
+                    marker = L.marker([point.lat, point.lng], { icon: banjirIcon(banjirColors[type], isSiaga) })
+                        .bindPopup('<b>' + point.name + '</b><br>Rawan Banjir ' + labelP + ket + statusLine);
                 }
                 marker.addTo(map);
                 if (marker._areaLayer) marker._areaLayer.addTo(map);
@@ -418,8 +475,13 @@
         }
         function cnt(type) { return (markerData[type] || []).length; }
         function pin(color) { return '<i class="fa fa-location-dot" style="color:' + color + ';"></i>'; }
-        var damkarMini = '<span class="damkar-marker" style="width:18px;height:18px;font-size:9px;"><i class="fa fa-fire-extinguisher"></i></span>';
-        var zonaMini   = '<span class="zona-marker" style="width:18px;height:18px;font-size:9px;border-radius:4px;"><i class="fa fa-shield-halved"></i></span>';
+        var damkarMini = '<span class="damkar-marker" style="width:15px;height:15px;font-size:8px;"><i class="fa fa-fire-extinguisher"></i></span>';
+        var zonaMini   = '<span class="zona-marker" style="width:15px;height:15px;font-size:8px;border-radius:4px;"><i class="fa fa-shield-halved"></i></span>';
+        var pintuAirMini = '<span class="pintu-air-marker" style="width:15px;height:15px;font-size:8px;border-radius:4px;"><i class="fa fa-water"></i></span>';
+        var pompaMini    = '<span class="pompa-marker" style="width:15px;height:15px;font-size:8px;"><i class="fa fa-fan"></i></span>';
+
+        var poskoMini = '<span class="posko-marker" style="width:15px;height:15px;font-size:8px;border-radius:4px;"><i class="fa fa-tower-observation"></i></span>';
+        function cntKind(kind) { return (markerData['banjir-air'] || []).filter(function (p) { return p.kind === kind; }).length; }
 
         function updateLegend(filter) {
             var html = '<div class="legend-title">Keterangan :</div>';
@@ -427,6 +489,10 @@
                 html += legendRow(pin('#ff6b6b'), 'Lokasi Banjir Prioritas 1', cnt('banjir-p1'));
                 html += legendRow(pin('#ffa500'), 'Lokasi Banjir Prioritas 2', cnt('banjir-p2'));
                 html += legendRow(pin('#ffeb3b'), 'Lokasi Banjir Prioritas 3', cnt('banjir-p3'));
+                if (cntKind('pintu-air'))   html += legendRow(pintuAirMini, 'Pintu Air', cntKind('pintu-air'));
+                if (cntKind('rumah-pompa')) html += legendRow(pompaMini, 'Rumah Pompa', cntKind('rumah-pompa'));
+                if (cntKind('posko'))       html += legendRow(poskoMini, 'Posko SDA', cntKind('posko'));
+                html += '<div style="font-size:10px;color:#999;margin-top:4px;">🔴 badge/titik merah = status siaga · real-time DSDA</div>';
             } else if (filter === 'pos-damkar') {
                 html += legendRow(damkarMini, 'Pos Damkar', cnt('pos-damkar'));
             } else if (filter === 'zona-aman') {
@@ -470,11 +536,24 @@
         if (!allRows.length) return;
 
         var searchEl = document.getElementById('bencana-search');
+        var jenisEl  = document.getElementById('bencana-jenis-filter');
         var infoEl   = document.getElementById('bencana-page-info');
         var pagEl    = document.getElementById('bencana-pagination');
         var emptyEl  = document.getElementById('bencana-empty-search');
         var currentPage = 1;
         var filtered = allRows;
+
+        function applyRowFilters() {
+            var q = (searchEl && searchEl.value.trim().toLowerCase()) || '';
+            var jenis = (jenisEl && jenisEl.value) || 'all';
+            filtered = allRows.filter(function (r) {
+                var okJenis = jenis === 'all' || r.getAttribute('data-jenis') === jenis;
+                var okSearch = !q || (r.getAttribute('data-search') || '').indexOf(q) !== -1;
+                return okJenis && okSearch;
+            });
+            currentPage = 1;
+            render();
+        }
 
         function render() {
             var totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -513,16 +592,8 @@
             return b;
         }
 
-        if (searchEl) {
-            searchEl.addEventListener('input', function () {
-                var q = this.value.trim().toLowerCase();
-                filtered = q
-                    ? allRows.filter(function (r) { return (r.getAttribute('data-search') || '').indexOf(q) !== -1; })
-                    : allRows;
-                currentPage = 1;
-                render();
-            });
-        }
+        if (searchEl) searchEl.addEventListener('input', applyRowFilters);
+        if (jenisEl)  jenisEl.addEventListener('change', applyRowFilters);
 
         render();
     })();

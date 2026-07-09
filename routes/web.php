@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\TitikBencanaController;
 use App\Http\Controllers\Admin\InfrastrukturDigitalController;
 use App\Http\Controllers\Admin\JakWifiController;
 use App\Http\Controllers\Admin\CctvController;
+use App\Http\Controllers\Admin\KemiskinanController;
+use App\Http\Controllers\Admin\KemiskinanKecamatanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +42,7 @@ Route::prefix('statistik')->name('statistik.')->group(function () {
     Route::get('/pendidikan',   [StatistikController::class, 'pendidikan'])->name('pendidikan');
     Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
     Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
+    Route::get('/kemiskinan',   [StatistikController::class, 'kemiskinan'])->name('kemiskinan');
     Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
 });
 
@@ -103,10 +106,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->only(['create', 'store', 'edit', 'update', 'destroy']);
 
         // Monitor Bencana
+        Route::get('bencana/export',   [BencanaController::class, 'export'])->name('bencana.export');
+        Route::get('bencana/template', [BencanaController::class, 'template'])->name('bencana.template');
+        Route::post('bencana/import',  [BencanaController::class, 'import'])->name('bencana.import');
         Route::resource('bencana', BencanaController::class)->except('show');
+        Route::get('titik-bencana/export',   [TitikBencanaController::class, 'export'])->name('titik-bencana.export');
+        Route::get('titik-bencana/template', [TitikBencanaController::class, 'template'])->name('titik-bencana.template');
+        Route::post('titik-bencana/import',  [TitikBencanaController::class, 'import'])->name('titik-bencana.import');
         Route::resource('titik-bencana', TitikBencanaController::class)
             ->parameters(['titik-bencana' => 'titikBencana'])
             ->except('show');
+
+        // Kemiskinan + detail per kecamatan
+        Route::resource('kemiskinan', KemiskinanController::class)->except('show');
+        Route::resource('kemiskinan-kecamatan', KemiskinanKecamatanController::class)
+            ->parameters(['kemiskinan-kecamatan' => 'kemiskinanKecamatan'])
+            ->only(['create', 'store', 'edit', 'update', 'destroy']);
 
         // Infrastruktur Digital (JakWiFi & CCTV)
         Route::get('infrastruktur-digital', [InfrastrukturDigitalController::class, 'index'])

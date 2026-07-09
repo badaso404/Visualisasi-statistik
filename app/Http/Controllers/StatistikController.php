@@ -19,6 +19,8 @@ use App\Models\FasilitasKesehatanKecamatan;
 use App\Models\DataBencana;
 use App\Models\JakWifiKecamatan;
 use App\Models\CctvKecamatan;
+use App\Models\DataKemiskinan;
+use App\Models\KemiskinanKecamatan;
 
 class StatistikController extends Controller
 {
@@ -294,7 +296,56 @@ class StatistikController extends Controller
         // Daftar kecamatan Jakarta Barat untuk overlay batas wilayah pada peta
         $kecamatanNames = \App\Models\Kecamatan::orderBy('nama_kecamatan')->pluck('nama_kecamatan');
 
-        // Titik referensi peta: zona rawan banjir (level), pos damkar, zona aman
+        // Semua stasiun Tinggi Muka Air (TMA) — live DSDA DKI, cache 5 menit.
+        // Dipakai untuk: (a) layer titik pantau air, (b) status siaga titik prioritas banjir.
+        // Penting: hasil KOSONG/GAGAL tidak di-cache, agar timeout sesaat tidak
+        // menghilangkan titik selama 5 menit — request berikutnya langsung retry.
+        $tmaAll = \Illuminate\Support\Facades\Cache::get('tma_all');
+        if (empty($tmaAll)) {
+            $tmaAll = [];
+            try {
+                $resp = \Illuminate\Support\Facades\Http::timeout(8)
+                    ->retry(2, 300)
+                    ->get('https://poskobanjirdsda.jakarta.go.id/datatma.json');
+                if ($resp->ok()) {
+                    foreach ($resp->json() as $r) {
+                        $la = is_numeric($r['LATITUDE'] ?? null) ? (float) $r['LATITUDE'] : null;
+                        $lo = is_numeric($r['LONGITUDE'] ?? null) ? (float) $r['LONGITUDE'] : null;
+                        if ($la === null || $lo === null) continue;
+                        $tmaAll[] = [
+                            'lat'     => $la,
+                            'lng'     => $lo,
+                            'name'    => trim($r['NAMA_PINTU_AIR'] ?? ''),
+                            'status'  => $r['STATUS_SIAGA'] ?? '-',
+                            'tinggi'  => $r['TINGGI_AIR'] ?? null,
+                            'tanggal' => $r['TANGGAL'] ?? null,
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                $tmaAll = [];
+            }
+            // Simpan hanya bila berhasil dapat data
+            if (!empty($tmaAll)) {
+                \Illuminate\Support\Facades\Cache::put('tma_all', $tmaAll, 300);
+            }
+        }
+
+        // Cari status stasiun TMA terdekat (radius maks 5 km) dari sebuah koordinat
+        $statusTerdekat = function ($la, $lo) use ($tmaAll) {
+            $best = null; $bestD = INF;
+            foreach ($tmaAll as $s) {
+                $dLa = deg2rad($s['lat'] - $la);
+                $dLo = deg2rad($s['lng'] - $lo);
+                $a = sin($dLa / 2) ** 2 + cos(deg2rad($la)) * cos(deg2rad($s['lat'])) * sin($dLo / 2) ** 2;
+                $d = 6371 * 2 * asin(sqrt($a));
+                if ($d < $bestD) { $bestD = $d; $best = $s; }
+            }
+            if (!$best || $bestD > 5) return null;
+            return ['status' => $best['status'], 'tinggi' => $best['tinggi'], 'dari' => $best['name'], 'jarak' => round($bestD, 1)];
+        };
+
+        // Titik referensi peta: zona rawan banjir (+ status TMA terdekat), pos damkar, zona aman
         $titikBencana = \App\Models\TitikBencana::all()->groupBy(function ($t) {
             return match ($t->kategori) {
                 'banjir_rawan' => 'banjir-p' . ($t->level ?? 3),
@@ -302,19 +353,79 @@ class StatistikController extends Controller
                 'zona_aman'    => 'zona-aman',
                 default        => 'lainnya',
             };
-        })->map(function ($rows) {
-            return $rows->map(fn($t) => [
-                'lat'  => (float) $t->latitude,
-                'lng'  => (float) $t->longitude,
-                'name' => $t->nama,
-                'ket'  => $t->keterangan,
-                'link' => $t->link_maps,
-            ])->values();
+        })->map(function ($rows) use ($statusTerdekat) {
+            return $rows->map(function ($t) use ($statusTerdekat) {
+                $data = [
+                    'lat'  => (float) $t->latitude,
+                    'lng'  => (float) $t->longitude,
+                    'name' => $t->nama,
+                    'ket'  => $t->keterangan,
+                    'link' => $t->link_maps,
+                ];
+                if ($t->kategori === 'banjir_rawan') {
+                    $near = $statusTerdekat((float) $t->latitude, (float) $t->longitude);
+                    $data['status'] = $near['status'] ?? null;
+                    $data['tinggi'] = $near['tinggi'] ?? null;
+                    $data['dari']   = $near['dari'] ?? null;
+                    $data['jarak']  = $near['jarak'] ?? null;
+                }
+                return $data;
+            })->values();
         });
 
+        // 6 titik pantau air terpilih untuk layer banjir (dari data TMA yang sama)
+        $whitelist = [
+            'angke hulu'       => 'rumah-pompa',
+            'kaliduri'         => 'pintu-air',
+            'cengkareng drain' => 'pintu-air',
+            'karet'            => 'pintu-air',
+            'palmerah'         => 'posko',
+            'kamal muara'      => 'rumah-pompa',
+        ];
+        $banjirAir = [];
+        foreach ($tmaAll as $s) {
+            $low = strtolower($s['name']);
+            $kind = null;
+            foreach ($whitelist as $kw => $k) {
+                if (str_contains($low, $kw)) { $kind = $k; break; }
+            }
+            if (!$kind) continue;
+            $banjirAir[] = [
+                'lat' => $s['lat'], 'lng' => $s['lng'], 'name' => $s['name'],
+                'kind' => $kind, 'status' => $s['status'], 'tinggi' => $s['tinggi'], 'tanggal' => $s['tanggal'],
+            ];
+        }
+        $tmaTitik = ['banjir-air' => $banjirAir];
+
         return view('statistik.bencana', compact(
-            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis', 'kecamatanNames', 'titikBencana'
+            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis', 'kecamatanNames', 'titikBencana', 'tmaTitik'
         ));
+    }
+
+    public function kemiskinan(Request $request)
+    {
+        $availableTahun = DataKemiskinan::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) ($availableTahun->first() ?? $tahun);
+        }
+
+        $summary = DataKemiskinan::where('tahun', $tahun)->first();
+
+        $perKecamatan = KemiskinanKecamatan::with('kecamatan')
+            ->where('tahun', $tahun)
+            ->orderByDesc('jumlah_penduduk_miskin')
+            ->get();
+
+        // Tren jumlah penduduk miskin vs tahun sebelumnya (untuk penanda naik/turun)
+        $prev = DataKemiskinan::where('tahun', $tahun - 1)->first();
+        $tren = ($prev && $prev->jumlah_penduduk_miskin > 0)
+            ? round(($summary?->jumlah_penduduk_miskin - $prev->jumlah_penduduk_miskin) / $prev->jumlah_penduduk_miskin * 100, 1)
+            : null;
+
+        return view('statistik.kemiskinan', compact('summary', 'perKecamatan', 'tren', 'tahun', 'availableTahun'));
     }
 
     public function infrastrukturDigital(Request $request)

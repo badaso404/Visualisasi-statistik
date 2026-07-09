@@ -33,6 +33,7 @@
         ['route' => 'statistik.pendidikan',           'icon' => 'fa-graduation-cap',   'label' => 'Pendidikan'],
         ['route' => 'statistik.kesehatan',            'icon' => 'fa-plus-circle',      'label' => 'Kesehatan'],
         ['route' => 'statistik.bencana',              'icon' => 'fa-house-flood-water','label' => 'Kebencanaan'],
+        ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => 'Kemiskinan'],
         ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => 'Infrastruktur Digital'],
     ];
 @endphp

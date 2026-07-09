@@ -30,6 +30,7 @@
         <a href="{{ route('admin.kesehatan.index') }}" class="{{ request()->routeIs('admin.kesehatan.*') ? 'active' : '' }}"><i class="bi bi-heart-pulse"></i> Kesehatan</a>
         <a href="{{ route('admin.bencana.index') }}" class="{{ request()->routeIs('admin.bencana.*') ? 'active' : '' }}"><i class="bi bi-exclamation-triangle"></i> Kebencanaan</a>
         <a href="{{ route('admin.titik-bencana.index') }}" class="{{ request()->routeIs('admin.titik-bencana.*') ? 'active' : '' }}"><i class="bi bi-geo-fill"></i> Titik Peta Bencana</a>
+        <a href="{{ route('admin.kemiskinan.index') }}" class="{{ request()->routeIs('admin.kemiskinan.*') ? 'active' : '' }}"><i class="bi bi-hand-thumbs-down"></i> Kemiskinan</a>
         <a href="{{ route('admin.infrastruktur-digital.index') }}" class="{{ request()->routeIs('admin.infrastruktur-digital.*') || request()->routeIs('admin.jak-wifi.*') || request()->routeIs('admin.cctv.*') ? 'active' : '' }}"><i class="bi bi-wifi"></i> Infrastruktur Digital</a>
     </nav>
 
