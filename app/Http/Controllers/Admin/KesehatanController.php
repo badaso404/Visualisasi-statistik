@@ -55,7 +55,7 @@ class KesehatanController extends Controller
         return $request->validate([
             'tahun'                   => ['required', 'integer', 'min:1900', 'max:2100'],
             'jumlah_tempat_tidur_rs'  => ['required', 'integer', 'min:0'],
-            'cakupan_imunisasi_dasar' => ['required', 'numeric', 'min:0'],
+            'cakupan_imunisasi_dasar' => ['nullable', 'numeric', 'min:0'],
             'sumber'                  => ['nullable', 'string', 'max:255'],
         ]);
     }

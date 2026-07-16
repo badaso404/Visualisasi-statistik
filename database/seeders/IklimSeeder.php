@@ -3,32 +3,123 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Services\Statistik\BpsClient;
 use App\Models\DataIklim;
 
 class IklimSeeder extends Seeder
 {
+    /**
+     * Data iklim bulanan diambil LANGSUNG dari BPS WebAPI (domain 3174 = Kota
+     * Jakarta Barat). BPS sendiri menyusun ini dari BMKG Stasiun Kemayoran
+     * (lihat `note` pada respons API), jadi ini data BMKG yang sudah dibersihkan,
+     * historis, dan berformat JSON rapih.
+     *
+     * Tiga variabel digabung menjadi satu baris per (tahun, bulan):
+     *   - var 116 "Keadaan Iklim" → hari hujan, tekanan, kecepatan angin, penyinaran
+     *   - var 64  "Suhu"          → rata-rata (turvar 44)
+     *   - var 115 "Kelembaban"    → rata-rata (turvar 44)
+     *
+     * Key datacontent BPS berformat: {vervar}{var}{turvar}{thKode}{turth}.
+     * Untuk iklim, vervar = BULAN (1-12) dan turth = 0.
+     */
     public function run(): void
     {
-        $data = [
-            ['bulan' => 1,  'hari_hujan' => 17,   'tekanan_udara' => 1009.98, 'suhu_udara' => 28.45, 'kecepatan_angin' => 1.49, 'kelembaban_udara' => 79.72, 'penyinaran_matahari' => 2.8],
-            ['bulan' => 2,  'hari_hujan' => 19,   'tekanan_udara' => 1010.85, 'suhu_udara' => 28.33, 'kecepatan_angin' => 1.41, 'kelembaban_udara' => 81.75, 'penyinaran_matahari' => 3.6],
-            ['bulan' => 3,  'hari_hujan' => 20,   'tekanan_udara' => 1009.83, 'suhu_udara' => 28.41, 'kecepatan_angin' => 1.22, 'kelembaban_udara' => 81.09, 'penyinaran_matahari' => 3.2],
-            ['bulan' => 4,  'hari_hujan' => 14,   'tekanan_udara' => 1009.31, 'suhu_udara' => 29.43, 'kecepatan_angin' => 1.16, 'kelembaban_udara' => 78.65, 'penyinaran_matahari' => 3.8],
-            ['bulan' => 5,  'hari_hujan' => 4,    'tekanan_udara' => 1008.27, 'suhu_udara' => 30.13, 'kecepatan_angin' => 1.02, 'kelembaban_udara' => 74.23, 'penyinaran_matahari' => 4.3],
-            ['bulan' => 6,  'hari_hujan' => 7,    'tekanan_udara' => 1008.72, 'suhu_udara' => 29.12, 'kecepatan_angin' => 1.09, 'kelembaban_udara' => 77.03, 'penyinaran_matahari' => 4.1],
-            ['bulan' => 7,  'hari_hujan' => 28,   'tekanan_udara' => 1010.51, 'suhu_udara' => 27.96, 'kecepatan_angin' => 0.98, 'kelembaban_udara' => 76.98, 'penyinaran_matahari' => 4.5],
-            ['bulan' => 8,  'hari_hujan' => 31,   'tekanan_udara' => 1010.36, 'suhu_udara' => 29.02, 'kecepatan_angin' => 1.21, 'kelembaban_udara' => 70.54, 'penyinaran_matahari' => 5.9],
-            ['bulan' => 9,  'hari_hujan' => 30,   'tekanan_udara' => 1011.41, 'suhu_udara' => 29.14, 'kecepatan_angin' => 1.20, 'kelembaban_udara' => 71.53, 'penyinaran_matahari' => 6.3],
-            ['bulan' => 10, 'hari_hujan' => 31,   'tekanan_udara' => 1010.72, 'suhu_udara' => 30.07, 'kecepatan_angin' => 1.05, 'kelembaban_udara' => 68.85, 'penyinaran_matahari' => 6.0],
-            ['bulan' => 11, 'hari_hujan' => 30,   'tekanan_udara' => 1009.32, 'suhu_udara' => 29.21, 'kecepatan_angin' => 1.21, 'kelembaban_udara' => 75.42, 'penyinaran_matahari' => 3.9],
-            ['bulan' => 12, 'hari_hujan' => 31,   'tekanan_udara' => 1008.91, 'suhu_udara' => 28.42, 'kecepatan_angin' => 1.44, 'kelembaban_udara' => 78.44, 'penyinaran_matahari' => 1.7],
-        ];
+        $rows = $this->fetchBps();
 
-        foreach ($data as $item) {
-            DataIklim::create(array_merge($item, [
-                'tahun'  => 2024,
-                'sumber' => 'Kota Jakarta Barat Dalam Angka 2025',
-            ]));
+        if (empty($rows)) {
+            $this->command?->warn('IklimSeeder: gagal mengambil data BPS, dilewati.');
+            return;
         }
+
+        DataIklim::truncate();   // idempoten — hanya data BPS yang ditampilkan
+
+        foreach ($rows as $row) {
+            DataIklim::create($row);
+        }
+
+        $tahunUnik = array_values(array_unique(array_map(fn ($r) => $r['tahun'], $rows)));
+        sort($tahunUnik);
+        $this->command?->info('IklimSeeder: ' . count($rows) . ' baris bulanan diambil dari BPS ('
+            . implode(', ', $tahunUnik) . ').');
+    }
+
+    /**
+     * turvar var 116 → kolom tabel data_iklim.
+     * Curah hujan (48) sengaja tidak diambil karena tabel belum punya kolomnya.
+     */
+    private const KEADAAN_IKLIM = [
+        49 => 'hari_hujan',
+        50 => 'tekanan_udara',
+        51 => 'kecepatan_angin',
+        52 => 'penyinaran_matahari',
+    ];
+
+    private const TURVAR_RATA_RATA = 44;   // untuk var 64 (suhu) & var 115 (kelembaban)
+
+    /**
+     * Tarik & rakit data BPS menjadi baris siap-insert. Mengembalikan array baris
+     * [['tahun'=>.., 'bulan'=>.., 'hari_hujan'=>.., ...], ...].
+     *
+     * Basis tahun mengikuti ketersediaan var 116; suhu & kelembaban di-enrich
+     * bila tahunnya tersedia (nilai yang hilang di-default 0, konsisten dengan
+     * seeder lain).
+     */
+    private function fetchBps(): array
+    {
+        $bps = app(BpsClient::class);
+
+        // Dibatasi 4 tahun terakhir (2020-2023) agar dropdown tahun ringkas dan
+        // sejajar dengan modul lain. BPS Jakbar tidak punya iklim > 2023, dan 2022
+        // kosong, jadi efektifnya 2020, 2021, 2023.
+        $rows = [];
+        foreach ($bps->tahunTersedia(var: 116, minTahun: 2020) as $thKode => $tahun) {
+            $iklim      = $bps->datacontent(var: 116, thKode: $thKode);
+            $suhu       = $bps->datacontent(var: 64,  thKode: $thKode);
+            $kelembaban = $bps->datacontent(var: 115, thKode: $thKode);
+
+            for ($bulan = 1; $bulan <= 12; $bulan++) {
+                $baris = ['tahun' => $tahun, 'bulan' => $bulan];
+                $adaData = false;
+
+                foreach (self::KEADAAN_IKLIM as $turvar => $kolom) {
+                    $key = "{$bulan}116{$turvar}{$thKode}0";
+                    if (isset($iklim[$key])) {
+                        $baris[$kolom] = $iklim[$key];
+                        $adaData = true;
+                    }
+                }
+
+                $keySuhu = "{$bulan}64" . self::TURVAR_RATA_RATA . "{$thKode}0";
+                if (isset($suhu[$keySuhu])) {
+                    $baris['suhu_udara'] = $suhu[$keySuhu];
+                    $adaData = true;
+                }
+
+                $keyKelembaban = "{$bulan}115" . self::TURVAR_RATA_RATA . "{$thKode}0";
+                if (isset($kelembaban[$keyKelembaban])) {
+                    $baris['kelembaban_udara'] = $kelembaban[$keyKelembaban];
+                    $adaData = true;
+                }
+
+                // Lewati bulan yang benar-benar kosong di semua sumber.
+                if (! $adaData) {
+                    continue;
+                }
+
+                // Kolom tabel NOT NULL → default 0 untuk metrik yang tak tersedia
+                // pada bulan tersebut (mengikuti pola `?? 0` seeder lain).
+                $rows[] = array_merge([
+                    'hari_hujan'          => 0,
+                    'tekanan_udara'       => 0,
+                    'suhu_udara'          => 0,
+                    'kecepatan_angin'     => 0,
+                    'kelembaban_udara'    => 0,
+                    'penyinaran_matahari' => 0,
+                    'sumber'              => 'BPS Kota Jakarta Barat (webapi.bps.go.id)',
+                ], $baris);
+            }
+        }
+
+        return $rows;
     }
 }

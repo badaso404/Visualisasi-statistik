@@ -3,63 +3,128 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Services\Statistik\BpsClient;
 use App\Models\DataKemiskinan;
 use App\Models\KemiskinanKecamatan;
 use App\Models\Kecamatan;
 
 class KemiskinanSeeder extends Seeder
 {
+    /**
+     * Ringkasan kemiskinan diambil LANGSUNG dari BPS WebAPI (domain 3174 = Kota
+     * Jakarta Barat, var 117 = Indikator Kemiskinan, tahun 122=2022 & 123=2023).
+     * BPS hanya merilis sampai level kota, jadi hanya baris Jakarta Barat (vervar=5)
+     * yang diambil. Rincian per-kecamatan tidak tersedia di BPS → didistribusikan
+     * sebagai ESTIMASI proporsional agar visualisasi per-kecamatan tetap berfungsi.
+     */
     public function run(): void
     {
-        // Ringkasan indikator per tahun (angka ilustratif, pola BPS Jakarta Barat).
-        // 2023 sedikit lebih tinggi dari 2024 → tren menurun.
-        DataKemiskinan::create([
-            'tahun'                      => 2023,
-            'jumlah_penduduk_miskin'     => 95340,
-            'persentase_penduduk_miskin' => 3.72,
-            'garis_kemiskinan'           => 858469,
-            'indeks_kedalaman'           => 0.63,
-            'indeks_keparahan'           => 0.16,
-            'sumber'                     => 'Kota Jakarta Barat Dalam Angka 2024',
-        ]);
+        $summaries = $this->fetchBps();
 
-        DataKemiskinan::create([
-            'tahun'                      => 2024,
-            'jumlah_penduduk_miskin'     => 92150,
-            'persentase_penduduk_miskin' => 3.55,
-            'garis_kemiskinan'           => 915192,
-            'indeks_kedalaman'           => 0.58,
-            'indeks_keparahan'           => 0.14,
-            'sumber'                     => 'Kota Jakarta Barat Dalam Angka 2025',
-        ]);
+        if (empty($summaries)) {
+            $this->command?->warn('KemiskinanSeeder: gagal mengambil data BPS, dilewati.');
+            return;
+        }
 
-        // Per kecamatan (nilai dasar tahun 2024). 2023 = sedikit lebih tinggi (×1.035).
-        $data = [
-            ['nama' => 'Cengkareng',        'miskin' => 18500, 'kk' => 5290, 'bantuan' => 20350, 'persen' => 3.42],
-            ['nama' => 'Kalideres',         'miskin' => 15200, 'kk' => 4340, 'bantuan' => 16720, 'persen' => 3.31],
-            ['nama' => 'Tambora',           'miskin' => 13800, 'kk' => 3940, 'bantuan' => 15180, 'persen' => 5.68],
-            ['nama' => 'Kembangan',         'miskin' => 10100, 'kk' => 2890, 'bantuan' => 11110, 'persen' => 3.05],
-            ['nama' => 'Palmerah',          'miskin' => 9200,  'kk' => 2630, 'bantuan' => 10120, 'persen' => 4.11],
-            ['nama' => 'Kebon Jeruk',       'miskin' => 9400,  'kk' => 2690, 'bantuan' => 10340, 'persen' => 2.88],
-            ['nama' => 'Grogol Petamburan', 'miskin' => 8700,  'kk' => 2490, 'bantuan' => 9570,  'persen' => 3.63],
-            ['nama' => 'Taman Sari',        'miskin' => 7250,  'kk' => 2070, 'bantuan' => 7980,  'persen' => 4.94],
+        // Bersihkan data lama agar seeder idempoten
+        KemiskinanKecamatan::truncate();   // kosongkan estimasi lama; kini hanya data BPS ditampilkan
+        DataKemiskinan::truncate();
+
+        /* ── ESTIMASI PER-KECAMATAN (DINONAKTIFKAN) ───────────────────────────
+           BPS hanya merilis kemiskinan sampai level kota, tidak ada rincian per
+           kecamatan. Distribusi di bawah hanya ESTIMASI proporsional, sehingga
+           dinonaktifkan agar aplikasi menampilkan data BPS asli saja.
+           Disimpan (tidak dihapus) bila sewaktu-waktu ada sumber per-kecamatan.
+
+        $bobot = [
+            'Cengkareng'        => 0.2008,
+            'Kalideres'         => 0.1650,
+            'Tambora'           => 0.1497,
+            'Kembangan'         => 0.1096,
+            'Kebon Jeruk'       => 0.1020,
+            'Palmerah'          => 0.0998,
+            'Grogol Petamburan' => 0.0944,
+            'Taman Sari'        => 0.0787,
         ];
+        ──────────────────────────────────────────────────────────────────────── */
 
-        foreach ([2024 => 1.0, 2023 => 1.035] as $tahun => $faktor) {
-            foreach ($data as $item) {
-                $kec = Kecamatan::where('nama_kecamatan', $item['nama'])->first();
+        foreach ($summaries as $tahun => $ind) {
+            // 58 = Jumlah Penduduk Miskin (ribu orang) → dikonversi ke jiwa
+            $totalMiskin = (int) round(($ind[58] ?? 0) * 1000);
+
+            DataKemiskinan::create([
+                'tahun'                      => $tahun,
+                'jumlah_penduduk_miskin'     => $totalMiskin,
+                'persentase_penduduk_miskin' => $ind[59] ?? 0,   // Persentase (%)
+                'garis_kemiskinan'           => $ind[60] ?? 0,   // Garis Kemiskinan (Rp/kapita/bulan)
+                'indeks_kedalaman'           => $ind[61] ?? 0,   // P1
+                'indeks_keparahan'           => $ind[62] ?? 0,   // P2
+                'sumber'                     => 'BPS Kota Jakarta Barat (webapi.bps.go.id), var 117',
+            ]);
+
+            /* ── Estimasi distribusi per-kecamatan (DINONAKTIFKAN, lihat catatan di atas) ──
+            foreach ($bobot as $nama => $w) {
+                $kec = Kecamatan::where('nama_kecamatan', $nama)->first();
                 if (! $kec) {
                     continue;
                 }
+                $miskinKec = (int) round($totalMiskin * $w);
                 KemiskinanKecamatan::create([
                     'kecamatan_id'           => $kec->id,
                     'tahun'                  => $tahun,
-                    'jumlah_penduduk_miskin' => (int) round($item['miskin']  * $faktor),
-                    'jumlah_keluarga_miskin' => (int) round($item['kk']      * $faktor),
-                    'penerima_bantuan'       => (int) round($item['bantuan'] * $faktor),
-                    'persentase'             => round($item['persen'] * $faktor, 2),
+                    'jumlah_penduduk_miskin' => $miskinKec,
+                    'jumlah_keluarga_miskin' => (int) round($miskinKec / 3.5),   // asumsi ~3,5 jiwa/KK
+                    'penerima_bantuan'       => (int) round($miskinKec * 1.1),   // cakupan bansos ~110%
+                    // Persentase kecamatan ≈ persentase kota disesuaikan bobot relatif
+                    'persentase'             => round(($ind[59] ?? 0) * ($w / 0.125), 2),
                 ]);
             }
+            ──────────────────────────────────────────────────────────────────────── */
         }
+
+        $this->command?->info('KemiskinanSeeder: ' . count($summaries) . ' tahun diambil dari BPS ('
+            . implode(', ', array_keys($summaries)) . ').');
+    }
+
+    /**
+     * Kode tahun BPS → tahun asli. Tambahkan entri baru di sini untuk menarik tahun
+     * lain (mis. '126' => 2026) begitu BPS merilisnya — dashboard otomatis ikut.
+     * Catatan: BPS kadang error bila banyak tahun digabung dalam satu request,
+     * jadi tiap tahun di-fetch terpisah lalu digabung (merge).
+     */
+    private const TAHUN_BPS = [
+        '122' => 2022,
+        '123' => 2023,
+        '124' => 2024,
+        '125' => 2025,
+    ];
+
+    /**
+     * Ambil & parse BPS WebAPI per tahun, gabungkan. Mengembalikan
+     * [tahun => [turvar => nilai]] untuk Jakarta Barat.
+     * Key datacontent BPS berformat: {vervar}{var}{turvar}{tahun}{turtahun}.
+     */
+    private function fetchBps(): array
+    {
+        $bps          = app(BpsClient::class);
+        $vervarJakbar = 5;                 // Jakarta Barat (dari daftar vervar BPS)
+        $turvars      = [58, 59, 60, 61, 62];
+
+        $out = [];
+        foreach (self::TAHUN_BPS as $thKode => $thLabel) {
+            // Tahun yang gagal/belum rilis kembali sebagai [] → dilewati,
+            // tahun lain tetap jalan.
+            $dc = $bps->datacontent(var: 117, thKode: $thKode);
+
+            foreach ($turvars as $tv) {
+                // 5 . 117 . {turvar} . {tahun} . 0
+                $key = $vervarJakbar . '117' . $tv . $thKode . '0';
+                if (isset($dc[$key])) {
+                    $out[$thLabel][$tv] = $dc[$key];
+                }
+            }
+        }
+
+        return $out;
     }
 }

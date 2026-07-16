@@ -57,6 +57,7 @@
     .stat-summary-card .card-text .label { font-size: 12px; font-weight: 600; color: #888; letter-spacing: 1px; }
     .stat-summary-card .card-text .value { font-size: 28px; font-weight: 700; color: #333; line-height: 1.15; }
     .stat-summary-card .card-text .value-status { font-size: 28px; font-weight: 700; line-height: 1.15; }
+    .stat-summary-card .card-text .sub { font-size: 11px; color: #aaa; margin-top: 3px; }
 
     .chart-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .chart-card .chart-title { font-size: 13px; font-weight: 600; color: #555; letter-spacing: 1px; margin-bottom: 16px; }
@@ -265,6 +266,7 @@
                     <div class="card-text">
                         <div class="label" id="lbl-suhu">RATA-RATA SUHU UDARA (°C)</div>
                         <div class="value" id="val-suhu">{{ number_format($avgSuhu, 2) }}</div>
+                        <div class="sub">suhu rata-rata harian</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
                         <i class="fa fa-thermometer-half" style="color:#fff;"></i>
@@ -276,6 +278,7 @@
                     <div class="card-text">
                         <div class="label" id="lbl-hujan">RATA-RATA HARI HUJAN (HARI/BLN)</div>
                         <div class="value" id="val-hujan">{{ number_format($avgHariHujan, 1) }}</div>
+                        <div class="sub">jumlah hari turun hujan</div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-tint" style="color:#fff;"></i>
@@ -287,6 +290,7 @@
                     <div class="card-text">
                         <div class="label" id="lbl-lembab">KELEMBABAN UDARA (%)</div>
                         <div class="value" id="val-lembab">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
+                        <div class="sub">kadar uap air di udara</div>
                     </div>
                     <div class="card-icon" style="background:#1baf7a; margin-left:auto;">
                         <i class="fa fa-water" style="color:#fff;"></i>
@@ -302,6 +306,7 @@
                                 <span class="dot"></span>{{ $statusWilayah }}
                             </span>
                         </div>
+                        <div class="sub">klasifikasi intensitas hujan</div>
                     </div>
                     <div class="card-icon" style="background:#eb6834; margin-left:auto;">
                         <i class="fa fa-info-circle" style="color:#fff;"></i>
@@ -445,7 +450,7 @@
         </div>
 
         <div style="text-align:right; font-size:12px; color:#bbb; margin-top:16px;">
-            Sumber: Kota Jakarta Barat Dalam Angka 2025
+            Sumber: {{ $iklim->first()->sumber ?? 'BPS Kota Jakarta Barat (webapi.bps.go.id)' }} &bull; Data Tahun {{ $tahun }}
         </div>
         </div>{{-- statistik-content --}}
 

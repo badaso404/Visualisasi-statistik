@@ -12,7 +12,10 @@ class LuasKecamatan extends Model
         'kecamatan_id',
         'data_geografis_id',
         'luas_km2',
-        'persentase'
+        'persentase',
+        'jumlah_kelurahan',
+        'jumlah_rw',
+        'jumlah_rt',
     ];
 
     public function kecamatan()

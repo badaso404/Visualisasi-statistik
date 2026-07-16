@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use App\Services\Statistik\SatuDataClient;
+use App\Services\Statistik\DsdaClient;
 use App\Models\DataGeografis;
 use App\Models\LuasKecamatan;
 use App\Models\DataIklim;
@@ -50,6 +50,8 @@ class StatistikController extends Controller
             ->map->count();
 
         // Statistik per kecamatan untuk interaksi dinamis pada card
+        // Kelurahan/RW/RT bersumber BPS (var 155) di kolom luas_kecamatan;
+        // jika null, kelurahan fallback ke jumlah baris penduduk_kelurahan.
         $kecStats = $luas->mapWithKeys(function ($row) use ($pendudukKec, $kelurahanCount) {
             $nama     = strtoupper($row->kecamatan->nama_kecamatan);
             $penduduk = optional($pendudukKec->get($nama))->jumlah_penduduk;
@@ -59,7 +61,9 @@ class StatistikController extends Controller
                 'nama'       => $row->kecamatan->nama_kecamatan,
                 'luas'       => (float) $row->luas_km2,
                 'persentase' => (float) $row->persentase,
-                'kelurahan'  => (int) $kelurahanCount->get($nama, 0),
+                'kelurahan'  => (int) ($row->jumlah_kelurahan ?? $kelurahanCount->get($nama, 0)),
+                'rw'         => $row->jumlah_rw !== null ? (int) $row->jumlah_rw : null,
+                'rt'         => $row->jumlah_rt !== null ? (int) $row->jumlah_rt : null,
                 'penduduk'   => $penduduk ? (int) $penduduk : null,
                 'kepadatan'  => $kepadatan ? round($kepadatan) : null,
             ]];
@@ -123,18 +127,10 @@ class StatistikController extends Controller
      * UJI COBA — Piramida penduduk dari API Satu Data Jakarta
      * (jumlah penduduk per kelompok usia & jenis kelamin, 2013-2016).
      */
-    public function kependudukanApi(Request $request)
+    public function kependudukanApi(Request $request, SatuDataClient $satuData)
     {
-        // Slug tanpa embel tahun = dataset paling lengkap (2013,2014,2015,2016,2018,2020,2021)
-        $url = 'https://ws.jakarta.go.id/gateway/DataPortalSatuDataJakarta/1.0/satudata'
-             . '?kategori=dataset&tipe=detail'
-             . '&url=data-jumlah-penduduk-provinsi-dki-jakarta-berdasarkan-kelompok-usia-dan-jenis-kelamin';
-
-        // Data ~60rb baris → cache 6 jam biar tidak fetch tiap request
-        $rows = Cache::remember('satudata_penduduk_usia_v2', now()->addHours(6), function () use ($url) {
-            $res = Http::timeout(90)->retry(2, 500)->get($url);
-            return $res->successful() ? ($res->json('data') ?? []) : [];
-        });
+        // Data ~60rb baris → di-cache di dalam client biar tidak fetch tiap request
+        $rows = $satuData->pendudukPerUsia();
 
         // Label usia rusak/tidak konsisten antar tahun (Excel + variasi ejaan)
         $fixUsia = fn($u) => match (trim($u)) {
@@ -258,7 +254,7 @@ class StatistikController extends Controller
         return view('statistik.kesehatan', compact('summary', 'tenaga', 'fasilitas', 'tahun', 'availableTahun'));
     }
 
-    public function bencana(Request $request)
+    public function bencana(Request $request, DsdaClient $dsda)
     {
         $availableTahun = DataBencana::query()
             ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
@@ -298,38 +294,7 @@ class StatistikController extends Controller
 
         // Semua stasiun Tinggi Muka Air (TMA) — live DSDA DKI, cache 5 menit.
         // Dipakai untuk: (a) layer titik pantau air, (b) status siaga titik prioritas banjir.
-        // Penting: hasil KOSONG/GAGAL tidak di-cache, agar timeout sesaat tidak
-        // menghilangkan titik selama 5 menit — request berikutnya langsung retry.
-        $tmaAll = \Illuminate\Support\Facades\Cache::get('tma_all');
-        if (empty($tmaAll)) {
-            $tmaAll = [];
-            try {
-                $resp = \Illuminate\Support\Facades\Http::timeout(8)
-                    ->retry(2, 300)
-                    ->get('https://poskobanjirdsda.jakarta.go.id/datatma.json');
-                if ($resp->ok()) {
-                    foreach ($resp->json() as $r) {
-                        $la = is_numeric($r['LATITUDE'] ?? null) ? (float) $r['LATITUDE'] : null;
-                        $lo = is_numeric($r['LONGITUDE'] ?? null) ? (float) $r['LONGITUDE'] : null;
-                        if ($la === null || $lo === null) continue;
-                        $tmaAll[] = [
-                            'lat'     => $la,
-                            'lng'     => $lo,
-                            'name'    => trim($r['NAMA_PINTU_AIR'] ?? ''),
-                            'status'  => $r['STATUS_SIAGA'] ?? '-',
-                            'tinggi'  => $r['TINGGI_AIR'] ?? null,
-                            'tanggal' => $r['TANGGAL'] ?? null,
-                        ];
-                    }
-                }
-            } catch (\Throwable $e) {
-                $tmaAll = [];
-            }
-            // Simpan hanya bila berhasil dapat data
-            if (!empty($tmaAll)) {
-                \Illuminate\Support\Facades\Cache::put('tma_all', $tmaAll, 300);
-            }
-        }
+        $tmaAll = $dsda->tinggiMukaAir();
 
         // Cari status stasiun TMA terdekat (radius maks 5 km) dari sebuah koordinat
         $statusTerdekat = function ($la, $lo) use ($tmaAll) {
@@ -414,10 +379,8 @@ class StatistikController extends Controller
 
         $summary = DataKemiskinan::where('tahun', $tahun)->first();
 
-        $perKecamatan = KemiskinanKecamatan::with('kecamatan')
-            ->where('tahun', $tahun)
-            ->orderByDesc('jumlah_penduduk_miskin')
-            ->get();
+        // Riwayat seluruh tahun (asc) untuk grafik tren antar-tahun — semua dari BPS
+        $riwayat = DataKemiskinan::orderBy('tahun')->get();
 
         // Tren jumlah penduduk miskin vs tahun sebelumnya (untuk penanda naik/turun)
         $prev = DataKemiskinan::where('tahun', $tahun - 1)->first();
@@ -425,7 +388,7 @@ class StatistikController extends Controller
             ? round(($summary?->jumlah_penduduk_miskin - $prev->jumlah_penduduk_miskin) / $prev->jumlah_penduduk_miskin * 100, 1)
             : null;
 
-        return view('statistik.kemiskinan', compact('summary', 'perKecamatan', 'tren', 'tahun', 'availableTahun'));
+        return view('statistik.kemiskinan', compact('summary', 'riwayat', 'tren', 'tahun', 'availableTahun'));
     }
 
     public function infrastrukturDigital(Request $request)

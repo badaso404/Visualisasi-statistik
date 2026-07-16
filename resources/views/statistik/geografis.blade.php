@@ -154,7 +154,7 @@
         .stat-header        { font-size: 15px; padding: 12px; }
         #geo-map            { height: 360px; }
         .geo-table-wrap     { overflow-x: auto; }
-        .geo-table          { min-width: 560px; }
+        .geo-table          { min-width: 700px; }
 
         /* Legend kecamatan di peta — lebih kecil & tidak menutupi peta di HP */
         .kec-legend {
@@ -337,6 +337,8 @@
                         <th>Kecamatan</th>
                         <th>Luas (km²)</th>
                         <th>Kelurahan</th>
+                        <th>RW</th>
+                        <th>RT</th>
                         <th>Populasi</th>
                         <th>Kepadatan (/km²)</th>
                     </tr>
@@ -348,6 +350,8 @@
                         <td>{{ $row->kecamatan->nama_kecamatan }}</td>
                         <td>{{ number_format($row->luas_km2, 2) }}</td>
                         <td>{{ $s && $s['kelurahan'] ? $s['kelurahan'] : '—' }}</td>
+                        <td>{{ $s && $s['rw'] ? number_format($s['rw'], 0, ',', '.') : '—' }}</td>
+                        <td>{{ $s && $s['rt'] ? number_format($s['rt'], 0, ',', '.') : '—' }}</td>
                         <td>{{ $s && $s['penduduk'] ? number_format($s['penduduk'], 0, ',', '.') : '—' }}</td>
                         <td>{{ $s && $s['kepadatan'] ? number_format($s['kepadatan'], 0, ',', '.') : '—' }}</td>
                     </tr>

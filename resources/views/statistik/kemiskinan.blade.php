@@ -109,7 +109,6 @@
         @if($summary)
         {{-- RINGKASAN INDIKATOR --}}
         <div class="chart-card">
-            <div class="chart-title">Ringkasan Indikator</div>
             <div class="row g-2">
                 <div class="col-6 col-md">
                     <div class="poverty-card">
@@ -163,7 +162,77 @@
             </div>
         </div>
 
-        {{-- CHART PER KECAMATAN --}}
+        {{-- TREN ANTAR-TAHUN (data BPS) --}}
+        <div class="row g-2">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Tren Jumlah Penduduk Miskin (jiwa)</div>
+                    <div id="chart-tren-miskin" class="chart-box"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Tren Persentase Penduduk Miskin (%)</div>
+                    <div id="chart-tren-persen" class="chart-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Tren Garis Kemiskinan (Rp/kapita/bulan)</div>
+                    <div id="chart-tren-garis" class="chart-box"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-title">Tren Indeks Kedalaman (P1) & Keparahan (P2)</div>
+                    <div id="chart-tren-indeks" class="chart-box"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- TABEL RINGKASAN ANTAR-TAHUN (data BPS) --}}
+        <div class="chart-card">
+            <div class="chart-title">Ringkasan Antar-Tahun</div>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tahun</th>
+                            <th>Penduduk Miskin</th>
+                            <th>Persentase</th>
+                            <th>Garis Kemiskinan</th>
+                            <th>P1</th>
+                            <th>P2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($riwayat as $row)
+                        <tr @if((int)$row->tahun === (int)$tahun) class="fw-bold" style="background:#fff8e1;" @endif>
+                            <td>{{ $row->tahun }}</td>
+                            <td>{{ number_format($row->jumlah_penduduk_miskin, 0, ',', '.') }}</td>
+                            <td>{{ $row->persentase_penduduk_miskin }}%</td>
+                            <td>Rp {{ number_format($row->garis_kemiskinan, 0, ',', '.') }}</td>
+                            <td>{{ $row->indeks_kedalaman }}</td>
+                            <td>{{ $row->indeks_keparahan }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="sumber">
+            Sumber: {{ $summary->sumber }}
+        </div>
+
+        {{-- ── CHART & TABEL PER-KECAMATAN (DINONAKTIFKAN) ────────────────────────
+             BPS hanya merilis data kemiskinan sampai level kota (Jakarta Barat),
+             tidak ada rincian per-kecamatan. Bagian ini disimpan (tidak dihapus)
+             agar mudah diaktifkan kembali bila ada sumber data per-kecamatan.
+
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="chart-card">
@@ -198,7 +267,6 @@
             </div>
         </div>
 
-        {{-- DATA KECAMATAN --}}
         <div class="chart-card">
             <div class="chart-title">Data Per Kecamatan</div>
             <div class="table-responsive">
@@ -213,7 +281,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($perKecamatan as $row)
+                        @foreach(($perKecamatan ?? []) as $row)
                         <tr>
                             <td>{{ $row->kecamatan->nama_kecamatan }}</td>
                             <td>{{ number_format($row->jumlah_penduduk_miskin, 0, ',', '.') }}</td>
@@ -226,10 +294,7 @@
                 </table>
             </div>
         </div>
-
-        <div class="sumber">
-            Sumber: {{ $summary->sumber }}
-        </div>
+        ──────────────────────────────────────────────────────────────────────── --}}
         @else
         <div class="chart-card text-center text-muted py-5">
             Belum ada data kemiskinan untuk ditampilkan.
@@ -263,19 +328,69 @@
 </script>
 @if($summary)
 <script>
-const nama     = {!! json_encode($perKecamatan->pluck('kecamatan.nama_kecamatan')) !!};
-const miskin   = {!! json_encode($perKecamatan->pluck('jumlah_penduduk_miskin')->map(fn($v)=>(int)$v)) !!};
-const keluarga = {!! json_encode($perKecamatan->pluck('jumlah_keluarga_miskin')->map(fn($v)=>(int)$v)) !!};
-const bantuan  = {!! json_encode($perKecamatan->pluck('penerima_bantuan')->map(fn($v)=>(int)$v)) !!};
-const persen   = {!! json_encode($perKecamatan->pluck('persentase')->map(fn($v)=>(float)$v)) !!};
+// ── Data riwayat antar-tahun (BPS) ────────────────────────────
+const tahunLabels = {!! json_encode($riwayat->pluck('tahun')->map(fn($v)=>(string)$v)) !!};
+const trMiskin    = {!! json_encode($riwayat->pluck('jumlah_penduduk_miskin')->map(fn($v)=>(int)$v)) !!};
+const trPersen    = {!! json_encode($riwayat->pluck('persentase_penduduk_miskin')->map(fn($v)=>(float)$v)) !!};
+const trGaris     = {!! json_encode($riwayat->pluck('garis_kemiskinan')->map(fn($v)=>(int)$v)) !!};
+const trP1        = {!! json_encode($riwayat->pluck('indeks_kedalaman')->map(fn($v)=>(float)$v)) !!};
+const trP2        = {!! json_encode($riwayat->pluck('indeks_keparahan')->map(fn($v)=>(float)$v)) !!};
 
 // ── Util angka ────────────────────────────────────────────────
 const idID = 'id-ID';
 const fmt  = v => Number(v).toLocaleString(idID);
+const fmtPersen = v => fmt(v) + '%';
+const fmtRp     = v => 'Rp ' + fmt(Math.round(v));
 
-// ── Bar distribusi + interaktif (klik untuk menyorot) ──
+// ── Grafik tren antar-tahun (garis + titik) ───────────────────
+function trenChart(sel, series, colors, fmtY) {
+    const fY = fmtY || fmt;
+    const chart = new ApexCharts(document.querySelector(sel), {
+        chart: {
+            type: 'line', height: 250, toolbar: { show: false }, fontFamily: 'inherit',
+            animations: { enabled: true, easing: 'easeinout', speed: 550 }
+        },
+        series: series,
+        colors: colors,
+        stroke: { curve: 'smooth', width: 3 },
+        markers: { size: 5, strokeWidth: 0, hover: { size: 7 } },
+        dataLabels: {
+            enabled: true, formatter: fY, offsetY: -8,
+            background: { enabled: false },
+            style: { fontSize: '10px', fontWeight: 700, colors: colors }
+        },
+        xaxis: {
+            categories: tahunLabels,
+            labels: { style: { fontSize: '11px', colors: '#888' } },
+            axisBorder: { show: false }, axisTicks: { show: false }
+        },
+        yaxis: { labels: { formatter: fY, style: { fontSize: '10px', colors: '#aaa' } } },
+        legend: { show: series.length > 1, position: 'bottom', fontSize: '11px',
+                  markers: { width: 11, height: 11, radius: 3 } },
+        grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
+        tooltip: { y: { formatter: fY } }
+    });
+    chart.render();
+    return chart;
+}
+
+trenChart('#chart-tren-miskin', [{ name: 'Penduduk Miskin', data: trMiskin }], ['#e34948'], fmt);
+trenChart('#chart-tren-persen', [{ name: 'Persentase',      data: trPersen }], ['#eb6834'], fmtPersen);
+trenChart('#chart-tren-garis',  [{ name: 'Garis Kemiskinan',data: trGaris  }], ['#eda100'], fmtRp);
+trenChart('#chart-tren-indeks',
+    [{ name: 'P1 (Kedalaman)', data: trP1 }, { name: 'P2 (Keparahan)', data: trP2 }],
+    ['#4a3aa7', '#2a78d6']);
+
+/* ── CHART PER-KECAMATAN (DINONAKTIFKAN — BPS tanpa rincian kecamatan) ──────
+   Disimpan agar mudah diaktifkan kembali bila ada sumber data per-kecamatan.
+
+const nama     = {!! json_encode(($perKecamatan ?? collect())->pluck('kecamatan.nama_kecamatan')) !!};
+const miskin   = {!! json_encode(($perKecamatan ?? collect())->pluck('jumlah_penduduk_miskin')->map(fn($v)=>(int)$v)) !!};
+const keluarga = {!! json_encode(($perKecamatan ?? collect())->pluck('jumlah_keluarga_miskin')->map(fn($v)=>(int)$v)) !!};
+const bantuan  = {!! json_encode(($perKecamatan ?? collect())->pluck('penerima_bantuan')->map(fn($v)=>(int)$v)) !!};
+const persen   = {!! json_encode(($perKecamatan ?? collect())->pluck('persentase')->map(fn($v)=>(float)$v)) !!};
+
 function distributedBar(sel, data, label, fmtY) {
-    // Warna per kecamatan (konsisten antar modul) — categories = `nama`
     const base   = nama.map(function (n) { return window.warnaKecamatan(n); });
     let   active = null;
     const fY = fmtY || fmt;
@@ -327,12 +442,11 @@ function distributedBar(sel, data, label, fmtY) {
     return chart;
 }
 
-const fmtPersen = v => fmt(v) + '%';
-
 distributedBar('#chart-miskin',   miskin,   'Penduduk Miskin');
 distributedBar('#chart-bantuan',  bantuan,  'Penerima Bantuan');
 distributedBar('#chart-persen',   persen,   'Persentase', fmtPersen);
 distributedBar('#chart-keluarga', keluarga, 'Keluarga Miskin');
+──────────────────────────────────────────────────────────────────────── */
 </script>
 @endif
 @endpush

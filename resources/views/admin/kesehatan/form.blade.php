@@ -16,8 +16,8 @@
                 <input type="number" name="jumlah_tempat_tidur_rs" value="{{ old('jumlah_tempat_tidur_rs', $item->jumlah_tempat_tidur_rs) }}" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label class="form-label">Cakupan Imunisasi Dasar (%)</label>
-                <input type="number" step="0.01" name="cakupan_imunisasi_dasar" value="{{ old('cakupan_imunisasi_dasar', $item->cakupan_imunisasi_dasar) }}" class="form-control" required>
+                <label class="form-label">Cakupan Imunisasi Dasar (%) <span class="text-muted">(opsional — tak tersedia di BPS)</span></label>
+                <input type="number" step="0.01" name="cakupan_imunisasi_dasar" value="{{ old('cakupan_imunisasi_dasar', $item->cakupan_imunisasi_dasar) }}" class="form-control">
             </div>
             <div class="mb-3">
                 <label class="form-label">Sumber <span class="text-muted">(opsional)</span></label>

@@ -185,6 +185,7 @@
 
     $totalTenaga    = $tenaga->sum('jumlah_total');
     $totalFasilitas = $fasilitas->sum('jumlah_total');
+    $totalRumahSakit = $fasilitas->sum('rumah_sakit');   // gantikan kartu imunisasi (tak ada di BPS)
     $maxTenaga      = $tenaga->max('jumlah_total') ?: 1;
     $maxFasilitas   = $fasilitas->max('jumlah_total') ?: 1;
     $topTenaga      = $tenaga->sortByDesc('jumlah_total')->first();
@@ -251,15 +252,17 @@
                         <div class="sc-icon yellow"><i class="fa fa-bed-pulse"></i></div>
                     </div>
                 </div>
-                {{-- Imunisasi --}}
+                {{-- Total Rumah Sakit (BPS var 128). Kartu "Cakupan Imunisasi Dasar" LAMA
+                     dinonaktifkan karena indikatornya tidak tersedia di BPS WebAPI:
+                     <div class="sc-value">{{ $summary->cakupan_imunisasi_dasar }}%</div> --}}
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label" id="kc-lbl-2">Cakupan Imunisasi Dasar</div>
-                            <div class="sc-value" id="kc-val-2">{{ $summary->cakupan_imunisasi_dasar }}%</div>
-                            <div class="sc-desc" id="kc-desc-2">Pencapaian target IDL Kelurahan</div>
+                            <div class="sc-label" id="kc-lbl-2">Total Rumah Sakit</div>
+                            <div class="sc-value" id="kc-val-2">{{ number_format($totalRumahSakit) }}</div>
+                            <div class="sc-desc" id="kc-desc-2">RS Umum, Khusus &amp; Bersalin</div>
                         </div>
-                        <div class="sc-icon green"><i class="fa fa-syringe"></i></div>
+                        <div class="sc-icon green"><i class="fa fa-hospital"></i></div>
                     </div>
                 </div>
                 {{-- Tenaga Kesehatan --}}
@@ -437,7 +440,7 @@
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     var cardDefaults = {
         l1: 'Tempat Tidur Rumah Sakit', v1: '{{ number_format($summary->jumlah_tempat_tidur_rs) }}',          d1: 'Total ketersediaan TT di RS',
-        l2: 'Cakupan Imunisasi Dasar',  v2: '{{ $summary->cakupan_imunisasi_dasar }}%',                        d2: 'Pencapaian target IDL Kelurahan',
+        l2: 'Total Rumah Sakit',        v2: '{{ number_format($totalRumahSakit) }}',                           d2: 'RS Umum, Khusus & Bersalin',
         l3: 'Total Tenaga Kesehatan',   v3: '{{ number_format($totalTenaga) }}',                               d3: 'Terbanyak: {{ $topTenaga?->kecamatan->nama_kecamatan ?? '-' }}',
         l4: 'Total Fasilitas Kesehatan',v4: '{{ number_format($totalFasilitas) }}',                            d4: 'RS, Puskesmas, Klinik & Posyandu',
     };
