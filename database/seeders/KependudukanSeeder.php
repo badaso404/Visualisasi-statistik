@@ -3,200 +3,237 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Http;
 use App\Models\DataKependudukan;
 use App\Models\PendudukKecamatan;
 use App\Models\PendudukKelurahan;
 use App\Models\Kecamatan;
 
+/**
+ * Sumber tunggal: BPS WebAPI var 162 "Jumlah Penduduk menurut Kelurahan dan
+ * Jenis Kelamin" (domain 3174 = Jakarta Barat).
+ *
+ * Prinsip konsistensi: KELURAHAN = sumber kebenaran (L/P asli BPS).
+ * KECAMATAN & JAKARTA BARAT diturunkan (SUM) dari kelurahan → tidak mungkin
+ * timpang. Koordinat lat/lng TIDAK ada di BPS → di-merge dari referensi
+ * stabil database/data/koordinat-kelurahan.csv (ter-commit, aman dari reseed).
+ */
 class KependudukanSeeder extends Seeder
 {
+    private const BPS_DOMAIN = '3174';
+    private const BPS_VAR    = 162;
+    private const BPS_KEY    = '3b5c29cc3428ab819b851b3676e0063a';
+    private const TURVAR_L   = 27;   // Laki-laki
+    private const TURVAR_P   = 28;   // Perempuan
+    private const TURVAR_LP  = 29;   // Laki-laki + Perempuan (total; lebih andal, dipakai sbg patokan)
+
+    /**
+     * th_id BPS => tahun. Hanya tahun yang datanya bersih/andal.
+     * 2023 (th 123) SENGAJA dilewati: 17/56 kelurahan korup di sumber BPS
+     * (pola "digit hilang" acak pada kolom L/P/total) → tak bisa dipulihkan
+     * dengan kredibel. 2019 bersih 100%, 2024 korup 4 sel tapi total tetap
+     * andal & terkoreksi otomatis (lihat logika fetchKelurahan).
+     */
+    private const TAHUN_BPS = [119 => 2019, 124 => 2024];
+
+    private const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                     . '(KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+
     public function run(): void
     {
+        // 1) Referensi koordinat (norm(nama) => baris)
+        $koordinat = $this->loadKoordinat();
+        if (empty($koordinat)) {
+            $this->command->error('database/data/koordinat-kelurahan.csv tidak ditemukan/ kosong. Batal.');
+            return;
+        }
+
+        // 2) Ambil SEMUA tahun dari BPS DULU. Kalau ada yang gagal → batal tanpa truncate.
+        $perTahun = [];
+        foreach (self::TAHUN_BPS as $thId => $tahun) {
+            $rows = $this->fetchKelurahan($thId, $koordinat);
+            if ($rows === null) {
+                $this->command->error("Gagal ambil BPS tahun $tahun (th $thId). Data lama TIDAK diubah.");
+                return;
+            }
+            $perTahun[$tahun] = $rows;
+            $this->command->info("BPS $tahun: " . count($rows) . ' kelurahan diambil.');
+        }
+
+        // 3) Semua sukses → baru truncate & tulis ulang
         DataKependudukan::truncate();
         PendudukKecamatan::truncate();
         PendudukKelurahan::truncate();
 
-        $summaryData = [
-            2024 => ['laki' => 1271376, 'perempuan' => 1285376, 'total' => 2556752, 'sumber' => 'Kota Jakarta Barat Dalam Angka 2025'],
-            2025 => ['laki' => 1284090, 'perempuan' => 1298230, 'total' => 2582320, 'sumber' => 'Kota Jakarta Barat Dalam Angka 2026 (Proyeksi)'],
-            2026 => ['laki' => 1297051, 'perempuan' => 1311835, 'total' => 2608886, 'sumber' => 'Kota Jakarta Barat Dalam Angka 2027 (Proyeksi)'],
-        ];
+        $kecamatanId = Kecamatan::pluck('id', 'nama_kecamatan'); // nama => id
 
-        foreach ($summaryData as $tahun => $s) {
+        foreach ($perTahun as $tahun => $rows) {
+            $aggKec = [];   // kecamatan => [L, P]
+            $totalL = 0;
+            $totalP = 0;
+
+            foreach ($rows as $r) {
+                $kecId = $kecamatanId[$r['kecamatan']] ?? null;
+                if (!$kecId) {
+                    continue;
+                }
+
+                PendudukKelurahan::create([
+                    'kecamatan_id'     => $kecId,
+                    'tahun'            => $tahun,
+                    'nama_kelurahan'   => $r['nama_kelurahan'],
+                    'latitude'         => $r['latitude'],
+                    'longitude'        => $r['longitude'],
+                    'jumlah_laki_laki' => $r['L'],
+                    'jumlah_perempuan' => $r['P'],
+                    'jumlah_penduduk'  => $r['L'] + $r['P'],
+                ]);
+
+                $aggKec[$r['kecamatan']]['L'] = ($aggKec[$r['kecamatan']]['L'] ?? 0) + $r['L'];
+                $aggKec[$r['kecamatan']]['P'] = ($aggKec[$r['kecamatan']]['P'] ?? 0) + $r['P'];
+                $totalL += $r['L'];
+                $totalP += $r['P'];
+            }
+
+            // Kecamatan = SUM kelurahan (konsisten by construction)
+            foreach ($aggKec as $namaKec => $lp) {
+                PendudukKecamatan::create([
+                    'kecamatan_id'     => $kecamatanId[$namaKec],
+                    'tahun'            => $tahun,
+                    'jumlah_laki_laki' => $lp['L'],
+                    'jumlah_perempuan' => $lp['P'],
+                    'jumlah_penduduk'  => $lp['L'] + $lp['P'],
+                ]);
+            }
+
+            // Jakarta Barat = SUM semua
             DataKependudukan::create([
                 'tahun'            => $tahun,
-                'jumlah_laki_laki' => $s['laki'],
-                'jumlah_perempuan' => $s['perempuan'],
-                'jumlah_total'     => $s['total'],
-                'sumber'           => $s['sumber'],
+                'jumlah_laki_laki' => $totalL,
+                'jumlah_perempuan' => $totalP,
+                'jumlah_total'     => $totalL + $totalP,
+                'sumber'           => "BPS Kota Jakarta Barat — Penduduk menurut Kelurahan & Jenis Kelamin ($tahun)",
             ]);
         }
 
-        $kecamatanData = [
-            2024 => [
-                'Cengkareng'        => 581788,
-                'Kalideres'         => 464076,
-                'Kebon Jeruk'       => 362641,
-                'Kembangan'         => 311262,
-                'Tambora'           => 258061,
-                'Grogol Petamburan' => 230173,
-                'Palmerah'          => 225842,
-                'Taman Sari'        => 122909,
-            ],
-            2025 => [
-                'Cengkareng'        => 587606,
-                'Kalideres'         => 468717,
-                'Kebon Jeruk'       => 366267,
-                'Kembangan'         => 314375,
-                'Tambora'           => 260642,
-                'Grogol Petamburan' => 232475,
-                'Palmerah'          => 228100,
-                'Taman Sari'        => 124138,
-            ],
-            2026 => [
-                'Cengkareng'        => 593424,
-                'Kalideres'         => 473357,
-                'Kebon Jeruk'       => 369894,
-                'Kembangan'         => 317487,
-                'Tambora'           => 263222,
-                'Grogol Petamburan' => 234776,
-                'Palmerah'          => 230359,
-                'Taman Sari'        => 125367,
-            ],
-        ];
+        $this->command->info('Selesai. Kecamatan & Jakarta Barat diturunkan dari kelurahan (konsisten).');
+    }
 
-        foreach ($kecamatanData as $tahun => $kecList) {
-            foreach ($kecList as $nama => $jumlah) {
-                $kec = Kecamatan::where('nama_kecamatan', $nama)->first();
-                if ($kec) {
-                    PendudukKecamatan::create([
-                        'kecamatan_id'    => $kec->id,
-                        'tahun'           => $tahun,
-                        'jumlah_penduduk' => $jumlah,
-                    ]);
-                }
+    /** Fetch var 162 satu tahun → array kelurahan siap simpan, atau null bila gagal. */
+    private function fetchKelurahan(int $thId, array $koordinat): ?array
+    {
+        $url = 'https://webapi.bps.go.id/v1/api/list/model/data/lang/ind'
+             . '/domain/' . self::BPS_DOMAIN . '/var/' . self::BPS_VAR
+             . '/th/' . $thId . '/key/' . self::BPS_KEY . '/';
+
+        try {
+            $resp = Http::withHeaders(['User-Agent' => self::UA])->timeout(60)->retry(2, 500)->get($url);
+        } catch (\Throwable) {
+            return null;
+        }
+        if (!$resp->ok()) {
+            return null;
+        }
+
+        $json = $resp->json();
+        if (($json['status'] ?? '') !== 'OK') {
+            return null;
+        }
+        $dc = $json['datacontent'] ?? [];
+        if (empty($dc)) {
+            return null; // metadata ada tapi angka kosong
+        }
+
+        $hasil = [];
+        foreach ($json['vervar'] as $vv) {
+            $labelRaw = $vv['label'];
+            $isHeader = str_contains($labelRaw, '<b>');   // baris kecamatan → dilewati (kita SUM sendiri)
+            $bersih   = $this->cleanLabel($labelRaw);
+
+            if ($bersih === '' || $bersih === 'Jakarta Barat') {
+                continue;
             }
-        }
-
-        $kelurahan2024 = [
-            // CENGKARENG
-            ['nama' => 'Cengkareng Barat',      'kecamatan' => 'Cengkareng',        'jumlah' => 81567,  'lat' => -6.149344020220700,  'lng' => 106.72191972604004],
-            ['nama' => 'Cengkareng Timur',      'kecamatan' => 'Cengkareng',        'jumlah' => 103122, 'lat' => -6.144990018828093,  'lng' => 106.73321442418903],
-            ['nama' => 'Duri Kosambi',          'kecamatan' => 'Cengkareng',        'jumlah' => 102437, 'lat' => -6.169915026813531,  'lng' => 106.72240541069682],
-            ['nama' => 'Kapuk',                 'kecamatan' => 'Cengkareng',        'jumlah' => 171181, 'lat' => -6.1311682818773585, 'lng' => 106.74617941069658],
-            ['nama' => 'Kedaung Kali Angke',    'kecamatan' => 'Cengkareng',        'jumlah' => 45231,  'lat' => -6.153358588524503,  'lng' => 106.76190789535333],
-            ['nama' => 'Rawa Buaya',            'kecamatan' => 'Cengkareng',        'jumlah' => 82798,  'lat' => -6.1695836601732985, 'lng' => 106.73422248371193],
-            // KALIDERES
-            ['nama' => 'Kalideres',             'kecamatan' => 'Kalideres',         'jumlah' => 92090,  'lat' => -6.143146918238906,  'lng' => 106.6925258106967],
-            ['nama' => 'Pegadungan',            'kecamatan' => 'Kalideres',         'jumlah' => 100018, 'lat' => -6.12978298393808,   'lng' => 106.7108902395324],
-            ['nama' => 'Semanan',               'kecamatan' => 'Kalideres',         'jumlah' => 93033,  'lat' => -6.159920858710631,  'lng' => 106.7053791241892],
-            ['nama' => 'Tegal Alur',            'kecamatan' => 'Kalideres',         'jumlah' => 106972, 'lat' => -6.117433580320804,  'lng' => 106.71951694841304],
-            ['nama' => 'Kamal',                 'kecamatan' => 'Kalideres',         'jumlah' => 71885,  'lat' => -6.104317189875106,  'lng' => 106.70606998000952],
-            // KEMBANGAN
-            ['nama' => 'Kembangan Utara',       'kecamatan' => 'Kembangan',         'jumlah' => 58000,  'lat' => -6.17903019526423,   'lng' => 106.73527576651773],
-            ['nama' => 'Kembangan Selatan',     'kecamatan' => 'Kembangan',         'jumlah' => 52000,  'lat' => -6.183295463198552,  'lng' => 106.7518238818611],
-            ['nama' => 'Meruya Utara',          'kecamatan' => 'Kembangan',         'jumlah' => 55000,  'lat' => -6.196196551424615,  'lng' => 106.74767752418948],
-            ['nama' => 'Meruya Selatan',        'kecamatan' => 'Kembangan',         'jumlah' => 48000,  'lat' => -6.214414646431168,  'lng' => 106.73633710884627],
-            ['nama' => 'Srengseng',             'kecamatan' => 'Kembangan',         'jumlah' => 51000,  'lat' => -6.203312671552099,  'lng' => 106.75674408186129],
-            ['nama' => 'Joglo',                 'kecamatan' => 'Kembangan',         'jumlah' => 57262,  'lat' => -6.2201742669590905, 'lng' => 106.73534603263279],
-            // KEBON JERUK
-            ['nama' => 'Kebon Jeruk',           'kecamatan' => 'Kebon Jeruk',       'jumlah' => 45000,  'lat' => -6.189812964638843,  'lng' => 106.77297459535366],
-            ['nama' => 'Sukabumi Utara',        'kecamatan' => 'Kebon Jeruk',       'jumlah' => 38000,  'lat' => -6.209994527897751,  'lng' => 106.77761033768205],
-            ['nama' => 'Sukabumi Selatan',      'kecamatan' => 'Kebon Jeruk',       'jumlah' => 42000,  'lat' => -6.217627207911728,  'lng' => 106.76995892418982],
-            ['nama' => 'Kelapa Dua',            'kecamatan' => 'Kebon Jeruk',       'jumlah' => 52000,  'lat' => -6.209248160394786,  'lng' => 106.76857017467526],
-            ['nama' => 'Duri Kepa',             'kecamatan' => 'Kebon Jeruk',       'jumlah' => 48000,  'lat' => -6.184954763565069,  'lng' => 106.77327345302531],
-            ['nama' => 'Kedoya Utara',          'kecamatan' => 'Kebon Jeruk',       'jumlah' => 44000,  'lat' => -6.17683642796524,   'lng' => 106.76742196836871],
-            ['nama' => 'Kedoya Selatan',        'kecamatan' => 'Kebon Jeruk',       'jumlah' => 40000,  'lat' => -6.179565598518912,  'lng' => 106.75898572418947],
-            // GROGOL PETAMBURAN
-            ['nama' => 'Grogol',                'kecamatan' => 'Grogol Petamburan', 'jumlah' => 38000,  'lat' => -6.161100,           'lng' => 106.794400],
-            ['nama' => 'Tomang',                'kecamatan' => 'Grogol Petamburan', 'jumlah' => 35000,  'lat' => -6.171459594747076,  'lng' => 106.80038916638735],
-            ['nama' => 'Jelambar',              'kecamatan' => 'Grogol Petamburan', 'jumlah' => 32000,  'lat' => -6.161140595392994,  'lng' => 106.78150198918355],
-            ['nama' => 'Jelambar Baru',         'kecamatan' => 'Grogol Petamburan', 'jumlah' => 30000,  'lat' => -6.147061119490367,  'lng' => 106.78148983953247],
-            ['nama' => 'Tanjung Duren Utara',   'kecamatan' => 'Grogol Petamburan', 'jumlah' => 28000,  'lat' => -6.173309227331231,  'lng' => 106.78897351069689],
-            ['nama' => 'Tanjung Duren Selatan', 'kecamatan' => 'Grogol Petamburan', 'jumlah' => 27000,  'lat' => -6.181190794420229,  'lng' => 106.78777436836856],
-            ['nama' => 'Wijaya Kusuma',         'kecamatan' => 'Grogol Petamburan', 'jumlah' => 40173,  'lat' => -6.153337382202968,  'lng' => 106.77251192604007],
-            // TAMAN SARI
-            ['nama' => 'Taman Sari',            'kecamatan' => 'Taman Sari',        'jumlah' => 18000,  'lat' => -6.14379732685488,   'lng' => 106.82321928794053],
-            ['nama' => 'Krukut',                'kecamatan' => 'Taman Sari',        'jumlah' => 17000,  'lat' => -6.152019811262052,  'lng' => 106.81768659879287],
-            ['nama' => 'Maphar',                'kecamatan' => 'Taman Sari',        'jumlah' => 16000,  'lat' => -6.153510688570124,  'lng' => 106.8192082241892],
-            ['nama' => 'Tangki',                'kecamatan' => 'Taman Sari',        'jumlah' => 15000,  'lat' => -6.146765925224026,  'lng' => 106.82253608000981],
-            ['nama' => 'Mangga Besar',          'kecamatan' => 'Taman Sari',        'jumlah' => 19000,  'lat' => -6.147259296421718,  'lng' => 106.81917646926611],
-            ['nama' => 'Keagungan',             'kecamatan' => 'Taman Sari',        'jumlah' => 18000,  'lat' => -6.1508067231126615, 'lng' => 106.81496859535332],
-            ['nama' => 'Glodok',                'kecamatan' => 'Taman Sari',        'jumlah' => 19909,  'lat' => -6.146131019192923,  'lng' => 106.81299589535321],
-            ['nama' => 'Pinangsia',             'kecamatan' => 'Taman Sari',        'jumlah' => 17400,  'lat' => -6.137994316592649,  'lng' => 106.81956549535323],
-            // PALMERAH
-            ['nama' => 'Palmerah',              'kecamatan' => 'Palmerah',          'jumlah' => 76532,  'lat' => -6.201689686563981,  'lng' => 106.78720794565332],
-            ['nama' => 'Kota Bambu Utara',      'kecamatan' => 'Palmerah',          'jumlah' => 35000,  'lat' => -6.185321665390175,  'lng' => 106.80740559535369],
-            ['nama' => 'Kota Bambu Selatan',    'kecamatan' => 'Palmerah',          'jumlah' => 32000,  'lat' => -6.1849208031456016, 'lng' => 106.80201705302532],
-            ['nama' => 'Jatipulo',              'kecamatan' => 'Palmerah',          'jumlah' => 30000,  'lat' => -6.176977394530814,  'lng' => 106.80416789350268],
-            ['nama' => 'Kemanggisan',           'kecamatan' => 'Palmerah',          'jumlah' => 28000,  'lat' => -6.192227733989439,  'lng' => 106.78677413953291],
-            ['nama' => 'Slipi',                 'kecamatan' => 'Palmerah',          'jumlah' => 24310,  'lat' => -6.193519564092993,  'lng' => 106.80198692604048],
-            // TAMBORA
-            ['nama' => 'Tambora',               'kecamatan' => 'Tambora',           'jumlah' => 25000,  'lat' => -6.1465594492488265, 'lng' => 106.8085163800099],
-            ['nama' => 'Kali Anyar',            'kecamatan' => 'Tambora',           'jumlah' => 22000,  'lat' => -6.156272157242822,  'lng' => 106.79929733768162],
-            ['nama' => 'Duri Utara',            'kecamatan' => 'Tambora',           'jumlah' => 20000,  'lat' => -6.154708488929626,  'lng' => 106.8018943260401],
-            ['nama' => 'Duri Selatan',          'kecamatan' => 'Tambora',           'jumlah' => 19000,  'lat' => -6.156660786098641,  'lng' => 106.80231319535345],
-            ['nama' => 'Angke',                 'kecamatan' => 'Tambora',           'jumlah' => 23000,  'lat' => -6.143385290513976,  'lng' => 106.80015358186078],
-            ['nama' => 'Jembatan Besi',         'kecamatan' => 'Tambora',           'jumlah' => 21000,  'lat' => -6.150938590207726,  'lng' => 106.79943978000995],
-            ['nama' => 'Jembatan Lima',         'kecamatan' => 'Tambora',           'jumlah' => 20000,  'lat' => -6.145797985414383,  'lng' => 106.80164659615713],
-            ['nama' => 'Tanah Sereal',          'kecamatan' => 'Tambora',           'jumlah' => 18000,  'lat' => -6.157298178193364,  'lng' => 106.80887019588408],
-            ['nama' => 'Pekojan',               'kecamatan' => 'Tambora',           'jumlah' => 17000,  'lat' => -6.139387986235091,  'lng' => 106.80069726651736],
-            ['nama' => 'Roa Malaka',            'kecamatan' => 'Tambora',           'jumlah' => 16000,  'lat' => -6.132476021774949,  'lng' => 106.80749719535319],
-            ['nama' => 'Krendang',              'kecamatan' => 'Tambora',           'jumlah' => 19909,  'lat' => -6.152040690405676,  'lng' => 106.80179075302496],
-        ];
-
-        // Kelompokkan kelurahan per kecamatan (dari data dasar 2024)
-        $kelurahanByKec = [];
-        foreach ($kelurahan2024 as $item) {
-            $kelurahanByKec[$item['kecamatan']][] = $item;
-        }
-
-        // Skala kelurahan agar Σ kelurahan == total kecamatan (per tahun).
-        // Distribusi relatif antar kelurahan dipertahankan; sisa pembulatan
-        // dibebankan ke kelurahan terbesar supaya jumlahnya tepat sama.
-        foreach ($kecamatanData as $tahun => $kecList) {
-            foreach ($kecList as $namaKec => $totalKec) {
-                $items = $kelurahanByKec[$namaKec] ?? [];
-                if (empty($items)) {
-                    continue;
-                }
-
-                $kec = Kecamatan::where('nama_kecamatan', $namaKec)->first();
-                if (!$kec) {
-                    continue;
-                }
-
-                $baseSum = array_sum(array_column($items, 'jumlah'));
-                $factor  = $baseSum > 0 ? $totalKec / $baseSum : 0;
-
-                $scaled = [];
-                foreach ($items as $it) {
-                    $scaled[] = ['item' => $it, 'val' => (int) round($it['jumlah'] * $factor)];
-                }
-
-                // Koreksi selisih pembulatan → tambahkan ke kelurahan terbesar
-                $selisih = $totalKec - array_sum(array_column($scaled, 'val'));
-                if ($selisih !== 0) {
-                    $idxMax = 0;
-                    foreach ($scaled as $i => $s) {
-                        if ($s['val'] > $scaled[$idxMax]['val']) {
-                            $idxMax = $i;
-                        }
-                    }
-                    $scaled[$idxMax]['val'] += $selisih;
-                }
-
-                foreach ($scaled as $s) {
-                    PendudukKelurahan::create([
-                        'kecamatan_id'    => $kec->id,
-                        'tahun'           => $tahun,
-                        'nama_kelurahan'  => $s['item']['nama'],
-                        'latitude'        => $s['item']['lat'],
-                        'longitude'       => $s['item']['lng'],
-                        'jumlah_penduduk' => $s['val'],
-                    ]);
-                }
+            if ($isHeader) {
+                continue;
             }
+
+            $nama = preg_replace('/^\d+\.\s*/', '', $bersih); // buang "3. "
+            $key  = $this->norm($nama);
+            $ref  = $koordinat[$key] ?? null;
+            if (!$ref) {
+                // Nama BPS tak dikenal → lewati (harusnya tak terjadi, sudah diverifikasi 0)
+                continue;
+            }
+
+            $keyL  = $vv['val'] . self::BPS_VAR . self::TURVAR_L  . $thId . '0';
+            $keyP  = $vv['val'] . self::BPS_VAR . self::TURVAR_P  . $thId . '0';
+            $keyLP = $vv['val'] . self::BPS_VAR . self::TURVAR_LP . $thId . '0';
+
+            $l     = (int) ($dc[$keyL]  ?? 0);
+            $p28   = (int) ($dc[$keyP]  ?? 0);
+            $total = (int) ($dc[$keyLP] ?? 0);   // L+P dari BPS = patokan (kolom 28 kadang korup)
+
+            // Turunkan P dari total-L supaya konsisten & mengoreksi nilai Perempuan yg korup.
+            if ($total > 0 && $total >= $l) {
+                $p = $total - $l;
+            } else {
+                // fallback: turvar 29 hilang/aneh → pakai 27+28 apa adanya
+                $p = $p28;
+            }
+
+            $hasil[] = [
+                'kecamatan'      => $ref['kecamatan'],
+                'nama_kelurahan' => $ref['nama_kelurahan'],
+                'latitude'       => $ref['latitude'],
+                'longitude'      => $ref['longitude'],
+                'L'              => $l,
+                'P'              => $p,
+            ];
         }
+
+        return $hasil ?: null;
+    }
+
+    /** Bersihkan label BPS: decode &nbsp;, buang tag, rapikan spasi. */
+    private function cleanLabel(string $label): string
+    {
+        $label = html_entity_decode($label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $label = strip_tags($label);
+        $label = str_replace("\xC2\xA0", ' ', $label); // nbsp
+        return trim(preg_replace('/\s+/', ' ', $label));
+    }
+
+    /** Normalisasi nama untuk matching (samakan dgn CSV koordinat). */
+    private function norm(string $s): string
+    {
+        $s = strtolower($s);
+        $s = preg_replace('/[^a-z]/', '', $s);
+        return str_replace('tj', 'tanjung', $s); // "Tj. Duren" -> "Tanjung Duren"
+    }
+
+    /** Muat referensi koordinat: norm(nama_kelurahan) => baris. */
+    private function loadKoordinat(): array
+    {
+        $file = base_path('database/data/koordinat-kelurahan.csv');
+        if (!is_file($file)) {
+            return [];
+        }
+        $handle = fopen($file, 'r');
+        fgetcsv($handle); // lewati header: kecamatan, nama_kelurahan, latitude, longitude
+        $map = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) < 4) {
+                continue;
+            }
+            [$kec, $nama, $lat, $lng] = $row;
+            $map[$this->norm($nama)] = [
+                'kecamatan'      => trim($kec),
+                'nama_kelurahan' => trim($nama),
+                'latitude'       => $lat !== '' ? (float) $lat : null,
+                'longitude'      => $lng !== '' ? (float) $lng : null,
+            ];
+        }
+        fclose($handle);
+        return $map;
     }
 }

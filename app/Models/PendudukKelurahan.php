@@ -14,7 +14,9 @@ class PendudukKelurahan extends Model
         'nama_kelurahan',
         'latitude',
         'longitude',
-        'jumlah_penduduk'
+        'jumlah_penduduk',
+        'jumlah_laki_laki',
+        'jumlah_perempuan',
     ];
 
     public function kecamatan()

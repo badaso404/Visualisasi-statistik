@@ -89,10 +89,12 @@ class StatistikController extends Controller
 
     public function kependudukan(Request $request)
     {
-        $availableTahun = [2024, 2025, 2026];
-        $tahun = (int) $request->get('tahun', 2024);
+        $availableTahun = DataKependudukan::query()
+            ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->all();
+
+        $tahun = (int) $request->get('tahun', $availableTahun[0] ?? date('Y'));
         if (!in_array($tahun, $availableTahun)) {
-            $tahun = 2024;
+            $tahun = (int) ($availableTahun[0] ?? $tahun);
         }
 
         $summary = DataKependudukan::where('tahun', $tahun)->first();
