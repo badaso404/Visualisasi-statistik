@@ -21,28 +21,6 @@
         padding: 14px; border-radius: 8px; font-weight: 700;
         font-size: 18px; margin-bottom: 0; letter-spacing: 1px;
     }
-    .dropdown-tahun { position: relative; flex-shrink: 0; }
-    .dropdown-tahun-btn {
-        display: flex; align-items: center; gap: 8px;
-        border: 2px solid #ffbf00; border-radius: 6px; background: #fff;
-        color: #b8860b; font-weight: 700; font-size: 14px;
-        padding: 6px 12px; cursor: pointer; white-space: nowrap; user-select: none;
-    }
-    .dropdown-tahun-btn .arrow { font-size: 10px; transition: transform 0.2s; }
-    .dropdown-tahun-btn.open .arrow { transform: rotate(180deg); }
-    .dropdown-tahun-menu {
-        display: none; position: absolute; top: calc(100% + 4px); right: 0;
-        background: #fff; border: 2px solid #ffbf00; border-radius: 6px;
-        min-width: 100%; z-index: 9999; overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .dropdown-tahun-menu.show { display: block; }
-    .dropdown-tahun-menu a {
-        display: block; padding: 8px 16px; color: #555;
-        font-weight: 600; font-size: 14px; text-decoration: none; transition: background 0.15s;
-    }
-    .dropdown-tahun-menu a:hover { background: #fff8e1; color: #b8860b; }
-    .dropdown-tahun-menu a.active { background: #ffbf00; color: #fff; }
 
     /* Summary cards — ikon kiri, label atas, nilai bawah (sama seperti kependudukan) */
     .stat-summary-card {
@@ -181,19 +159,6 @@
         {{-- Header --}}
         <div class="stat-header-wrap">
             <div class="stat-header">GEOGRAFIS JAKARTA BARAT {{ $geo->tahun }}</div>
-            <div class="dropdown-tahun">
-                <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
-                    <i class="fa fa-calendar"></i>
-                    {{ $geo->tahun }}
-                    <span class="arrow">&#9660;</span>
-                </div>
-                <div class="dropdown-tahun-menu" id="dropdownTahunMenu">
-                    @foreach($availableTahun as $t)
-                    <a href="{{ route('statistik.geografis', ['tahun' => $t]) }}"
-                       class="{{ (int) $t === (int) $tahun ? 'active' : '' }}">{{ $t }}</a>
-                    @endforeach
-                </div>
-            </div>
         </div>
 
         {{-- Summary Cards --}}
@@ -373,21 +338,6 @@
 
 @push('scripts')
 @include('statistik.partials.warna-kecamatan')
-<script>
-(function () {
-    var btn  = document.getElementById('dropdownTahunBtn');
-    var menu = document.getElementById('dropdownTahunMenu');
-    btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        btn.classList.toggle('open');
-        menu.classList.toggle('show');
-    });
-    document.addEventListener('click', function () {
-        btn.classList.remove('open');
-        menu.classList.remove('show');
-    });
-})();
-</script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
