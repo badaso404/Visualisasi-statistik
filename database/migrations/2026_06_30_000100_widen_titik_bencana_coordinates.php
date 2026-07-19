@@ -12,13 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE titik_bencana MODIFY latitude DECIMAL(18,15) NOT NULL');
-        DB::statement('ALTER TABLE titik_bencana MODIFY longitude DECIMAL(18,15) NOT NULL');
+        $this->ubahPresisi(18, 15);
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE titik_bencana MODIFY latitude DECIMAL(10,7) NOT NULL');
-        DB::statement('ALTER TABLE titik_bencana MODIFY longitude DECIMAL(10,7) NOT NULL');
+        $this->ubahPresisi(10, 7);
+    }
+
+    /**
+     * MODIFY hanya dikenal MySQL; sqlite (dipakai saat test) tidak punya
+     * padanannya dan memang menyimpan angka tanpa batas presisi kolom.
+     */
+    private function ubahPresisi(int $total, int $desimal): void
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
+        DB::statement("ALTER TABLE titik_bencana MODIFY latitude DECIMAL({$total},{$desimal}) NOT NULL");
+        DB::statement("ALTER TABLE titik_bencana MODIFY longitude DECIMAL({$total},{$desimal}) NOT NULL");
     }
 };
