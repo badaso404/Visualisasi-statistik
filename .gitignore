@@ -18,3 +18,8 @@ yarn-error.log
 /.idea
 /.vscode
 public/assets/landing-page/docs/New_Katalog_Produk_Dekranasda.pdf
+
+# File bantuan IDE (dibuat ulang lewat: php artisan ide-helper:generate)
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php

@@ -24,6 +24,22 @@ use App\Models\KemiskinanKecamatan;
 
 class StatistikController extends Controller
 {
+    /**
+     * Halaman pengganti saat sebuah modul belum punya record induk untuk tahun
+     * yang diminta. Tanpa ini view langsung membaca properti dari null dan
+     * pengunjung mendapat error 500.
+     */
+    private function dataKosong(string $modul, int $tahun, $availableTahun)
+    {
+        return response()->view('statistik.data-kosong', [
+            'modul'          => $modul,
+            'tahun'          => $tahun,
+            'availableTahun' => $availableTahun instanceof \Illuminate\Support\Collection
+                ? $availableTahun->all()
+                : (array) $availableTahun,
+        ]);
+    }
+
     public function geografis(Request $request)
     {
         $availableTahun = DataGeografis::query()
@@ -35,6 +51,13 @@ class StatistikController extends Controller
         }
 
         $geo = DataGeografis::where('tahun', $tahun)->first();
+
+        // Tanpa record induk tidak ada yang bisa dirangkai; tampilkan halaman
+        // "belum ada data" daripada menabrak properti pada null.
+        if (!$geo) {
+            return $this->dataKosong('Geografis', $tahun, $availableTahun);
+        }
+
         $luas = LuasKecamatan::with('kecamatan')
             ->where('data_geografis_id', $geo->id)
             ->get();
@@ -98,6 +121,10 @@ class StatistikController extends Controller
         }
 
         $summary = DataKependudukan::where('tahun', $tahun)->first();
+
+        if (!$summary) {
+            return $this->dataKosong('Kependudukan', $tahun, $availableTahun);
+        }
 
         $perKecamatan = PendudukKecamatan::with('kecamatan')
             ->where('tahun', $tahun)
@@ -225,6 +252,11 @@ class StatistikController extends Controller
         }
 
         $summary = DataPendidikan::where('tahun', $tahun)->first();
+
+        if (!$summary) {
+            return $this->dataKosong('Pendidikan', $tahun, $availableTahun);
+        }
+
         $perKecamatan = PendidikanKecamatan::with('kecamatan')
             ->where('tahun', $tahun)
             ->orderByDesc('jumlah_pelajar')
