@@ -8,7 +8,12 @@
         <a href="{{ route('statistik.bencana') }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i> Lihat publik</a>
         <a href="{{ route('admin.titik-bencana.export') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-download"></i> Export CSV</a>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#importBox"><i class="bi bi-upload"></i> Import CSV</button>
-        <a href="{{ route('admin.titik-bencana.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+        <button class="btn btn-primary btn-sm"
+                data-modal-form="#modalTitikBencana"
+                data-action="{{ route('admin.titik-bencana.store') }}"
+                data-title="Tambah Titik Bencana">
+            <i class="bi bi-plus-lg"></i> Tambah
+        </button>
     </div>
 </div>
 
@@ -52,8 +57,16 @@
                         <td>{{ $item->latitude }}</td>
                         <td>{{ $item->longitude }}</td>
                         <td class="text-end text-nowrap">
-                            <a href="{{ route('admin.titik-bencana.edit', $item) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                            <form action="{{ route('admin.titik-bencana.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus titik ini?')">
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-modal-form="#modalTitikBencana"
+                                    data-action="{{ route('admin.titik-bencana.update', $item) }}"
+                                    data-method="PUT"
+                                    data-title="Edit Titik — {{ $item->nama }}"
+                                    data-fields="{{ json_encode($item->only(['kategori', 'level', 'nama', 'kecamatan_id', 'link_maps', 'latitude', 'longitude', 'keterangan'])) }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form action="{{ route('admin.titik-bencana.destroy', $item) }}" method="POST" class="d-inline"
+                                  data-konfirmasi-hapus="titik {{ $item->nama }}">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -66,4 +79,79 @@
         </table>
     </div>
 </div>
+
+<x-admin.modal-form id="modalTitikBencana" title="Tambah Titik Bencana" :action="route('admin.titik-bencana.store')" size="modal-lg">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Kategori</label>
+            <select name="kategori" id="kategori" class="form-select" required>
+                <option value="">— pilih —</option>
+                @foreach ($kategoriList as $key => $label)
+                    <option value="{{ $key }}" @selected(old('kategori') == $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-6" id="level-wrap">
+            <label class="form-label">Level Prioritas <span class="text-muted">(khusus banjir)</span></label>
+            <select name="level" class="form-select">
+                <option value="">— pilih —</option>
+                <option value="1" @selected(old('level') == 1)>Prioritas 1 — Rawan tinggi (&gt; 50 cm)</option>
+                <option value="2" @selected(old('level') == 2)>Prioritas 2 — Rawan sedang (20–50 cm)</option>
+                <option value="3" @selected(old('level') == 3)>Prioritas 3 — Rawan rendah (&lt; 20 cm)</option>
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label class="form-label">Nama Lokasi</label>
+            <input type="text" name="nama" value="{{ old('nama') }}" class="form-control" placeholder="mis. Pos Damkar Cengkareng" required>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Kecamatan <span class="text-muted">(opsional)</span></label>
+            <select name="kecamatan_id" class="form-select">
+                <option value="">— pilih —</option>
+                @foreach ($kecamatan as $k)
+                    <option value="{{ $k->id }}" @selected(old('kecamatan_id') == $k->id)>{{ $k->nama_kecamatan }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12" id="link-wrap">
+            <label class="form-label">Link Google Maps <span class="text-muted">(opsional)</span></label>
+            <input type="url" name="link_maps" value="{{ old('link_maps') }}" class="form-control" placeholder="https://maps.app.goo.gl/... atau https://www.google.com/maps/...">
+            <small class="text-muted">Tempel link lokasi dari Google Maps. Dipakai untuk tombol "Buka Maps" di peta publik. Kalau kosong, tombol memakai koordinat di bawah.</small>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Latitude</label>
+            <input type="number" step="any" name="latitude" value="{{ old('latitude') }}" class="form-control" placeholder="-6.183454092199373" required>
+            <small class="text-muted">Salin dari Google Maps (klik kanan lokasi &rarr; klik koordinatnya).</small>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Longitude</label>
+            <input type="number" step="any" name="longitude" value="{{ old('longitude') }}" class="form-control" placeholder="106.73891072264179" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Keterangan <span class="text-muted">(opsional)</span></label>
+            <textarea name="keterangan" rows="2" class="form-control">{{ old('keterangan') }}</textarea>
+        </div>
+    </div>
+</x-admin.modal-form>
+
+<script>
+    // Level hanya relevan untuk zona rawan banjir; link Maps untuk kategori lain.
+    (function () {
+        var kategori  = document.getElementById('kategori');
+        var levelWrap = document.getElementById('level-wrap');
+        var linkWrap  = document.getElementById('link-wrap');
+
+        function toggleFields() {
+            var isBanjir = kategori.value === 'banjir_rawan';
+            levelWrap.style.display = isBanjir ? '' : 'none';
+            linkWrap.style.display  = isBanjir ? 'none' : '';
+        }
+
+        kategori.addEventListener('change', toggleFields);
+        // Modal diisi oleh helper di layout sebelum ditampilkan, jadi ikut
+        // menyesuaikan setiap kali modal dibuka (tambah maupun edit).
+        document.getElementById('modalTitikBencana').addEventListener('show.bs.modal', toggleFields);
+        toggleFields();
+    })();
+</script>
 @endsection

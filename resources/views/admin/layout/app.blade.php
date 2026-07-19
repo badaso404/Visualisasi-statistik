@@ -75,5 +75,77 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Pemicu modal form: dipakai bersama oleh semua halaman admin.
+// Tombol Tambah  : data-modal-form="#id" data-action="{url store}"
+// Tombol Edit    : data-modal-form="#id" data-action="{url update}" data-method="PUT"
+//                  data-fields='{"tahun":2024,"jumlah_penduduk":1000}'
+document.addEventListener('click', function (e) {
+    const trigger = e.target.closest('[data-modal-form]');
+    if (!trigger) return;
+
+    const modalEl = document.querySelector(trigger.dataset.modalForm);
+    if (!modalEl) return;
+
+    const form = modalEl.querySelector('form');
+    form.reset();
+    form.action = trigger.dataset.action;
+
+    // Laravel butuh _method=PUT saat edit; dihapus lagi saat tambah.
+    let spoof = form.querySelector('input[name="_method"]');
+    if (trigger.dataset.method) {
+        if (!spoof) {
+            spoof = document.createElement('input');
+            spoof.type = 'hidden';
+            spoof.name = '_method';
+            form.appendChild(spoof);
+        }
+        spoof.value = trigger.dataset.method;
+    } else if (spoof) {
+        spoof.remove();
+    }
+
+    const fields = JSON.parse(trigger.dataset.fields || '{}');
+    form.querySelectorAll('[name]').forEach(function (input) {
+        if (input.name === '_token' || input.name === '_method') return;
+        if (input.name === '_form_action') { input.value = form.action; return; }
+        if (input.name === '_form_method') { input.value = trigger.dataset.method || ''; return; }
+        const value = fields[input.name];
+        input.value = value === null || value === undefined ? '' : value;
+    });
+
+    const title = modalEl.querySelector('[data-modal-title]');
+    if (title && trigger.dataset.title) title.textContent = trigger.dataset.title;
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
+});
+
+// Konfirmasi hapus. Label diambil dari atribut, bukan ditulis langsung ke dalam
+// confirm('...'), supaya nama berisi tanda kutip (mis. "Jl. Anggrek 'Blok A'")
+// tidak merusak skripnya.
+document.addEventListener('submit', function (e) {
+    const form = e.target.closest('[data-konfirmasi-hapus]');
+    if (!form) return;
+
+    const label = form.dataset.konfirmasiHapus;
+    if (!window.confirm('Hapus ' + label + '?\n\nTindakan ini tidak bisa dibatalkan.')) {
+        e.preventDefault();
+    }
+});
+
+// Validasi gagal -> Laravel redirect balik; buka lagi modal yang bersangkutan.
+@if ($errors->any())
+    document.addEventListener('DOMContentLoaded', function () {
+        const target = document.querySelector('[data-modal-autoopen]');
+        if (target) bootstrap.Modal.getOrCreateInstance(target).show();
+    });
+@endif
+</script>
 </body>
 </html>

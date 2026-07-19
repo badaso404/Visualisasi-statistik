@@ -8,7 +8,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0">Data Iklim (per bulan)</h5>
-    <a href="{{ route('admin.iklim.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+    <button class="btn btn-primary btn-sm"
+            data-modal-form="#modalIklim"
+            data-action="{{ route('admin.iklim.store') }}"
+            data-title="Tambah Data Iklim">
+        <i class="bi bi-plus-lg"></i> Tambah
+    </button>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -32,8 +37,16 @@
                         <td>{{ $item->kelembaban_udara }}</td>
                         <td>{{ $item->penyinaran_matahari }}</td>
                         <td class="text-end text-nowrap">
-                            <a href="{{ route('admin.iklim.edit', $item) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                            <form action="{{ route('admin.iklim.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data ini?')">
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-modal-form="#modalIklim"
+                                    data-action="{{ route('admin.iklim.update', $item) }}"
+                                    data-method="PUT"
+                                    data-title="Edit Iklim {{ $namaBulan[$item->bulan] ?? '' }} {{ $item->tahun }}"
+                                    data-fields="{{ json_encode($item->only(['tahun', 'bulan', 'hari_hujan', 'tekanan_udara', 'suhu_udara', 'kecepatan_angin', 'kelembaban_udara', 'penyinaran_matahari', 'sumber'])) }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form action="{{ route('admin.iklim.destroy', $item) }}" method="POST" class="d-inline"
+                                  data-konfirmasi-hapus="data iklim {{ $namaBulan[$item->bulan] ?? $item->bulan }} {{ $item->tahun }}">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -46,4 +59,50 @@
         </table>
     </div>
 </div>
+
+<x-admin.modal-form id="modalIklim" title="Tambah Data Iklim" :action="route('admin.iklim.store')" size="modal-lg">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Tahun</label>
+            <input type="number" name="tahun" value="{{ old('tahun') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Bulan</label>
+            <select name="bulan" class="form-select" required>
+                <option value="">— pilih —</option>
+                @foreach ($namaBulan as $n => $label)
+                    <option value="{{ $n }}" @selected(old('bulan') == $n)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Hari Hujan</label>
+            <input type="number" step="0.01" name="hari_hujan" value="{{ old('hari_hujan') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tekanan Udara</label>
+            <input type="number" step="0.01" name="tekanan_udara" value="{{ old('tekanan_udara') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Suhu Udara (°C)</label>
+            <input type="number" step="0.01" name="suhu_udara" value="{{ old('suhu_udara') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Kecepatan Angin</label>
+            <input type="number" step="0.01" name="kecepatan_angin" value="{{ old('kecepatan_angin') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Kelembaban Udara (%)</label>
+            <input type="number" step="0.01" name="kelembaban_udara" value="{{ old('kelembaban_udara') }}" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Penyinaran Matahari (%)</label>
+            <input type="number" step="0.01" name="penyinaran_matahari" value="{{ old('penyinaran_matahari') }}" class="form-control" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Sumber <span class="text-muted">(opsional)</span></label>
+            <input type="text" name="sumber" value="{{ old('sumber') }}" class="form-control">
+        </div>
+    </div>
+</x-admin.modal-form>
 @endsection

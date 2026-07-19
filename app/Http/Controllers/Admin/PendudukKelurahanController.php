@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\Kecamatan;
 use App\Models\PendudukKelurahan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PendudukKelurahanController extends Controller
 {
-    public function create()
-    {
-        return view('admin.kependudukan.kelurahan-form', [
-            'item'      => new PendudukKelurahan(),
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
-    }
+    use ValidasiPeriodeUnik;
 
     public function store(Request $request)
     {
@@ -24,17 +20,9 @@ class PendudukKelurahanController extends Controller
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kelurahan ditambahkan.');
     }
 
-    public function edit(PendudukKelurahan $pendudukKelurahan)
-    {
-        return view('admin.kependudukan.kelurahan-form', [
-            'item'      => $pendudukKelurahan,
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
-    }
-
     public function update(Request $request, PendudukKelurahan $pendudukKelurahan)
     {
-        $pendudukKelurahan->update($this->validated($request));
+        $pendudukKelurahan->update($this->validated($request, $pendudukKelurahan));
 
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kelurahan diperbarui.');
     }
@@ -46,16 +34,18 @@ class PendudukKelurahanController extends Controller
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kelurahan dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
             'kecamatan_id'    => ['required', 'exists:kecamatan,id'],
             'tahun'           => ['required', 'integer', 'min:1900', 'max:2100'],
-            'nama_kelurahan'  => ['required', 'string', 'max:255'],
+            'nama_kelurahan'  => ['required', 'string', 'max:255',
+                $this->unikPerPeriode('penduduk_kelurahan', ['tahun' => $request->input('tahun')], $item),
+            ],
             'latitude'        => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'       => ['nullable', 'numeric', 'between:-180,180'],
             'jumlah_penduduk' => ['required', 'integer', 'min:0'],
-        ]);
+        ], $this->pesanPeriodeUnik('kelurahan ini untuk tahun tersebut'));
     }
 
     /** Kolom CSV yang dipakai untuk import/export/template. */
@@ -122,46 +112,60 @@ class PendudukKelurahanController extends Controller
 
         $kecamatanByNama = Kecamatan::all()->keyBy(fn ($k) => strtolower(trim($k->nama_kecamatan)));
 
-        $sukses = 0;
-        $gagal  = [];
-        $baris  = 1; // header
+        $gagal = [];
+        $baris = 1; // header
 
-        while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
-            $baris++;
-            if (count(array_filter($data, fn ($v) => trim((string) $v) !== '')) === 0) {
-                continue; // baris kosong
-            }
+        // Impor bersifat semua-atau-tidak sama sekali supaya kegagalan di
+        // tengah berkas tidak menyisakan data separuh jadi.
+        try {
+            $sukses = DB::transaction(function () use ($handle, $delimiter, $col, $kecamatanByNama, &$gagal, &$baris) {
+                $jumlah = 0;
 
-            $get = fn ($key) => isset($col[$key], $data[$col[$key]]) ? trim((string) $data[$col[$key]]) : null;
+                while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+                    $baris++;
+                    if (count(array_filter($data, fn ($v) => trim((string) $v) !== '')) === 0) {
+                        continue; // baris kosong
+                    }
 
-            $namaKec = strtolower((string) $get('kecamatan'));
-            $kec     = $kecamatanByNama->get($namaKec);
-            if (!$kec) {
-                $gagal[] = "Baris $baris: kecamatan '" . $get('kecamatan') . "' tidak dikenal";
-                continue;
-            }
+                    $get = fn ($key) => isset($col[$key], $data[$col[$key]]) ? trim((string) $data[$col[$key]]) : null;
 
-            $namaKel = $get('nama_kelurahan');
-            $tahun   = (int) $get('tahun');
-            if ($namaKel === '' || $tahun < 1900) {
-                $gagal[] = "Baris $baris: nama_kelurahan/tahun tidak valid";
-                continue;
-            }
+                    $kec = $kecamatanByNama->get(strtolower((string) $get('kecamatan')));
+                    if (!$kec) {
+                        $gagal[] = "Baris {$baris}: kecamatan '" . $get('kecamatan') . "' tidak dikenal";
+                        continue;
+                    }
 
-            $lat = $get('latitude');
-            $lng = $get('longitude');
+                    $namaKel = $get('nama_kelurahan');
+                    $tahun   = (int) $get('tahun');
+                    if ($namaKel === '' || $tahun < 1900) {
+                        $gagal[] = "Baris {$baris}: nama_kelurahan/tahun tidak valid";
+                        continue;
+                    }
 
-            PendudukKelurahan::updateOrCreate(
-                ['nama_kelurahan' => $namaKel, 'tahun' => $tahun],
-                [
-                    'kecamatan_id'    => $kec->id,
-                    'latitude'        => ($lat === '' || $lat === null) ? null : (float) str_replace(',', '.', $lat),
-                    'longitude'       => ($lng === '' || $lng === null) ? null : (float) str_replace(',', '.', $lng),
-                    'jumlah_penduduk' => (int) preg_replace('/[^\d]/', '', (string) $get('jumlah_penduduk')),
-                ]
-            );
-            $sukses++;
+                    $lat = $get('latitude');
+                    $lng = $get('longitude');
+
+                    PendudukKelurahan::updateOrCreate(
+                        ['nama_kelurahan' => $namaKel, 'tahun' => $tahun],
+                        [
+                            'kecamatan_id'    => $kec->id,
+                            'latitude'        => ($lat === '' || $lat === null) ? null : (float) str_replace(',', '.', $lat),
+                            'longitude'       => ($lng === '' || $lng === null) ? null : (float) str_replace(',', '.', $lng),
+                            'jumlah_penduduk' => (int) preg_replace('/[^\d]/', '', (string) $get('jumlah_penduduk')),
+                        ],
+                    );
+                    $jumlah++;
+                }
+
+                return $jumlah;
+            });
+        } catch (\Throwable $e) {
+            fclose($handle);
+            report($e);
+
+            return back()->with('error', 'Impor dibatalkan karena terjadi kesalahan; tidak ada data yang berubah.');
         }
+
         fclose($handle);
 
         $pesan = "$sukses baris berhasil diimpor.";

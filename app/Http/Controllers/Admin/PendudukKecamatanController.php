@@ -2,19 +2,48 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
-use App\Models\Kecamatan;
 use App\Models\PendudukKecamatan;
 use Illuminate\Http\Request;
 
 class PendudukKecamatanController extends Controller
 {
-    public function create()
+    use ValidasiPeriodeUnik;
+
+    use IsiMassalPerKecamatan;
+    use CsvPerKecamatan;
+
+    protected function csvNama(): string
     {
-        return view('admin.kependudukan.kecamatan-form', [
-            'item'      => new PendudukKecamatan(),
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
+        return 'penduduk-kecamatan';
+    }
+
+    protected function batchModel(): string
+    {
+        return PendudukKecamatan::class;
+    }
+
+    protected function batchFields(): array
+    {
+        return ['jumlah_penduduk' => 'Jumlah Penduduk'];
+    }
+
+    protected function batchJudul(): string
+    {
+        return 'Isi Massal Penduduk per Kecamatan';
+    }
+
+    protected function batchRoutePrefix(): string
+    {
+        return 'admin.penduduk-kecamatan';
+    }
+
+    protected function batchRedirect(): string
+    {
+        return 'admin.kependudukan.index';
     }
 
     public function store(Request $request)
@@ -24,17 +53,9 @@ class PendudukKecamatanController extends Controller
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kecamatan ditambahkan.');
     }
 
-    public function edit(PendudukKecamatan $pendudukKecamatan)
-    {
-        return view('admin.kependudukan.kecamatan-form', [
-            'item'      => $pendudukKecamatan,
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
-    }
-
     public function update(Request $request, PendudukKecamatan $pendudukKecamatan)
     {
-        $pendudukKecamatan->update($this->validated($request));
+        $pendudukKecamatan->update($this->validated($request, $pendudukKecamatan));
 
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kecamatan diperbarui.');
     }
@@ -46,12 +67,14 @@ class PendudukKecamatanController extends Controller
         return redirect()->route('admin.kependudukan.index')->with('success', 'Data penduduk kecamatan dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
             'kecamatan_id'    => ['required', 'exists:kecamatan,id'],
-            'tahun'           => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'           => ['required', 'integer', 'min:1900', 'max:2100',
+                $this->unikPerPeriode('penduduk_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
+            ],
             'jumlah_penduduk' => ['required', 'integer', 'min:0'],
-        ]);
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
     }
 }

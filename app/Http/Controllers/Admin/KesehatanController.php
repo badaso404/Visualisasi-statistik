@@ -2,26 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\DataKesehatan;
 use App\Models\FasilitasKesehatanKecamatan;
+use App\Models\Kecamatan;
 use App\Models\TenagaKesehatanKecamatan;
 use Illuminate\Http\Request;
 
 class KesehatanController extends Controller
 {
+    use ValidasiPeriodeUnik;
+
     public function index()
     {
         $items     = DataKesehatan::orderByDesc('tahun')->get();
         $tenaga    = TenagaKesehatanKecamatan::with('kecamatan')->orderByDesc('tahun')->get();
         $fasilitas = FasilitasKesehatanKecamatan::with('kecamatan')->orderByDesc('tahun')->get();
 
-        return view('admin.kesehatan.index', compact('items', 'tenaga', 'fasilitas'));
-    }
+        $kecamatan = Kecamatan::orderBy('nama_kecamatan')->get();
 
-    public function create()
-    {
-        return view('admin.kesehatan.form', ['item' => new DataKesehatan()]);
+        return view('admin.kesehatan.index', compact('items', 'tenaga', 'fasilitas', 'kecamatan'));
     }
 
     public function store(Request $request)
@@ -31,14 +32,9 @@ class KesehatanController extends Controller
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data kesehatan ditambahkan.');
     }
 
-    public function edit(DataKesehatan $kesehatan)
-    {
-        return view('admin.kesehatan.form', ['item' => $kesehatan]);
-    }
-
     public function update(Request $request, DataKesehatan $kesehatan)
     {
-        $kesehatan->update($this->validated($request));
+        $kesehatan->update($this->validated($request, $kesehatan));
 
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data kesehatan diperbarui.');
     }
@@ -50,13 +46,15 @@ class KesehatanController extends Controller
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data kesehatan dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
-            'tahun'                   => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'                   => ['required', 'integer', 'min:1900', 'max:2100',
+                $this->unikPerPeriode('data_kesehatan', [], $item),
+            ],
             'jumlah_tempat_tidur_rs'  => ['required', 'integer', 'min:0'],
             'cakupan_imunisasi_dasar' => ['nullable', 'numeric', 'min:0'],
             'sumber'                  => ['nullable', 'string', 'max:255'],
-        ]);
+        ], $this->pesanPeriodeUnik('kesehatan untuk tahun ini'));
     }
 }

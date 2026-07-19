@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CctvKecamatan;
 use App\Models\JakWifiKecamatan;
+use App\Models\Kecamatan;
 
 class InfrastrukturDigitalController extends Controller
 {
@@ -13,6 +14,8 @@ class InfrastrukturDigitalController extends Controller
         $jakWifi = JakWifiKecamatan::with('kecamatan')->orderByDesc('tahun')->get();
         $cctv    = CctvKecamatan::with('kecamatan')->orderByDesc('tahun')->get();
 
-        return view('admin.infrastruktur-digital.index', compact('jakWifi', 'cctv'));
+        $kecamatan = Kecamatan::orderBy('nama_kecamatan')->get();
+
+        return view('admin.infrastruktur-digital.index', compact('jakWifi', 'cctv', 'kecamatan'));
     }
 }

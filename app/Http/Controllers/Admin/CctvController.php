@@ -2,19 +2,52 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\CctvKecamatan;
-use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 
 class CctvController extends Controller
 {
-    public function create()
+    use ValidasiPeriodeUnik;
+
+    use IsiMassalPerKecamatan;
+    use CsvPerKecamatan;
+
+    protected function csvNama(): string
     {
-        return view('admin.infrastruktur-digital.cctv-form', [
-            'item'      => new CctvKecamatan(),
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
+        return 'cctv';
+    }
+
+    protected function batchModel(): string
+    {
+        return CctvKecamatan::class;
+    }
+
+    protected function batchFields(): array
+    {
+        return [
+            'jumlah_unit'  => 'Jumlah Unit',
+            'unit_aktif'   => 'Unit Aktif',
+            'terintegrasi' => 'Terintegrasi',
+        ];
+    }
+
+    protected function batchJudul(): string
+    {
+        return 'Isi Massal CCTV per Kecamatan';
+    }
+
+    protected function batchRoutePrefix(): string
+    {
+        return 'admin.cctv';
+    }
+
+    protected function batchRedirect(): string
+    {
+        return 'admin.infrastruktur-digital.index';
     }
 
     public function store(Request $request)
@@ -24,17 +57,9 @@ class CctvController extends Controller
         return redirect()->route('admin.infrastruktur-digital.index')->with('success', 'Data CCTV ditambahkan.');
     }
 
-    public function edit(CctvKecamatan $cctv)
-    {
-        return view('admin.infrastruktur-digital.cctv-form', [
-            'item'      => $cctv,
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
-    }
-
     public function update(Request $request, CctvKecamatan $cctv)
     {
-        $cctv->update($this->validated($request));
+        $cctv->update($this->validated($request, $cctv));
 
         return redirect()->route('admin.infrastruktur-digital.index')->with('success', 'Data CCTV diperbarui.');
     }
@@ -46,15 +71,17 @@ class CctvController extends Controller
         return redirect()->route('admin.infrastruktur-digital.index')->with('success', 'Data CCTV dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
             'kecamatan_id' => ['required', 'exists:kecamatan,id'],
-            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100',
+                $this->unikPerPeriode('cctv_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
+            ],
             'jumlah_unit'  => ['required', 'integer', 'min:0'],
             'unit_aktif'   => ['required', 'integer', 'min:0'],
             'terintegrasi' => ['required', 'integer', 'min:0'],
             'keterangan'   => ['nullable', 'string', 'max:255'],
-        ]);
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
     }
 }

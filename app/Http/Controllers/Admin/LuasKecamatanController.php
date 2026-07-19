@@ -2,22 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
-use App\Models\DataGeografis;
-use App\Models\Kecamatan;
 use App\Models\LuasKecamatan;
 use Illuminate\Http\Request;
 
 class LuasKecamatanController extends Controller
 {
-    public function create()
-    {
-        return view('admin.luas-kecamatan.form', [
-            'item'       => new LuasKecamatan(),
-            'kecamatan'  => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'geografis'  => DataGeografis::orderByDesc('tahun')->get(),
-        ]);
-    }
+    use ValidasiPeriodeUnik;
 
     public function store(Request $request)
     {
@@ -26,18 +18,9 @@ class LuasKecamatanController extends Controller
         return redirect()->route('admin.geografis.index')->with('success', 'Luas kecamatan ditambahkan.');
     }
 
-    public function edit(LuasKecamatan $luasKecamatan)
-    {
-        return view('admin.luas-kecamatan.form', [
-            'item'       => $luasKecamatan,
-            'kecamatan'  => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'geografis'  => DataGeografis::orderByDesc('tahun')->get(),
-        ]);
-    }
-
     public function update(Request $request, LuasKecamatan $luasKecamatan)
     {
-        $luasKecamatan->update($this->validated($request));
+        $luasKecamatan->update($this->validated($request, $luasKecamatan));
 
         return redirect()->route('admin.geografis.index')->with('success', 'Luas kecamatan diperbarui.');
     }
@@ -49,13 +32,15 @@ class LuasKecamatanController extends Controller
         return redirect()->route('admin.geografis.index')->with('success', 'Luas kecamatan dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
             'kecamatan_id'      => ['required', 'exists:kecamatan,id'],
-            'data_geografis_id' => ['required', 'exists:data_geografis,id'],
+            'data_geografis_id' => ['required', 'exists:data_geografis,id',
+                $this->unikPerPeriode('luas_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
+            ],
             'luas_km2'          => ['required', 'numeric', 'min:0'],
             'persentase'        => ['required', 'numeric', 'min:0', 'max:100'],
-        ]);
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun geografis tersebut'));
     }
 }

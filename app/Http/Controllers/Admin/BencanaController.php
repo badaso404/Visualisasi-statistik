@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DataBencana;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BencanaController extends Controller
 {
@@ -16,16 +17,10 @@ class BencanaController extends Controller
             ->orderByDesc('tanggal_kejadian')
             ->get();
 
-        return view('admin.bencana.index', compact('items'));
-    }
+        $kecamatan = Kecamatan::orderBy('nama_kecamatan')->get();
+        $jenisList = DataBencana::JENIS;
 
-    public function create()
-    {
-        return view('admin.bencana.form', [
-            'item'      => new DataBencana(),
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'jenisList' => DataBencana::JENIS,
-        ]);
+        return view('admin.bencana.index', compact('items', 'kecamatan', 'jenisList'));
     }
 
     public function store(Request $request)
@@ -33,15 +28,6 @@ class BencanaController extends Controller
         DataBencana::create($this->validated($request));
 
         return redirect()->route('admin.bencana.index')->with('success', 'Data bencana ditambahkan.');
-    }
-
-    public function edit(DataBencana $bencana)
-    {
-        return view('admin.bencana.form', [
-            'item'      => $bencana,
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'jenisList' => DataBencana::JENIS,
-        ]);
     }
 
     public function update(Request $request, DataBencana $bencana)
@@ -140,50 +126,60 @@ class BencanaController extends Controller
 
         $kecMap = Kecamatan::all()->keyBy(fn($k) => strtolower(trim($k->nama_kecamatan)));
 
+        // Impor bersifat semua-atau-tidak sama sekali supaya kegagalan di
+        // tengah berkas tidak menyisakan data separuh jadi.
         $created = 0; $updated = 0; $skipped = 0;
-        foreach ($lines as $line) {
-            if (trim($line) === '') continue;
-            $row = str_getcsv($line, $delim);
-            $get = function ($col) use ($row, $header) {
-                $i = array_search($col, $header);
-                return $i !== false && isset($row[$i]) ? trim($row[$i]) : null;
-            };
+        try {
+            DB::transaction(function () use ($lines, $delim, $header, $kecMap, &$created, &$updated, &$skipped) {
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+                    $row = str_getcsv($line, $delim);
+                    $get = function ($col) use ($row, $header) {
+                        $i = array_search($col, $header);
+                        return $i !== false && isset($row[$i]) ? trim($row[$i]) : null;
+                    };
 
-            $jenis  = $get('jenis_bencana');
-            $lokasi = $get('nama_lokasi');
-            $tahun  = $get('tahun');
-            if (!$jenis || !$lokasi || !$tahun) { $skipped++; continue; }
+                    $jenis  = $get('jenis_bencana');
+                    $lokasi = $get('nama_lokasi');
+                    $tahun  = $get('tahun');
+                    if (!$jenis || !$lokasi || !$tahun) { $skipped++; continue; }
 
-            $tgl = $get('tanggal_kejadian');
-            try {
-                $tglParsed = $tgl ? \Carbon\Carbon::parse($tgl)->format('Y-m-d') : null;
-            } catch (\Throwable $e) {
-                $tglParsed = null;
-            }
+                    $tgl = $get('tanggal_kejadian');
+                    try {
+                        $tglParsed = $tgl ? \Carbon\Carbon::parse($tgl)->format('Y-m-d') : null;
+                    } catch (\Throwable $e) {
+                        $tglParsed = null;
+                    }
 
-            $kecName = strtolower((string) $get('kecamatan'));
-            $lat = $this->normalisasiKoordinat($get('latitude'));
-            $lng = $this->normalisasiKoordinat($get('longitude'));
+                    $kecName = strtolower((string) $get('kecamatan'));
+                    $lat = $this->normalisasiKoordinat($get('latitude'));
+                    $lng = $this->normalisasiKoordinat($get('longitude'));
 
-            $rec = DataBencana::updateOrCreate(
-                [
-                    'jenis_bencana'    => $jenis,
-                    'nama_lokasi'      => $lokasi,
-                    'tahun'            => (int) $tahun,
-                    'tanggal_kejadian' => $tglParsed,
-                ],
-                [
-                    'kecamatan_id'     => isset($kecMap[$kecName]) ? $kecMap[$kecName]->id : null,
-                    'latitude'         => is_numeric($lat) ? $lat : null,
-                    'longitude'        => is_numeric($lng) ? $lng : null,
-                    'jumlah_kejadian'  => (int) ($get('jumlah_kejadian') ?: 1),
-                    'jumlah_korban'    => (int) ($get('jumlah_korban') ?: 0),
-                    'jumlah_terdampak' => (int) ($get('jumlah_terdampak') ?: 0),
-                    'keterangan'       => $get('keterangan') ?: null,
-                    'sumber'           => $get('sumber') ?: null,
-                ]
-            );
-            $rec->wasRecentlyCreated ? $created++ : $updated++;
+                    $rec = DataBencana::updateOrCreate(
+                        [
+                            'jenis_bencana'    => $jenis,
+                            'nama_lokasi'      => $lokasi,
+                            'tahun'            => (int) $tahun,
+                            'tanggal_kejadian' => $tglParsed,
+                        ],
+                        [
+                            'kecamatan_id'     => isset($kecMap[$kecName]) ? $kecMap[$kecName]->id : null,
+                            'latitude'         => is_numeric($lat) ? $lat : null,
+                            'longitude'        => is_numeric($lng) ? $lng : null,
+                            'jumlah_kejadian'  => (int) ($get('jumlah_kejadian') ?: 1),
+                            'jumlah_korban'    => (int) ($get('jumlah_korban') ?: 0),
+                            'jumlah_terdampak' => (int) ($get('jumlah_terdampak') ?: 0),
+                            'keterangan'       => $get('keterangan') ?: null,
+                            'sumber'           => $get('sumber') ?: null,
+                        ]
+                    );
+                    $rec->wasRecentlyCreated ? $created++ : $updated++;
+                }
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Impor dibatalkan karena terjadi kesalahan; tidak ada data yang berubah.');
         }
 
         return back()->with('success', "Import selesai — $created ditambah, $updated diperbarui, $skipped baris dilewati (data wajib kosong).");

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TitikBencana;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class TitikBencanaController extends Controller
@@ -18,16 +19,10 @@ class TitikBencanaController extends Controller
             ->orderBy('nama')
             ->get();
 
-        return view('admin.titik-bencana.index', compact('items'));
-    }
+        $kecamatan    = Kecamatan::orderBy('nama_kecamatan')->get();
+        $kategoriList = TitikBencana::KATEGORI;
 
-    public function create()
-    {
-        return view('admin.titik-bencana.form', [
-            'item'         => new TitikBencana(),
-            'kecamatan'    => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'kategoriList' => TitikBencana::KATEGORI,
-        ]);
+        return view('admin.titik-bencana.index', compact('items', 'kecamatan', 'kategoriList'));
     }
 
     public function store(Request $request)
@@ -35,15 +30,6 @@ class TitikBencanaController extends Controller
         TitikBencana::create($this->validated($request));
 
         return redirect()->route('admin.titik-bencana.index')->with('success', 'Titik bencana ditambahkan.');
-    }
-
-    public function edit(TitikBencana $titikBencana)
-    {
-        return view('admin.titik-bencana.form', [
-            'item'         => $titikBencana,
-            'kecamatan'    => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'kategoriList' => TitikBencana::KATEGORI,
-        ]);
     }
 
     public function update(Request $request, TitikBencana $titikBencana)
@@ -147,30 +133,34 @@ class TitikBencanaController extends Controller
             $katMap[strtolower($label)] = $key;
         }
 
+        // Impor bersifat semua-atau-tidak sama sekali supaya kegagalan di
+        // tengah berkas tidak menyisakan data separuh jadi.
         $created = 0; $updated = 0; $skipped = 0;
-        foreach ($lines as $line) {
-            if (trim($line) === '') continue;
-            $row = str_getcsv($line, $delim);
-            $get = function ($col) use ($row, $header) {
+        try {
+            DB::transaction(function () use ($lines, $delim, $header, $kecMap, $katMap, &$created, &$updated, &$skipped) {
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+                    $row = str_getcsv($line, $delim);
+                    $get = function ($col) use ($row, $header) {
                 $i = array_search($col, $header);
                 return $i !== false && isset($row[$i]) ? trim($row[$i]) : null;
-            };
+                    };
 
-            $kategori = $katMap[strtolower((string) $get('kategori'))] ?? null;
-            $nama     = $get('nama');
-            $lat      = $this->normalisasiKoordinat($get('latitude'));
-            $lng      = $this->normalisasiKoordinat($get('longitude'));
-            if (!$kategori || !$nama || !is_numeric($lat) || !is_numeric($lng)) { $skipped++; continue; }
+                    $kategori = $katMap[strtolower((string) $get('kategori'))] ?? null;
+                    $nama     = $get('nama');
+                    $lat      = $this->normalisasiKoordinat($get('latitude'));
+                    $lng      = $this->normalisasiKoordinat($get('longitude'));
+                    if (!$kategori || !$nama || !is_numeric($lat) || !is_numeric($lng)) { $skipped++; continue; }
 
-            $level = null;
-            if ($kategori === 'banjir_rawan') {
+                    $level = null;
+                    if ($kategori === 'banjir_rawan') {
                 $lv = (int) $get('level');
                 $level = ($lv >= 1 && $lv <= 3) ? $lv : null;
-            }
-            $link = ($kategori !== 'banjir_rawan') ? ($get('link_maps') ?: null) : null;
-            $kecName = strtolower((string) $get('kecamatan'));
+                    }
+                    $link = ($kategori !== 'banjir_rawan') ? ($get('link_maps') ?: null) : null;
+                    $kecName = strtolower((string) $get('kecamatan'));
 
-            $rec = TitikBencana::updateOrCreate(
+                    $rec = TitikBencana::updateOrCreate(
                 ['kategori' => $kategori, 'nama' => $nama],
                 [
                     'level'        => $level,
@@ -180,8 +170,14 @@ class TitikBencanaController extends Controller
                     'link_maps'    => $link,
                     'keterangan'   => $get('keterangan') ?: null,
                 ]
-            );
-            $rec->wasRecentlyCreated ? $created++ : $updated++;
+                    );
+                    $rec->wasRecentlyCreated ? $created++ : $updated++;
+                }
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Impor dibatalkan karena terjadi kesalahan; tidak ada data yang berubah.');
         }
 
         return back()->with('success', "Import selesai — $created ditambah, $updated diperbarui, $skipped baris dilewati (kategori/nama/koordinat tidak valid).");

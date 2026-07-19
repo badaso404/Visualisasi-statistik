@@ -2,19 +2,55 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
-use App\Models\Kecamatan;
 use App\Models\TenagaKesehatanKecamatan;
 use Illuminate\Http\Request;
 
 class TenagaKesehatanController extends Controller
 {
-    public function create()
+    use ValidasiPeriodeUnik;
+
+    use IsiMassalPerKecamatan;
+    use CsvPerKecamatan;
+
+    protected function csvNama(): string
     {
-        return view('admin.kesehatan.tenaga-form', [
-            'item'      => new TenagaKesehatanKecamatan(),
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
+        return 'tenaga-kesehatan';
+    }
+
+    protected function batchModel(): string
+    {
+        return TenagaKesehatanKecamatan::class;
+    }
+
+    protected function batchFields(): array
+    {
+        return [
+            'jumlah_total' => 'Total',
+            'dokter'       => 'Dokter',
+            'perawat'      => 'Perawat',
+            'bidan'        => 'Bidan',
+            'ahli_gizi'    => 'Ahli Gizi',
+            'farmasi'      => 'Farmasi',
+        ];
+    }
+
+    protected function batchJudul(): string
+    {
+        return 'Isi Massal Tenaga Kesehatan per Kecamatan';
+    }
+
+    protected function batchRoutePrefix(): string
+    {
+        return 'admin.tenaga-kesehatan';
+    }
+
+    protected function batchRedirect(): string
+    {
+        return 'admin.kesehatan.index';
     }
 
     public function store(Request $request)
@@ -24,17 +60,9 @@ class TenagaKesehatanController extends Controller
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data tenaga kesehatan ditambahkan.');
     }
 
-    public function edit(TenagaKesehatanKecamatan $tenagaKesehatan)
-    {
-        return view('admin.kesehatan.tenaga-form', [
-            'item'      => $tenagaKesehatan,
-            'kecamatan' => Kecamatan::orderBy('nama_kecamatan')->get(),
-        ]);
-    }
-
     public function update(Request $request, TenagaKesehatanKecamatan $tenagaKesehatan)
     {
-        $tenagaKesehatan->update($this->validated($request));
+        $tenagaKesehatan->update($this->validated($request, $tenagaKesehatan));
 
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data tenaga kesehatan diperbarui.');
     }
@@ -46,17 +74,19 @@ class TenagaKesehatanController extends Controller
         return redirect()->route('admin.kesehatan.index')->with('success', 'Data tenaga kesehatan dihapus.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
             'kecamatan_id' => ['required', 'exists:kecamatan,id'],
-            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100',
+                $this->unikPerPeriode('tenaga_kesehatan_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
+            ],
             'jumlah_total' => ['required', 'integer', 'min:0'],
             'dokter'       => ['required', 'integer', 'min:0'],
             'perawat'      => ['required', 'integer', 'min:0'],
             'bidan'        => ['required', 'integer', 'min:0'],
             'ahli_gizi'    => ['required', 'integer', 'min:0'],
             'farmasi'      => ['required', 'integer', 'min:0'],
-        ]);
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
     }
 }
