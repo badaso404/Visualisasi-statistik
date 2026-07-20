@@ -11,19 +11,9 @@ use Illuminate\Validation\Rule;
 
 class TitikBencanaController extends Controller
 {
-    public function index()
-    {
-        $items = TitikBencana::with('kecamatan')
-            ->orderBy('kategori')
-            ->orderBy('level')
-            ->orderBy('nama')
-            ->get();
-
-        $kecamatan    = Kecamatan::orderBy('nama_kecamatan')->get();
-        $kategoriList = TitikBencana::KATEGORI;
-
-        return view('admin.titik-bencana.index', compact('items', 'kecamatan', 'kategoriList'));
-    }
+    // Data untuk tabel & modal-nya ditampilkan dari BencanaController@index
+    // (tab "Titik Peta Bencana" di halaman Kebencanaan) — controller ini
+    // hanya menangani aksi tulis (store/update/destroy/export/import).
 
     public function store(Request $request)
     {

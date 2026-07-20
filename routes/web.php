@@ -139,12 +139,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('bencana/import',  [BencanaController::class, 'import'])->name('bencana.import');
         Route::resource('bencana', BencanaController::class)
             ->only(['index', 'store', 'update', 'destroy']);
+        // Titik Peta Bencana kini jadi tab di halaman Kebencanaan (admin.bencana.index)
+        Route::get('titik-bencana', fn () => redirect()->route('admin.bencana.index'))->name('titik-bencana.index');
         Route::get('titik-bencana/export',   [TitikBencanaController::class, 'export'])->name('titik-bencana.export');
         Route::get('titik-bencana/template', [TitikBencanaController::class, 'template'])->name('titik-bencana.template');
         Route::post('titik-bencana/import',  [TitikBencanaController::class, 'import'])->name('titik-bencana.import');
         Route::resource('titik-bencana', TitikBencanaController::class)
             ->parameters(['titik-bencana' => 'titikBencana'])
-            ->only(['index', 'store', 'update', 'destroy']);
+            ->only(['store', 'update', 'destroy']);
 
         // Kemiskinan + detail per kecamatan (form berupa modal di halaman index)
         Route::resource('kemiskinan', KemiskinanController::class)

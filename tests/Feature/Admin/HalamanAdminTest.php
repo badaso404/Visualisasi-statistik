@@ -30,8 +30,8 @@ class HalamanAdminTest extends TestCase
             'kependudukan'          => ['admin.kependudukan.index'],
             'pendidikan'            => ['admin.pendidikan.index'],
             'kesehatan'             => ['admin.kesehatan.index'],
+            // 'titik bencana' digabung jadi tab di halaman 'bencana' (lihat tes di bawah)
             'bencana'               => ['admin.bencana.index'],
-            'titik bencana'         => ['admin.titik-bencana.index'],
             'kemiskinan'            => ['admin.kemiskinan.index'],
             'infrastruktur digital' => ['admin.infrastruktur-digital.index'],
         ];
@@ -41,6 +41,22 @@ class HalamanAdminTest extends TestCase
     public function test_halaman_index_merender(string $route): void
     {
         $this->actingAs($this->admin())->get(route($route))->assertOk();
+    }
+
+    public function test_halaman_bencana_memuat_tab_titik_peta(): void
+    {
+        $this->actingAs($this->admin())
+            ->get(route('admin.bencana.index'))
+            ->assertOk()
+            ->assertSee('Titik Peta Bencana')
+            ->assertSee('modalTitikBencana', false);
+    }
+
+    public function test_route_titik_bencana_lama_redirect_ke_bencana(): void
+    {
+        $this->actingAs($this->admin())
+            ->get(route('admin.titik-bencana.index'))
+            ->assertRedirect(route('admin.bencana.index'));
     }
 
     public static function halamanBatch(): array

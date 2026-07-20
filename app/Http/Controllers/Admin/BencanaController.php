@@ -46,7 +46,15 @@ class BencanaController extends Controller
 
         $jenisList = DataBencana::JENIS;
 
-        return view('admin.bencana.index', compact('items', 'jenisList'));
+        // Titik peta bencana dikelola di tab kedua halaman ini
+        $titik = \App\Models\TitikBencana::with('kecamatan')
+            ->orderBy('kategori')->orderBy('level')->orderBy('nama')->get();
+        $kategoriList = \App\Models\TitikBencana::KATEGORI;
+        $kecamatan = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get();
+
+        return view('admin.bencana.index', compact(
+            'items', 'jenisList', 'titik', 'kategoriList', 'kecamatan'
+        ));
     }
 
     /** Tarik ulang rekap dari API Satu Data Jakarta. */
