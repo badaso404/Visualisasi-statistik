@@ -133,6 +133,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->only(['store', 'update', 'destroy']);
 
         // Monitor Bencana
+        Route::post('bencana/sync',    [BencanaController::class, 'sync'])->name('bencana.sync');
         Route::get('bencana/export',   [BencanaController::class, 'export'])->name('bencana.export');
         Route::get('bencana/template', [BencanaController::class, 'template'])->name('bencana.template');
         Route::post('bencana/import',  [BencanaController::class, 'import'])->name('bencana.import');

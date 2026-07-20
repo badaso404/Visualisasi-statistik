@@ -290,26 +290,51 @@ class StatistikController extends Controller
 
     public function bencana(Request $request, DsdaClient $dsda)
     {
-        $availableTahun = DataBencana::query()
+        // Rekap triwulanan Jakarta Barat (cermin API Satu Data Jakarta)
+        $rekapQuery = fn() => DataBencana::whereNotNull('periode_data')
+            ->where('wilayah', DataBencana::WILAYAH_JAKBAR);
+
+        $availableTahun = $rekapQuery()
             ->select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
 
         $tahun = (int) $request->get('tahun', $availableTahun->first() ?? date('Y'));
+        if ($availableTahun->isNotEmpty() && !$availableTahun->contains($tahun)) {
+            $tahun = (int) $availableTahun->first();
+        }
 
-        $items = DataBencana::with('kecamatan')
-            ->where('tahun', $tahun)
-            ->orderByDesc('tanggal_kejadian')
-            ->get();
+        $items = $rekapQuery()->where('tahun', $tahun)
+            ->orderBy('periode_data')->orderBy('jenis_bencana')->get();
 
-        // Perbandingan jenis bencana (untuk pie chart): total kejadian per jenis
+        // Perbandingan jenis bencana (donut): total kejadian per jenis
         $perJenis = $items->groupBy('jenis_bencana')
             ->map(fn($rows) => $rows->sum('jumlah_kejadian'))
             ->sortDesc();
 
         $ringkasan = [
             'total_kejadian'  => $items->sum('jumlah_kejadian'),
-            'total_korban'    => $items->sum('jumlah_korban'),
-            'total_terdampak' => $items->sum('jumlah_terdampak'),
+            'total_meninggal' => $items->sum('jumlah_korban_meninggal'),
+            'total_luka'      => $items->sum('jumlah_korban_luka'),
             'jenis_terbanyak' => $perJenis->keys()->first() ?? '-',
+        ];
+
+        // Bar: jenis bencana per triwulan (tahun terpilih)
+        $jenisSemua = $rekapQuery()->distinct()->orderBy('jenis_bencana')->pluck('jenis_bencana');
+        $perTriwulan = [
+            'labels' => ['TW1', 'TW2', 'TW3', 'TW4'],
+            'series' => $jenisSemua->map(function ($jenis) use ($items) {
+                $data = collect([1, 2, 3, 4])->map(function ($tw) use ($items, $jenis) {
+                    return (int) $items->where('jenis_bencana', $jenis)->where('triwulan', $tw)->sum('jumlah_kejadian');
+                });
+                return ['name' => $jenis, 'data' => $data->values()];
+            })->values(),
+        ];
+
+        // Tren: seluruh periode lintas tahun (maksimalkan rentang data)
+        $semuaRekap = $rekapQuery()->orderBy('periode_data')->get();
+        $trenGrup = $semuaRekap->groupBy('periode_data');
+        $tren = [
+            'labels' => $trenGrup->keys()->map(fn($p) => substr($p, 0, 4) . ' TW' . (DataBencana::triwulanDariPeriode($p) ?? '?'))->values(),
+            'data'   => $trenGrup->map(fn($rows) => (int) $rows->sum('jumlah_kejadian'))->values(),
         ];
 
         // Warna konsisten per jenis bencana (dipakai pie chart, peta, & tabel)
@@ -397,7 +422,8 @@ class StatistikController extends Controller
         $tmaTitik = ['banjir-air' => $banjirAir];
 
         return view('statistik.bencana', compact(
-            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis', 'kecamatanNames', 'titikBencana', 'tmaTitik'
+            'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis',
+            'kecamatanNames', 'titikBencana', 'tmaTitik', 'perTriwulan', 'tren'
         ));
     }
 

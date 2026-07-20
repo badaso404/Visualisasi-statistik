@@ -169,20 +169,20 @@
                 </div>
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label">TOTAL KORBAN</div>
-                        <div class="value" id="sc-korban">{{ number_format($ringkasan['total_korban']) }}</div>
+                        <div class="label">KORBAN MENINGGAL</div>
+                        <div class="value" id="sc-meninggal">{{ number_format($ringkasan['total_meninggal']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
-                        <i class="fa fa-user-injured" style="color:#fff;"></i>
+                        <i class="fa fa-heart-crack" style="color:#fff;"></i>
                     </div>
                 </div>
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label">TOTAL TERDAMPAK</div>
-                        <div class="value" id="sc-terdampak">{{ number_format($ringkasan['total_terdampak']) }}</div>
+                        <div class="label">KORBAN LUKA-LUKA</div>
+                        <div class="value" id="sc-luka">{{ number_format($ringkasan['total_luka']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#008300; margin-left:auto;">
-                        <i class="fa fa-users" style="color:#fff;"></i>
+                        <i class="fa fa-user-injured" style="color:#fff;"></i>
                     </div>
                 </div>
                 <div class="stat-summary-card">
@@ -221,14 +221,14 @@
             <div class="row g-3 mb-4">
                 <div class="col-lg-7">
                     <div class="chart-card">
-                        <div class="chart-title">Statistik per Kecamatan</div>
-                        <div id="chart-kecamatan" style="min-height: 360px;"></div>
+                        <div class="chart-title">Jenis Bencana per Triwulan <span class="text-muted" style="font-weight:400;">· Jakarta Barat {{ $tahun }}</span></div>
+                        <div id="chart-triwulan" style="min-height: 360px;"></div>
                     </div>
                 </div>
                 <div class="col-lg-5">
                     <div class="chart-card">
-                        <div class="chart-title">Tren Kejadian Bulanan</div>
-                        <div id="chart-bulanan" style="min-height: 360px;"></div>
+                        <div class="chart-title">Tren Kejadian per Triwulan <span class="text-muted" style="font-weight:400;">· seluruh periode</span></div>
+                        <div id="chart-tren" style="min-height: 360px;"></div>
                     </div>
                 </div>
             </div>
@@ -236,8 +236,8 @@
     <div class="chart-card">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 table-header">
             <div>
-                <div class="chart-title" style="margin-bottom: 4px;">Rincian Laporan Bencana</div>
-                <div class="text-muted" style="font-size:13px;">Update terakhir: 10 Menit yang lalu</div>
+                <div class="chart-title" style="margin-bottom: 4px;">Rekap Bencana per Triwulan</div>
+                <div class="text-muted" style="font-size:13px;">Jakarta Barat &middot; {{ $tahun }} &middot; agregat triwulanan (bukan log kejadian per lokasi)</div>
             </div>
             <div class="d-flex flex-wrap gap-2 table-controls">
                 <select id="bencana-jenis-filter" class="form-select form-select-sm" style="width:auto;">
@@ -248,7 +248,7 @@
                 </select>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
-                    <input type="text" id="bencana-search" class="form-control" placeholder="Cari berdasarkan lokasi atau jenis">
+                    <input type="text" id="bencana-search" class="form-control" placeholder="Cari periode atau jenis">
                 </div>
             </div>
         </div>
@@ -256,25 +256,24 @@
             <table class="bencana-table">
                 <thead>
                     <tr>
-                        <th>Tanggal</th><th>Jenis Bencana</th><th>Lokasi</th><th>Kecamatan</th>
-                        <th>Kejadian</th><th>Korban</th><th>Terdampak</th>
+                        <th>Periode</th><th>Triwulan</th><th>Jenis Bencana</th>
+                        <th>Kejadian</th><th>Korban Meninggal</th><th>Korban Luka</th>
                     </tr>
                 </thead>
                 <tbody id="bencana-tbody">
                     @forelse($items as $b)
-                    <tr class="bencana-row" data-jenis="{{ $b->jenis_bencana }}" data-search="{{ strtolower($b->nama_lokasi . ' ' . $b->jenis_bencana . ' ' . ($b->kecamatan->nama_kecamatan ?? '')) }}">
-                        <td>{{ $b->tanggal_kejadian ? \Carbon\Carbon::parse($b->tanggal_kejadian)->translatedFormat('d M Y') : '-' }}</td>
+                    <tr class="bencana-row" data-jenis="{{ $b->jenis_bencana }}" data-search="{{ strtolower($b->periode_label . ' ' . $b->jenis_bencana) }}">
+                        <td>{{ $b->periode_label }}</td>
+                        <td>{{ $b->triwulan ? 'TW' . $b->triwulan : '-' }}</td>
                         <td><span class="badge-jenis" style="background: {{ $warnaJenis[$b->jenis_bencana] ?? '#9e9e9e' }};">{{ $b->jenis_bencana }}</span></td>
-                        <td>{{ $b->nama_lokasi }}</td>
-                        <td>{{ $b->kecamatan->nama_kecamatan ?? '-' }}</td>
                         <td>{{ number_format($b->jumlah_kejadian) }}</td>
-                        <td>{{ number_format($b->jumlah_korban) }}</td>
-                        <td>{{ number_format($b->jumlah_terdampak) }}</td>
+                        <td>{{ number_format($b->jumlah_korban_meninggal) }}</td>
+                        <td>{{ number_format($b->jumlah_korban_luka) }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" style="text-align:center; color:#999; padding:24px;">Belum ada data bencana untuk tahun ini.</td></tr>
+                    <tr><td colspan="6" style="text-align:center; color:#999; padding:24px;">Belum ada data rekap untuk tahun ini. Jalankan "Sync dari API" di portal admin.</td></tr>
                     @endforelse
-                    <tr id="bencana-empty-search" style="display:none;"><td colspan="7" style="text-align:center; color:#999; padding:24px;">Tidak ada data yang cocok dengan pencarian.</td></tr>
+                    <tr id="bencana-empty-search" style="display:none;"><td colspan="6" style="text-align:center; color:#999; padding:24px;">Tidak ada data yang cocok dengan pencarian.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -286,7 +285,7 @@
         @endif
     </div>
 
-    <div class="sumber">Sumber: {{ $items->first()->sumber ?? 'BPBD DKI Jakarta' }}</div>
+    <div class="sumber">Sumber: {{ $items->first()->sumber ?? 'Satu Data Jakarta' }} &middot; titik peta: BPBD &amp; DSDA DKI Jakarta</div>
         </div>
     </div>
 </div>
@@ -605,37 +604,43 @@
     var jenisSeries  = {!! json_encode($perJenis->values()->map(fn($v) => (int)$v)) !!};
 
     var rawItems = {!! json_encode($items->map(fn($b) => [
-        'tanggal' => $b->tanggal_kejadian,
-        'kecamatan' => $b->kecamatan->nama_kecamatan ?? '-',
+        'periode' => $b->periode_label,
+        'triwulan' => (int) $b->triwulan,
         'jenis' => $b->jenis_bencana,
         'jumlah' => (int) $b->jumlah_kejadian,
-        'korban' => (int) $b->jumlah_korban,
-        'terdampak' => (int) $b->jumlah_terdampak,
+        'meninggal' => (int) $b->jumlah_korban_meninggal,
+        'luka' => (int) $b->jumlah_korban_luka,
     ])->values()) !!};
+
+    // Data chart dari controller
+    var triwulanLabels = {!! json_encode($perTriwulan['labels']) !!};
+    var triwulanSeries = {!! json_encode($perTriwulan['series']) !!};
+    var trenLabels     = {!! json_encode($tren['labels']) !!};
+    var trenData       = {!! json_encode($tren['data']) !!};
 
     // Total per jenis bencana (untuk menyesuaikan summary card saat slice donut diklik)
     var totalsByJenis = {};
     rawItems.forEach(function (it) {
-        var t = totalsByJenis[it.jenis] || { kejadian: 0, korban: 0, terdampak: 0 };
+        var t = totalsByJenis[it.jenis] || { kejadian: 0, meninggal: 0, luka: 0 };
         t.kejadian  += it.jumlah || 0;
-        t.korban    += it.korban || 0;
-        t.terdampak += it.terdampak || 0;
+        t.meninggal += it.meninggal || 0;
+        t.luka      += it.luka || 0;
         totalsByJenis[it.jenis] = t;
     });
     // Total keseluruhan (untuk reset)
-    var grandTotals = { kejadian: 0, korban: 0, terdampak: 0 };
+    var grandTotals = { kejadian: 0, meninggal: 0, luka: 0 };
     Object.keys(totalsByJenis).forEach(function (j) {
         grandTotals.kejadian  += totalsByJenis[j].kejadian;
-        grandTotals.korban    += totalsByJenis[j].korban;
-        grandTotals.terdampak += totalsByJenis[j].terdampak;
+        grandTotals.meninggal += totalsByJenis[j].meninggal;
+        grandTotals.luka      += totalsByJenis[j].luka;
     });
 
     function fmt(n) { return Number(n).toLocaleString('en-US'); }
     function setSummary(jenis) {
         var t = jenis ? totalsByJenis[jenis] : grandTotals;
         document.getElementById('sc-kejadian').textContent  = fmt(t.kejadian);
-        document.getElementById('sc-korban').textContent    = fmt(t.korban);
-        document.getElementById('sc-terdampak').textContent = fmt(t.terdampak);
+        document.getElementById('sc-meninggal').textContent = fmt(t.meninggal);
+        document.getElementById('sc-luka').textContent      = fmt(t.luka);
         var jenisLbl = document.getElementById('sc-jenis-label');
         var jenisVal = document.getElementById('sc-jenis');
         if (jenis) {
@@ -646,26 +651,6 @@
             jenisVal.textContent = @json($ringkasan['jenis_terbanyak']);
         }
     }
-
-    var monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-    var monthData = Array(12).fill(0);
-    rawItems.forEach(function(item) {
-        if (!item.tanggal) return;
-        var date = new Date(item.tanggal);
-        if (isNaN(date)) return;
-        monthData[date.getMonth()] += item.jumlah;
-    });
-
-    var kecamatanCounts = {};
-    rawItems.forEach(function(item) {
-        if (!item.kecamatan) return;
-        kecamatanCounts[item.kecamatan] = (kecamatanCounts[item.kecamatan] || 0) + item.jumlah;
-    });
-    var kecamatanEntries = Object.entries(kecamatanCounts)
-        .sort(function(a, b){ return b[1] - a[1]; })
-        .slice(0, 6);
-    var kecamatanLabels = kecamatanEntries.map(function(item){ return item[0]; });
-    var kecamatanSeries = kecamatanEntries.map(function(item){ return item[1]; });
 
     var selectedJenis = null;
 
@@ -726,29 +711,36 @@
             '<p style="text-align:center;color:#999;padding:40px 0;">Belum ada data.</p>';
     }
 
-    new ApexCharts(document.querySelector("#chart-bulanan"), {
+    // Tren kejadian seluruh periode (lintas tahun)
+    new ApexCharts(document.querySelector("#chart-tren"), {
         chart: { type: 'area', height: 360, toolbar: { show: false } },
         colors: ['#2a78d6'],
         stroke: { curve: 'smooth', width: 3 },
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.72, opacityTo: 0.18, stops: [0, 90, 100] } },
-        series: [{ name: 'Kejadian', data: monthData }],
-        xaxis: { categories: monthNames },
+        series: [{ name: 'Kejadian', data: trenData }],
+        xaxis: { categories: trenLabels, labels: { rotate: -45, style: { fontSize: '10px' } } },
         yaxis: { labels: { formatter: function(val) { return val.toFixed(0); } } },
         markers: { size: 4 },
         tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
     }).render();
 
-    new ApexCharts(document.querySelector("#chart-kecamatan"), {
-        chart: { type: 'bar', height: 360, toolbar: { show: false } },
-        plotOptions: { bar: { horizontal: true, barHeight: '50%', distributed: true } },
-        series: [{ name: 'Kejadian', data: kecamatanSeries }],
-        xaxis: { categories: kecamatanLabels, labels: { formatter: function(val) { return val.toFixed(0); } } },
-        dataLabels: { enabled: true },
-        legend: { show: false },
-        // Warna per kecamatan (konsisten antar modul)
-        colors: kecamatanLabels.map(function (n) { return window.warnaKecamatan(n); })
-        // colors: ['#ffbf00']   // WARNA LAMA (amber tunggal)
-    }).render();
+    // Bar: jenis bencana per triwulan (tahun terpilih)
+    if (triwulanSeries.length) {
+        new ApexCharts(document.querySelector("#chart-triwulan"), {
+            chart: { type: 'bar', height: 360, toolbar: { show: false } },
+            plotOptions: { bar: { horizontal: false, columnWidth: '58%', borderRadius: 3 } },
+            series: triwulanSeries,
+            xaxis: { categories: triwulanLabels },
+            yaxis: { labels: { formatter: function(val) { return val.toFixed(0); } } },
+            dataLabels: { enabled: false },
+            legend: { position: 'bottom' },
+            colors: triwulanSeries.map(function (s) { return warnaJenis[s.name] || '#9e9e9e'; }),
+            tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
+        }).render();
+    } else {
+        document.querySelector("#chart-triwulan").innerHTML =
+            '<p style="text-align:center;color:#999;padding:40px 0;">Belum ada data.</p>';
+    }
 
 </script>
 @endpush
