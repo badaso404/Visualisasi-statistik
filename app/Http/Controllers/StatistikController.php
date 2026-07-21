@@ -20,6 +20,8 @@ use App\Models\JakWifiKecamatan;
 use App\Models\CctvKecamatan;
 use App\Models\DataKemiskinan;
 use App\Models\KemiskinanKecamatan;
+use App\Models\DataPerekonomian;
+use App\Models\PdrbSektor;
 
 class StatistikController extends Controller
 {
@@ -359,6 +361,98 @@ class StatistikController extends Controller
             : null;
 
         return view('statistik.kemiskinan', compact('summary', 'riwayat', 'tren', 'tahun', 'availableTahun'));
+    }
+
+    public function perekonomian(Request $request)
+    {
+        // Grafik tren memakai rentang tahun PENUH: arah jangka panjang (termasuk
+        // jatuhnya 2020) baru terbaca kalau rentangnya tidak dipotong.
+        $riwayat = DataPerekonomian::orderBy('tahun')->get();
+
+        if ($riwayat->isEmpty()) {
+            return $this->dataKosong('Perekonomian', (int) $request->get('tahun', date('Y')), collect());
+        }
+
+        // Selektor tahun & tabel ringkasan dibatasi beberapa tahun terakhir agar
+        // halaman tidak padat. Jendelanya dihitung dari tahun TERBARU yang ada,
+        // bukan dari tahun yang sedang dipilih, supaya isi dropdown tidak bergeser
+        // setiap kali pengunjung berpindah tahun.
+        $batasBawah   = $riwayat->max('tahun') - DataPerekonomian::TAHUN_DITAMPILKAN + 1;
+        $riwayatTabel = $riwayat->where('tahun', '>=', $batasBawah)->values();
+
+        $availableTahun = $riwayatTabel->pluck('tahun')->sortDesc()->values();
+
+        $tahun = (int) $request->get('tahun', $availableTahun->first());
+        if (!$availableTahun->contains($tahun)) {
+            $tahun = (int) $availableTahun->first();
+        }
+
+        $summary = $riwayat->firstWhere('tahun', $tahun);
+
+        if (!$summary) {
+            return $this->dataKosong('Perekonomian', $tahun, $availableTahun);
+        }
+
+        // Seluruh 17 sektor tahun terpilih — dipakai utuh oleh grafik struktur
+        // ekonomi sekaligus jadi basis agregasi tabel di bawahnya.
+        $sektor = PdrbSektor::where('tahun', $tahun)
+            ->orderByDesc('distribusi')
+            ->get();
+
+        // Tabel hanya menampilkan penyumbang terbesar; sisanya diringkas jadi satu
+        // baris "Lainnya" supaya total tetap sama dengan PDRB.
+        $sektorUtama   = $sektor->take(self::SEKTOR_DITAMPILKAN);
+        $sektorLainnya = $this->ringkasSektorLainnya($sektor->slice(self::SEKTOR_DITAMPILKAN));
+
+        // PDRB riil (ADHK) yang membandingkan tahun ke tahun tanpa efek inflasi,
+        // dipakai untuk penanda naik/turun pada kartu ringkasan. Diambil dari
+        // $riwayat (rentang penuh) agar tahun pembanding tetap ada walau berada
+        // di luar jendela selektor tahun.
+        $prev = $riwayat->firstWhere('tahun', $tahun - 1);
+        $tren = ($prev && $prev->pdrb_adhk > 0)
+            ? round(($summary->pdrb_adhk - $prev->pdrb_adhk) / $prev->pdrb_adhk * 100, 2)
+            : null;
+
+        // Selisih ADHB terhadap ADHK = akumulasi kenaikan harga sejak tahun dasar
+        // 2010; ditampilkan sebagai indeks implisit (ADHB/ADHK × 100).
+        $deflator = $summary->pdrb_adhk > 0
+            ? round($summary->pdrb_adhb / $summary->pdrb_adhk * 100, 2)
+            : null;
+
+        return view('statistik.perekonomian', compact(
+            'summary', 'riwayat', 'riwayatTabel', 'sektor', 'sektorUtama', 'sektorLainnya',
+            'tren', 'deflator', 'tahun', 'availableTahun'
+        ));
+    }
+
+    /** Banyaknya sektor yang tampil satu per satu di tabel; sisanya jadi "Lainnya". */
+    private const SEKTOR_DITAMPILKAN = 7;
+
+    /**
+     * Gabungkan sektor-sektor kecil jadi satu baris agar total tabel tetap sama
+     * dengan PDRB. ADHB & distribusi tinggal dijumlahkan, tetapi laju pertumbuhan
+     * TIDAK bisa dijumlahkan — dipakai rata-rata tertimbang menurut ADHB, yaitu
+     * pendekatan atas pertumbuhan gabungan, bukan angka resmi BPS.
+     *
+     * Mengembalikan null bila tidak ada sisa sektor, sehingga view cukup
+     * memeriksa satu nilai untuk memutuskan menampilkan barisnya.
+     */
+    private function ringkasSektorLainnya($sisa): ?array
+    {
+        if ($sisa->isEmpty()) {
+            return null;
+        }
+
+        $adhb = $sisa->sum('adhb');
+
+        return [
+            'jumlah_sektor'    => $sisa->count(),
+            'adhb'             => $adhb,
+            'distribusi'       => $sisa->sum('distribusi'),
+            'laju_pertumbuhan' => $adhb > 0
+                ? $sisa->sum(fn($s) => $s->adhb * $s->laju_pertumbuhan) / $adhb
+                : null,
+        ];
     }
 
     public function infrastrukturDigital(Request $request)

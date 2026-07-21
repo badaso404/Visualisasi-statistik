@@ -18,9 +18,31 @@ class BpsClient extends ApiClient
      */
     public function datacontent(int $var, string $thKode): array
     {
+        return $this->dataset($var, $thKode)['datacontent'];
+    }
+
+    /**
+     * Sama seperti datacontent(), tetapi sekaligus mengembalikan label vervar —
+     * berguna bila nama baris (mis. nama sektor lapangan usaha) ikut disimpan,
+     * sehingga label dan angka berasal dari SATU request yang sama.
+     *
+     * Mengembalikan ['datacontent' => [key => nilai], 'vervar' => [val => label]].
+     * BPS mengirim datacontent sebagai array kosong (bukan objek) ketika tahun
+     * terdaftar di metadata tapi datanya belum diisi — dinormalkan jadi [].
+     */
+    public function dataset(int $var, string $thKode): array
+    {
         $json = $this->fetch('data/lang/ind', ['var' => $var, 'th' => $thKode]);
 
-        return $json['datacontent'] ?? [];
+        $vervar = [];
+        foreach (($json['vervar'] ?? []) as $row) {
+            $vervar[(int) ($row['val'] ?? 0)] = (string) ($row['label'] ?? '');
+        }
+
+        return [
+            'datacontent' => (array) ($json['datacontent'] ?? []),
+            'vervar'      => $vervar,
+        ];
     }
 
     /**

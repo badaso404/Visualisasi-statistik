@@ -34,6 +34,7 @@
         ['route' => 'statistik.kesehatan',            'icon' => 'fa-plus-circle',      'label' => 'Kesehatan'],
         ['route' => 'statistik.bencana',              'icon' => 'fa-house-flood-water','label' => 'Kebencanaan'],
         ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => 'Kemiskinan'],
+        ['route' => 'statistik.perekonomian',         'icon' => 'fa-chart-line',       'label' => 'Perekonomian'],
         ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => 'Infrastruktur Digital'],
     ];
 @endphp

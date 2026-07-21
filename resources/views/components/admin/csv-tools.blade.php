@@ -1,6 +1,9 @@
 @props([
     'prefix',            // awalan nama route, mis. 'admin.penduduk-kecamatan'
     'judul' => 'Data',   // dipakai di judul modal import
+    // Kunci pencocokan baris, ditampilkan di keterangan modal. Bawaannya kunci
+    // tabel per-kecamatan karena itu yang dipakai mayoritas modul.
+    'kunci' => 'kecamatan + tahun',
 ])
 
 @php
@@ -31,7 +34,7 @@
                     <input type="file" name="file" accept=".csv,.txt" class="form-control" required>
                 </div>
                 <div class="small text-muted">
-                    Baris dicocokkan per <b>kecamatan + tahun</b> — data yang sudah ada akan
+                    Baris dicocokkan per <b>{{ $kunci }}</b> — data yang sudah ada akan
                     <b>diperbarui</b>, bukan diduplikat. Kolom yang dikosongkan dibiarkan apa adanya.
                     Belum punya format? <a href="{{ route($prefix . '.template') }}">Unduh template</a>.
                 </div>

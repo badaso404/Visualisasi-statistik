@@ -25,6 +25,7 @@ class HalamanPublikTest extends TestCase
             'kesehatan'             => ['statistik.kesehatan'],
             'bencana'               => ['statistik.bencana'],
             'kemiskinan'            => ['statistik.kemiskinan'],
+            'perekonomian'          => ['statistik.perekonomian'],
             'infrastruktur digital' => ['statistik.infrastruktur-digital'],
         ];
     }

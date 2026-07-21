@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\JakWifiController;
 use App\Http\Controllers\Admin\CctvController;
 use App\Http\Controllers\Admin\KemiskinanController;
 use App\Http\Controllers\Admin\KemiskinanKecamatanController;
+use App\Http\Controllers\Admin\PerekonomianController;
+use App\Http\Controllers\Admin\PdrbSektorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +44,7 @@ Route::prefix('statistik')->name('statistik.')->group(function () {
     Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
     Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
     Route::get('/kemiskinan',   [StatistikController::class, 'kemiskinan'])->name('kemiskinan');
+    Route::get('/perekonomian', [StatistikController::class, 'perekonomian'])->name('perekonomian');
     Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
 });
 
@@ -157,6 +160,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('kemiskinan-kecamatan/batch', [KemiskinanKecamatanController::class, 'batchStore'])->name('kemiskinan-kecamatan.batch.store');
         Route::resource('kemiskinan-kecamatan', KemiskinanKecamatanController::class)
             ->parameters(['kemiskinan-kecamatan' => 'kemiskinanKecamatan'])
+            ->only(['store', 'update', 'destroy']);
+
+        // Perekonomian + rincian lapangan usaha (form berupa modal di halaman index).
+        // Route CSV didaftarkan sebelum resource agar 'export'/'template' tidak
+        // tertangkap sebagai parameter {perekonomian}.
+        Route::get('perekonomian/export', [PerekonomianController::class, 'export'])->name('perekonomian.export');
+        Route::get('perekonomian/template', [PerekonomianController::class, 'template'])->name('perekonomian.template');
+        Route::post('perekonomian/import', [PerekonomianController::class, 'import'])->name('perekonomian.import');
+        Route::resource('perekonomian', PerekonomianController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        Route::get('pdrb-sektor/export', [PdrbSektorController::class, 'export'])->name('pdrb-sektor.export');
+        Route::get('pdrb-sektor/template', [PdrbSektorController::class, 'template'])->name('pdrb-sektor.template');
+        Route::post('pdrb-sektor/import', [PdrbSektorController::class, 'import'])->name('pdrb-sektor.import');
+        Route::resource('pdrb-sektor', PdrbSektorController::class)
+            ->parameters(['pdrb-sektor' => 'pdrbSektor'])
             ->only(['store', 'update', 'destroy']);
 
         // Infrastruktur Digital (JakWiFi & CCTV)

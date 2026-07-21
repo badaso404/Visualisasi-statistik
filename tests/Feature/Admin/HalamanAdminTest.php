@@ -33,6 +33,7 @@ class HalamanAdminTest extends TestCase
             // 'titik bencana' digabung jadi tab di halaman 'bencana' (lihat tes di bawah)
             'bencana'               => ['admin.bencana.index'],
             'kemiskinan'            => ['admin.kemiskinan.index'],
+            'perekonomian'          => ['admin.perekonomian.index'],
             'infrastruktur digital' => ['admin.infrastruktur-digital.index'],
         ];
     }

@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             TitikBencanaSeeder::class, // titik POI peta bencana (butuh Kecamatan)
             InfrastrukturDigitalSeeder::class, // JakWiFi & CCTV per kecamatan (butuh Kecamatan)
             KemiskinanSeeder::class,   // ringkasan + per kecamatan (butuh Kecamatan)
+            PerekonomianSeeder::class, // PDRB level kota (tanpa rincian kecamatan)
             AdminSeeder::class,        // akun admin (login panel)
         ]);
     }
