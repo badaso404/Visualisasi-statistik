@@ -41,22 +41,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Satu Data Jakarta — ws.jakarta.go.id
-    |--------------------------------------------------------------------------
-    |
-    | Dataset piramida penduduk (~60rb baris) → di-cache agar tidak ditarik
-    | tiap request. Tanpa API key.
-    |
-    */
-
-    'satudata' => [
-        'base_url'  => env('SATUDATA_BASE_URL', 'https://ws.jakarta.go.id/gateway/DataPortalSatuDataJakarta/1.0/satudata'),
-        'timeout'   => (int) env('SATUDATA_TIMEOUT', 90),
-        'cache_ttl' => (int) env('SATUDATA_CACHE_TTL', 21600), // 6 jam
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | DSDA Posko Banjir — Tinggi Muka Air (data live)
     |--------------------------------------------------------------------------
     |
