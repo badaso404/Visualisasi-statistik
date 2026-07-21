@@ -37,6 +37,8 @@ Route::get('/', function () {
 });
 
 Route::prefix('statistik')->name('statistik.')->group(function () {
+    // Ringkasan lintas modul; jadi halaman pembuka /statistik sekaligus.
+    Route::get('/',             [StatistikController::class, 'overview'])->name('overview');
     Route::get('/geografis',    [StatistikController::class, 'geografis'])->name('geografis');
     Route::get('/iklim',        [StatistikController::class, 'iklim'])->name('iklim');
     Route::get('/kependudukan', [StatistikController::class, 'kependudukan'])->name('kependudukan');

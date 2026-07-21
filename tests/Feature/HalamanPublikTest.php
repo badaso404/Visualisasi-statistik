@@ -18,6 +18,7 @@ class HalamanPublikTest extends TestCase
     public static function halaman(): array
     {
         return [
+            'overview'              => ['statistik.overview'],
             'geografis'             => ['statistik.geografis'],
             'iklim'                 => ['statistik.iklim'],
             'kependudukan'          => ['statistik.kependudukan'],

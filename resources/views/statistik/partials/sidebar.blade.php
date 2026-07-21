@@ -27,6 +27,7 @@
 
 @php
     $menu = [
+        ['route' => 'statistik.overview',             'icon' => 'fa-table-columns',    'label' => 'Overview'],
         ['route' => 'statistik.geografis',            'icon' => 'fa-map',              'label' => 'Geografis'],
         ['route' => 'statistik.iklim',                'icon' => 'fa-cloud',            'label' => 'Iklim'],
         ['route' => 'statistik.kependudukan',         'icon' => 'fa-users',            'label' => 'Kependudukan'],

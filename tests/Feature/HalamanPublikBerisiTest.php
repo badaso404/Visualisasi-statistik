@@ -10,6 +10,7 @@ use App\Models\LuasKecamatan;
 use App\Models\PendidikanKecamatan;
 use App\Models\PendudukKecamatan;
 use App\Models\PendudukKelurahan;
+use App\Models\DataKemiskinan;
 use App\Models\DataPerekonomian;
 use App\Models\PdrbSektor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -213,6 +214,92 @@ class HalamanPublikBerisiTest extends TestCase
         $this->get(route('statistik.perekonomian', ['tahun' => 2019]))
             ->assertOk()
             ->assertSee('PEREKONOMIAN JAKARTA BARAT 2024');
+    }
+
+    /**
+     * Overview menjahit beberapa modul sekaligus. Yang diuji: tiap modul dibaca
+     * pada tahun terbarunya SENDIRI (di sini kependudukan 2025 vs perekonomian
+     * 2024), sehingga kartu tidak kosong hanya karena tahunnya berbeda.
+     */
+    public function test_overview_merangkum_beberapa_modul_sekaligus(): void
+    {
+        DataKependudukan::create([
+            'tahun' => 2025, 'jumlah_laki_laki' => 100, 'jumlah_perempuan' => 120, 'jumlah_total' => 220,
+        ]);
+        PendudukKecamatan::create([
+            'kecamatan_id' => $this->kecamatan->id, 'tahun' => 2025, 'jumlah_penduduk' => 350000,
+        ]);
+        DataPerekonomian::create([
+            'tahun' => 2024, 'pdrb_adhb' => 1000000, 'pdrb_adhk' => 800000, 'laju_pertumbuhan' => 5.2,
+        ]);
+
+        $html = $this->get(route('statistik.overview'))->assertOk()
+            ->assertSee('Jumlah Penduduk')
+            ->assertSee('PDRB Harga Berlaku')
+            ->assertSee('Kebon Jeruk')
+            ->assertDontSee('Data belum tersedia')
+            ->getContent();
+
+        // Label tahun per kartu mengikuti modulnya masing-masing.
+        $this->assertStringContainsString('ov-tahun">2025<', $html);
+        $this->assertStringContainsString('ov-tahun">2024<', $html);
+    }
+
+    /**
+     * Grafik ekonomi vs kemiskinan dipotong ke tahun yang dipunyai KEDUA modul.
+     * PDRB mulai 2019 sementara kemiskinan baru 2022; tanpa pemotongan garis
+     * kemiskinan menggantung dengan separuh sumbu kosong.
+     */
+    public function test_overview_tren_dipotong_ke_irisan_tahun_kedua_modul(): void
+    {
+        foreach ([2019, 2020, 2021, 2022, 2023] as $t) {
+            DataPerekonomian::create([
+                'tahun' => $t, 'pdrb_adhb' => 1000000, 'pdrb_adhk' => 800000, 'laju_pertumbuhan' => 5,
+            ]);
+        }
+        foreach ([2022, 2023, 2024] as $t) {
+            DataKemiskinan::create([
+                'tahun' => $t, 'jumlah_penduduk_miskin' => 90000,
+                'persentase_penduduk_miskin' => 3.9, 'garis_kemiskinan' => 700000,
+                'indeks_kedalaman' => 0.5, 'indeks_keparahan' => 0.1,
+            ]);
+        }
+
+        $html = $this->get(route('statistik.overview'))->assertOk()->getContent();
+
+        // Hanya 2022 & 2023 yang punya keduanya — 2019-2021 & 2024 tidak ikut.
+        $this->assertStringContainsString('const ovTahun     = ["2022","2023"]', $html);
+        // Kedua deret sama panjang, jadi tidak ada titik kosong di grafik.
+        $this->assertStringContainsString('const ovMiskin    = [3.9,3.9]', $html);
+    }
+
+    /** Grafik pendidikan & kesehatan ikut tampil di overview. */
+    public function test_overview_menampilkan_grafik_pendidikan_dan_kesehatan(): void
+    {
+        DataPendidikan::create([
+            'tahun' => 2024,
+            'apm_sd_mi' => 98.13, 'apm_smp_mts' => 90.98, 'apm_sma_smk_man' => 62.98,
+            'apk_sd_mi' => 101.91, 'apk_smp_mts' => 98.15, 'apk_sma_smk_man' => 74.77,
+        ]);
+        \App\Models\DataKesehatan::create(['tahun' => 2024, 'jumlah_tempat_tidur_rs' => 4820]);
+        \App\Models\FasilitasKesehatanKecamatan::create([
+            'kecamatan_id' => $this->kecamatan->id, 'tahun' => 2024, 'jumlah_total' => 100,
+            'klinik_kesehatan' => 40, 'posyandu' => 50, 'puskesmas' => 8, 'rumah_sakit' => 2,
+        ]);
+        \App\Models\TenagaKesehatanKecamatan::create([
+            'kecamatan_id' => $this->kecamatan->id, 'tahun' => 2024, 'jumlah_total' => 300,
+            'dokter' => 100, 'perawat' => 150, 'bidan' => 30, 'ahli_gizi' => 10, 'farmasi' => 10,
+        ]);
+
+        $html = $this->get(route('statistik.overview'))->assertOk()
+            ->assertSee('Partisipasi Sekolah per Jenjang')
+            ->assertSee('Fasilitas Kesehatan')
+            ->assertSee('Tenaga Kesehatan')
+            ->getContent();
+
+        $this->assertStringContainsString('const ovApm       = [98.13,90.98,62.98]', $html);
+        // Komposisi diurutkan menurun & jenis bernilai nol dibuang.
+        $this->assertStringContainsString('const ovFaskesL   = ["Posyandu","Klinik","Puskesmas","Rumah Sakit"]', $html);
     }
 
     /** Tahun yang ada datanya tetap dipilih walau pengunjung meminta tahun lain. */

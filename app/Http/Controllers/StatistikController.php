@@ -41,6 +41,249 @@ class StatistikController extends Controller
         ]);
     }
 
+
+    /**
+     * Ringkasan lintas modul. Tiap modul dibaca pada TAHUN TERBARUNYA SENDIRI,
+     * bukan satu tahun bersama: cakupan rilis antar-sumber tidak sama (PDRB BPS
+     * biasanya tertinggal setahun dari data kependudukan), sehingga memaksakan
+     * satu tahun untuk semuanya akan mengosongkan kartu yang datanya ada.
+     * Konsekuensinya tiap kartu membawa label tahunnya masing-masing.
+     *
+     * Urutan blok di bawah = urutan modul di sidebar, dan kartu serta grafik di
+     * view mengikuti urutan yang sama supaya halaman terbaca berurutan.
+     */
+    public function overview()
+    {
+        $kartu = [];   // kartu indikator kunci, urut sesuai modul
+
+        // ── 1. Geografis ──────────────────────────────────────────
+        $tahunGeo = (int) DataGeografis::max('tahun');
+        $geo      = $tahunGeo ? DataGeografis::where('tahun', $tahunGeo)->first() : null;
+        $luasKec  = $geo
+            ? LuasKecamatan::with('kecamatan')->where('data_geografis_id', $geo->id)->get()
+            : collect();
+        if ($geo) {
+            $kartu[] = [
+                'modul' => 'Geografis', 'route' => 'statistik.geografis', 'tahun' => $tahunGeo,
+                'icon' => 'fa-map', 'warna' => 'ic-teal',
+                'label' => 'Luas Wilayah',
+                'nilai' => number_format($geo->luas_kota_km2, 2, ',', '.'),
+                'satuan' => 'km²',
+                'sub' => $luasKec->count() . ' kecamatan &middot; '
+                       . number_format((int) $luasKec->sum('jumlah_kelurahan'), 0, ',', '.') . ' kelurahan',
+            ];
+        }
+
+        // ── 2. Kependudukan ───────────────────────────────────────
+        $tahunPenduduk = (int) DataKependudukan::max('tahun');
+        $penduduk = $tahunPenduduk ? DataKependudukan::where('tahun', $tahunPenduduk)->first() : null;
+        if ($penduduk) {
+            $kartu[] = [
+                'modul' => 'Kependudukan', 'route' => 'statistik.kependudukan', 'tahun' => $tahunPenduduk,
+                'icon' => 'fa-users', 'warna' => 'ic-blue',
+                'label' => 'Jumlah Penduduk',
+                'nilai' => number_format($penduduk->jumlah_total, 0, ',', '.'),
+                'satuan' => 'jiwa',
+                'sub' => 'L ' . number_format($penduduk->jumlah_laki_laki, 0, ',', '.')
+                       . ' &middot; P ' . number_format($penduduk->jumlah_perempuan, 0, ',', '.'),
+            ];
+        }
+
+        // ── 3. Pendidikan ─────────────────────────────────────────
+        $tahunDidik = (int) DataPendidikan::max('tahun');
+        $didik      = $tahunDidik ? DataPendidikan::where('tahun', $tahunDidik)->first() : null;
+        $didikKec   = PendidikanKecamatan::with('kecamatan')->where('tahun', $tahunDidik)->get();
+        if ($didik) {
+            $kartu[] = [
+                'modul' => 'Pendidikan', 'route' => 'statistik.pendidikan', 'tahun' => $tahunDidik,
+                'icon' => 'fa-graduation-cap', 'warna' => 'ic-amber',
+                'label' => 'Jumlah Pelajar',
+                'nilai' => number_format((int) $didikKec->sum('jumlah_pelajar'), 0, ',', '.'),
+                'satuan' => 'siswa',
+                'sub' => number_format((int) $didikKec->sum('jumlah_pendidik'), 0, ',', '.') . ' tenaga pendidik',
+            ];
+        }
+
+        // Angka Partisipasi Murni vs Kasar per jenjang. Dua indikator ini hanya
+        // berarti kalau disandingkan: selisihnya menunjukkan siswa yang usianya
+        // di luar jenjang, jadi digambar sebagai satu grafik dua seri.
+        $pendidikanIndikator = $didik ? [
+            'jenjang' => ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA'],
+            'apm'     => [(float) $didik->apm_sd_mi, (float) $didik->apm_smp_mts, (float) $didik->apm_sma_smk_man],
+            'apk'     => [(float) $didik->apk_sd_mi, (float) $didik->apk_smp_mts, (float) $didik->apk_sma_smk_man],
+            'tahun'   => $tahunDidik,
+        ] : null;
+
+        // ── 4. Kesehatan ──────────────────────────────────────────
+        $tahunSehat = (int) DataKesehatan::max('tahun');
+        $sehat      = $tahunSehat ? DataKesehatan::where('tahun', $tahunSehat)->first() : null;
+        $faskes     = FasilitasKesehatanKecamatan::with('kecamatan')->where('tahun', $tahunSehat)->get();
+        $nakes      = TenagaKesehatanKecamatan::with('kecamatan')->where('tahun', $tahunSehat)->get();
+        if ($sehat) {
+            $kartu[] = [
+                'modul' => 'Kesehatan', 'route' => 'statistik.kesehatan', 'tahun' => $tahunSehat,
+                'icon' => 'fa-plus-circle', 'warna' => 'ic-violet',
+                'label' => 'Fasilitas Kesehatan',
+                'nilai' => number_format((int) $faskes->sum('jumlah_total'), 0, ',', '.'),
+                'satuan' => 'unit',
+                'sub' => number_format((int) $nakes->sum('jumlah_total'), 0, ',', '.') . ' tenaga kesehatan',
+            ];
+        }
+
+        // Komposisi fasilitas & tenaga kesehatan. Kolom nol dibuang supaya
+        // potongan kosong tidak muncul di donut saat sebuah jenis belum diisi.
+        $faskesJenis = collect([
+            'Posyandu'   => (int) $faskes->sum('posyandu'),
+            'Klinik'     => (int) $faskes->sum('klinik_kesehatan'),
+            'Puskesmas'  => (int) $faskes->sum('puskesmas'),
+            'Rumah Sakit'=> (int) $faskes->sum('rumah_sakit'),
+        ])->filter()->sortDesc();
+
+        $nakesJenis = collect([
+            'Perawat'   => (int) $nakes->sum('perawat'),
+            'Dokter'    => (int) $nakes->sum('dokter'),
+            'Farmasi'   => (int) $nakes->sum('farmasi'),
+            'Bidan'     => (int) $nakes->sum('bidan'),
+            'Ahli Gizi' => (int) $nakes->sum('ahli_gizi'),
+        ])->filter()->sortDesc();
+
+        // ── 5. Kebencanaan ────────────────────────────────────────
+        // Hanya rekap resmi Jakarta Barat (baris berperiode) yang dihitung,
+        // sama seperti halaman modulnya.
+        $rekapBencana  = fn() => DataBencana::whereNotNull('periode_data')
+            ->where('wilayah', DataBencana::WILAYAH_JAKBAR);
+        $tahunBencana  = (int) $rekapBencana()->max('tahun');
+        $bencanaItems  = $tahunBencana ? $rekapBencana()->where('tahun', $tahunBencana)->get() : collect();
+        $bencanaJenis  = $bencanaItems->groupBy('jenis_bencana')
+            ->map(fn($rows) => (int) $rows->sum('jumlah_kejadian'))->sortDesc();
+        if ($bencanaItems->isNotEmpty()) {
+            $kartu[] = [
+                'modul' => 'Kebencanaan', 'route' => 'statistik.bencana', 'tahun' => $tahunBencana,
+                'icon' => 'fa-house-flood-water', 'warna' => 'ic-orange',
+                'label' => 'Kejadian Bencana',
+                'nilai' => number_format((int) $bencanaItems->sum('jumlah_kejadian'), 0, ',', '.'),
+                'satuan' => 'kejadian',
+                'sub' => 'terbanyak: ' . ($bencanaJenis->keys()->first() ?? '-'),
+            ];
+        }
+
+        // ── 6. Kemiskinan ─────────────────────────────────────────
+        $tahunMiskin = (int) DataKemiskinan::max('tahun');
+        $miskin      = $tahunMiskin ? DataKemiskinan::where('tahun', $tahunMiskin)->first() : null;
+        if ($miskin) {
+            $prevMiskin = DataKemiskinan::where('tahun', $tahunMiskin - 1)->first();
+            $kartu[] = [
+                'modul' => 'Kemiskinan', 'route' => 'statistik.kemiskinan', 'tahun' => $tahunMiskin,
+                'icon' => 'fa-hand-holding-heart', 'warna' => 'ic-red',
+                'label' => 'Penduduk Miskin',
+                'nilai' => number_format($miskin->persentase_penduduk_miskin, 2, ',', '.') . '%',
+                'satuan' => '',
+                'sub' => number_format($miskin->jumlah_penduduk_miskin, 0, ',', '.') . ' jiwa',
+                // Kemiskinan turun = kabar baik, jadi arah trennya dibalik saat
+                // diwarnai di view (lihat 'tren_baik').
+                'tren' => $prevMiskin && $prevMiskin->persentase_penduduk_miskin > 0
+                    ? round($miskin->persentase_penduduk_miskin - $prevMiskin->persentase_penduduk_miskin, 2)
+                    : null,
+                'tren_baik' => 'turun',
+            ];
+        }
+
+        // ── 7. Perekonomian ───────────────────────────────────────
+        $tahunEkon = (int) DataPerekonomian::max('tahun');
+        $ekon      = $tahunEkon ? DataPerekonomian::where('tahun', $tahunEkon)->first() : null;
+        if ($ekon) {
+            $kartu[] = [
+                'modul' => 'Perekonomian', 'route' => 'statistik.perekonomian', 'tahun' => $tahunEkon,
+                'icon' => 'fa-sack-dollar', 'warna' => 'ic-green',
+                'label' => 'PDRB Harga Berlaku',
+                'nilai' => 'Rp ' . number_format($ekon->pdrb_adhb / 1000000, 2, ',', '.'),
+                'satuan' => 'triliun',
+                'sub' => 'pertumbuhan ' . number_format($ekon->laju_pertumbuhan, 2, ',', '.') . '%',
+                'tren' => (float) $ekon->laju_pertumbuhan,
+            ];
+        }
+
+        // ── 8. Infrastruktur digital ──────────────────────────────
+        $tahunWifi = (int) JakWifiKecamatan::max('tahun');
+        $tahunCctv = (int) CctvKecamatan::max('tahun');
+        $wifi      = JakWifiKecamatan::with('kecamatan')->where('tahun', $tahunWifi)->get();
+        $cctv      = CctvKecamatan::with('kecamatan')->where('tahun', $tahunCctv)->get();
+        if ($wifi->isNotEmpty() || $cctv->isNotEmpty()) {
+            $kartu[] = [
+                'modul' => 'Infrastruktur Digital', 'route' => 'statistik.infrastruktur-digital',
+                'tahun' => max($tahunWifi, $tahunCctv),
+                'icon' => 'fa-wifi', 'warna' => 'ic-pink',
+                'label' => 'Titik JakWiFi & CCTV',
+                'nilai' => number_format((int) $wifi->sum('jumlah_titik') + (int) $cctv->sum('jumlah_unit'), 0, ',', '.'),
+                'satuan' => 'unit',
+                'sub' => number_format((int) $wifi->sum('jumlah_titik'), 0, ',', '.') . ' JakWiFi &middot; '
+                       . number_format((int) $cctv->sum('jumlah_unit'), 0, ',', '.') . ' CCTV',
+            ];
+        }
+
+        // ── Tabel lintas modul per kecamatan ──────────────────────
+        // Setiap kolom berasal dari modul berbeda pada tahun terbarunya masing-
+        // masing; dijahit lewat kecamatan_id agar tetap sinkron walau nama
+        // kecamatan ditulis berbeda di sumber aslinya.
+        $pendudukKec = PendudukKecamatan::where('tahun', $tahunPenduduk)->get()->keyBy('kecamatan_id');
+        $miskinKec   = KemiskinanKecamatan::where('tahun', $tahunMiskin)->get()->keyBy('kecamatan_id');
+        $luasById    = $luasKec->keyBy('kecamatan_id');
+
+        $perKecamatan = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get()->map(function ($kec) use (
+            $luasById, $pendudukKec, $miskinKec, $didikKec, $faskes, $wifi, $cctv
+        ) {
+            $luas = optional($luasById->get($kec->id))->luas_km2;
+            $jiwa = optional($pendudukKec->get($kec->id))->jumlah_penduduk;
+
+            return [
+                'nama'      => $kec->nama_kecamatan,
+                'luas'      => $luas ? (float) $luas : null,
+                'penduduk'  => $jiwa ? (int) $jiwa : null,
+                'kepadatan' => ($jiwa && $luas) ? (int) round($jiwa / $luas) : null,
+                'pelajar'   => (int) $didikKec->where('kecamatan_id', $kec->id)->sum('jumlah_pelajar') ?: null,
+                'faskes'    => (int) $faskes->where('kecamatan_id', $kec->id)->sum('jumlah_total') ?: null,
+                'miskin'    => optional($miskinKec->get($kec->id))->jumlah_penduduk_miskin,
+                'digital'   => (int) $wifi->where('kecamatan_id', $kec->id)->sum('jumlah_titik')
+                             + (int) $cctv->where('kecamatan_id', $kec->id)->sum('jumlah_unit') ?: null,
+            ];
+        })->filter(fn($r) => $r['penduduk'] || $r['luas'])->values();
+
+        // ── Tren ekonomi vs kemiskinan ────────────────────────────
+        // Dua modul, dua satuan; ditumpuk di satu grafik dua sumbu karena justru
+        // hubungan keduanya yang menarik dilihat di halaman ringkasan.
+        //
+        // Rentangnya sengaja DIPOTONG ke tahun yang dipunyai KEDUA modul. Rentang
+        // penuh PDRB (mulai 2019) membuat garis kemiskinan (mulai 2022) menggantung
+        // dengan separuh sumbu kosong — terbaca seperti data hilang, padahal BPS
+        // memang belum merilisnya. Lebih jujur menampilkan periode yang benar-benar
+        // bisa dibandingkan.
+        $trenGabungan = $this->trenEkonomiKemiskinan();
+
+        return view('statistik.overview', compact(
+            'kartu', 'perKecamatan', 'trenGabungan', 'bencanaJenis',
+            'pendidikanIndikator', 'faskesJenis', 'nakesJenis'
+        ));
+    }
+
+    /**
+     * Deret PDRB harga konstan & persentase penduduk miskin pada irisan tahun
+     * yang dimiliki kedua tabel. Mengembalikan labels kosong bila irisannya
+     * kosong, sehingga view cukup memeriksa satu hal sebelum menggambar.
+     */
+    private function trenEkonomiKemiskinan(): array
+    {
+        $ekon   = DataPerekonomian::orderBy('tahun')->get(['tahun', 'pdrb_adhk'])->keyBy('tahun');
+        $miskin = DataKemiskinan::orderBy('tahun')->get(['tahun', 'persentase_penduduk_miskin'])->keyBy('tahun');
+
+        $tahun = $ekon->keys()->intersect($miskin->keys())->sort()->values();
+
+        return [
+            'labels' => $tahun->map(fn($t) => (string) $t)->values(),
+            'pdrb'   => $tahun->map(fn($t) => round($ekon[$t]->pdrb_adhk / 1000000, 2))->values(),
+            'miskin' => $tahun->map(fn($t) => (float) $miskin[$t]->persentase_penduduk_miskin)->values(),
+        ];
+    }
+
     public function geografis(Request $request)
     {
         $availableTahun = DataGeografis::query()
