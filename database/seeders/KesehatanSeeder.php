@@ -49,10 +49,10 @@ class KesehatanSeeder extends Seeder
             return;
         }
 
-        // Bersihkan data lama (estimasi) agar hanya data BPS yang tampil
-        TenagaKesehatanKecamatan::truncate();
-        FasilitasKesehatanKecamatan::truncate();
-        DataKesehatan::truncate();
+        // Tanpa truncate: seeder ini juga dipakai tombol "Sinkronkan BPS" di
+        // portal, dan mengosongkan tabel akan melenyapkan baris yang ditambal
+        // manual operator. Semua penulisan di bawah memakai updateOrCreate
+        // dengan kunci (kecamatan, tahun) atau (tahun) untuk ringkasan.
 
         foreach ($tahunList as $thKode => $tahun) {
             $dc129 = $this->fetchDatacontent(129, $thKode); // tenaga
@@ -82,16 +82,17 @@ class KesehatanSeeder extends Seeder
                     $totalTenaga = $dokter + $perawat + $bidan + $farmasi + $ahliGizi;
 
                     if ($totalTenaga > 0) {
-                        TenagaKesehatanKecamatan::create([
-                            'kecamatan_id' => $kecId,
-                            'tahun'        => $tahun,
-                            'jumlah_total' => $totalTenaga,
-                            'dokter'       => $dokter,
-                            'perawat'      => $perawat,
-                            'bidan'        => $bidan,
-                            'ahli_gizi'    => $ahliGizi,
-                            'farmasi'      => $farmasi,
-                        ]);
+                        TenagaKesehatanKecamatan::updateOrCreate(
+                            ['kecamatan_id' => $kecId, 'tahun' => $tahun],
+                            [
+                                'jumlah_total' => $totalTenaga,
+                                'dokter'       => $dokter,
+                                'perawat'      => $perawat,
+                                'bidan'        => $bidan,
+                                'ahli_gizi'    => $ahliGizi,
+                                'farmasi'      => $farmasi,
+                            ],
+                        );
                     }
                 }
 
@@ -109,15 +110,16 @@ class KesehatanSeeder extends Seeder
                     $total = $rumahSakit + $pusk + $klinik + $posyandu + $polindes;
 
                     if ($total > 0) {
-                        FasilitasKesehatanKecamatan::create([
-                            'kecamatan_id'     => $kecId,
-                            'tahun'            => $tahun,
-                            'jumlah_total'     => $total,
-                            'klinik_kesehatan' => $klinik,
-                            'posyandu'         => $posyandu,
-                            'puskesmas'        => $pusk,
-                            'rumah_sakit'      => $rumahSakit,
-                        ]);
+                        FasilitasKesehatanKecamatan::updateOrCreate(
+                            ['kecamatan_id' => $kecId, 'tahun' => $tahun],
+                            [
+                                'jumlah_total'     => $total,
+                                'klinik_kesehatan' => $klinik,
+                                'posyandu'         => $posyandu,
+                                'puskesmas'        => $pusk,
+                                'rumah_sakit'      => $rumahSakit,
+                            ],
+                        );
                     }
                 }
             }
@@ -127,12 +129,16 @@ class KesehatanSeeder extends Seeder
             $ttUmum   = (int) ($dc221["25221210{$thKode}0"] ?? 0);
             $ttKhusus = (int) ($dc222["25222210{$thKode}0"] ?? 0);
 
-            DataKesehatan::create([
-                'tahun'                   => $tahun,
-                'jumlah_tempat_tidur_rs'  => $ttUmum + $ttKhusus,
-                'cakupan_imunisasi_dasar' => null, // tidak tersedia di BPS WebAPI
-                'sumber'                  => 'BPS Kota Jakarta Barat (webapi.bps.go.id) — var 128/129/221/222',
-            ]);
+            // cakupan_imunisasi_dasar sengaja TIDAK ikut ditulis: BPS WebAPI
+            // tidak menyediakannya, jadi kalau operator mengisinya manual,
+            // sinkronisasi tidak boleh menimpanya kembali jadi null.
+            DataKesehatan::updateOrCreate(
+                ['tahun' => $tahun],
+                [
+                    'jumlah_tempat_tidur_rs' => $ttUmum + $ttKhusus,
+                    'sumber'                 => 'BPS Kota Jakarta Barat (webapi.bps.go.id) — var 128/129/221/222',
+                ],
+            );
         }
 
         if (! $adaData) {

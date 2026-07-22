@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\CsvPerPeriode;
+use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\PdrbSektor;
@@ -17,6 +18,22 @@ class PdrbSektorController extends Controller
 {
     use CsvPerPeriode;
     use ValidasiPeriodeUnik;
+    use TahunMengikutiInduk;
+
+    protected function tabelInduk(): ?string
+    {
+        return 'data_perekonomian';
+    }
+
+    protected function sebutanInduk(): string
+    {
+        return 'ringkasan PDRB';
+    }
+
+    protected function tabInduk(): string
+    {
+        return 'tab Ringkasan Tahunan';
+    }
 
     /* ── CSV: satu baris per (tahun, kode_sektor) ─────────────────────── */
 
@@ -44,6 +61,22 @@ class PdrbSektorController extends Controller
             'distribusi'       => 'desimal',
             'laju_pertumbuhan' => 'desimal',
         ];
+    }
+
+    /**
+     * BPS membakukan 17 lapangan usaha; di luar itu pasti salah ketik. Tahunnya
+     * juga harus sudah punya ringkasan PDRB — satu tahun berisi 17 baris, jadi
+     * salah tahun berarti 17 baris yang tidak akan tampil di situs publik.
+     */
+    protected function csvKunciValid(array $kunci): ?string
+    {
+        if ($kunci['kode_sektor'] < 1 || $kunci['kode_sektor'] > 17) {
+            return "kode_sektor '{$kunci['kode_sektor']}' di luar 1-17";
+        }
+
+        return $this->tahunPunyaInduk($kunci['tahun'])
+            ? null
+            : "belum ada {$this->sebutanInduk()} tahun {$kunci['tahun']}";
     }
 
     /** `kategori` nullable; sisanya NOT NULL sehingga wajib saat baris dibuat. */
@@ -93,7 +126,7 @@ class PdrbSektorController extends Controller
     private function validated(Request $request, ?\Illuminate\Database\Eloquent\Model $item = null): array
     {
         return $request->validate([
-            'tahun'            => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'            => $this->aturanTahunInduk(),
             // Kunci uniknya (tahun, kode_sektor); aturan dipasang di kode_sektor
             // agar pesan galat muncul di kolom yang membedakan baris.
             'kode_sektor'      => ['required', 'integer', 'between:1,17',
@@ -106,6 +139,6 @@ class PdrbSektorController extends Controller
             'laju_pertumbuhan' => ['required', 'numeric', 'between:-100,100'],
         ], [
             'kode_sektor.unique' => 'Lapangan usaha ini sudah ada pada tahun tersebut. Silakan edit baris yang sudah ada.',
-        ]);
+        ] + $this->pesanTahunInduk());
     }
 }

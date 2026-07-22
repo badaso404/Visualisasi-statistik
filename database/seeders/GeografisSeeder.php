@@ -35,15 +35,25 @@ class GeografisSeeder extends Seeder
     private const T_RW        = 162;
     private const T_RT        = 163;
 
+    /**
+     * Seeder ini juga dipakai tombol "Sinkronkan BPS" di portal, jadi harus aman
+     * dijalankan berulang: Kecamatan adalah master yang direferensikan 9 modul
+     * lain, dan membuatnya ulang akan menabrak batasan unik nama_kecamatan.
+     *
+     * Yang benar-benar disegarkan dari BPS di sini hanya jumlah kelurahan/RW/RT
+     * (var 155). Luas wilayah bersumber dari publikasi cetak dan ditulis tetap.
+     */
     public function run(): void
     {
         // Data geografis kota
-        $geo = DataGeografis::create([
-            'tahun'           => 2024,
-            'luas_kota_km2'   => 129.54,
-            'ketinggian_mdpl' => 7,
-            'sumber'          => 'Kota Jakarta Barat Dalam Angka 2025 (BPS)',
-        ]);
+        $geo = DataGeografis::updateOrCreate(
+            ['tahun' => 2024],
+            [
+                'luas_kota_km2'   => 129.54,
+                'ketinggian_mdpl' => 7,
+                'sumber'          => 'Kota Jakarta Barat Dalam Angka 2025 (BPS)',
+            ],
+        );
 
         // Luas per kecamatan (BPS var 33)
         $data = [
@@ -61,18 +71,29 @@ class GeografisSeeder extends Seeder
         $admin = $this->fetchAdmin();
 
         foreach ($data as $item) {
-            $kecamatan = Kecamatan::create(['nama_kecamatan' => $item['nama']]);
+            // firstOrCreate: kecamatan adalah master bersama, jangan pernah
+            // diganti — id-nya dipakai sebagai foreign key oleh modul lain.
+            $kecamatan = Kecamatan::firstOrCreate(['nama_kecamatan' => $item['nama']]);
             $adm       = $admin[$item['nama']] ?? [];
 
-            LuasKecamatan::create([
-                'kecamatan_id'      => $kecamatan->id,
-                'data_geografis_id' => $geo->id,
-                'luas_km2'          => $item['luas'],
-                'persentase'        => $item['persen'],
-                'jumlah_kelurahan'  => $adm['kelurahan'] ?? null,
-                'jumlah_rw'         => $adm['rw'] ?? null,
-                'jumlah_rt'         => $adm['rt'] ?? null,
-            ]);
+            $nilai = [
+                'luas_km2'   => $item['luas'],
+                'persentase' => $item['persen'],
+            ];
+
+            // Kelurahan/RW/RT hanya ditulis bila BPS benar-benar mengirimnya.
+            // Kalau permintaan gagal, nilai yang sudah ada (termasuk yang
+            // diisi manual lewat portal) dibiarkan, bukan ditimpa jadi null.
+            foreach (['kelurahan' => 'jumlah_kelurahan', 'rw' => 'jumlah_rw', 'rt' => 'jumlah_rt'] as $dari => $kolom) {
+                if (isset($adm[$dari])) {
+                    $nilai[$kolom] = $adm[$dari];
+                }
+            }
+
+            LuasKecamatan::updateOrCreate(
+                ['kecamatan_id' => $kecamatan->id, 'data_geografis_id' => $geo->id],
+                $nilai,
+            );
         }
     }
 

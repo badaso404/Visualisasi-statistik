@@ -6,11 +6,13 @@ use App\Models\Kecamatan;
 use App\Models\PendudukKecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 class KependudukanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -55,6 +57,8 @@ class KependudukanTest extends TestCase
 
     public function test_batch_menyimpan_banyak_kecamatan_sekaligus(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $a = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         $b = Kecamatan::create(['nama_kecamatan' => 'Duren Sawit']);
         $c = Kecamatan::create(['nama_kecamatan' => 'Matraman']);
@@ -78,6 +82,8 @@ class KependudukanTest extends TestCase
 
     public function test_batch_memperbarui_data_yang_sudah_ada_bukan_menduplikat(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         PendudukKecamatan::create(['kecamatan_id' => $k->id, 'tahun' => 2025, 'jumlah_penduduk' => 100]);
 

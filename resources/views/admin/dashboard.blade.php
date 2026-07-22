@@ -12,6 +12,9 @@
             ['pendidikan',   'Pendidikan',   'bi-mortarboard',            'admin.pendidikan.index',   'danger'],
             ['kesehatan',    'Kesehatan',    'bi-heart-pulse',            'admin.kesehatan.index',    'secondary'],
             ['bencana',      'Kebencanaan','bi-exclamation-triangle', 'admin.bencana.index',      'danger'],
+            ['kemiskinan',   'Kemiskinan',   'bi-hand-thumbs-down',       'admin.kemiskinan.index',   'warning'],
+            ['perekonomian', 'Perekonomian', 'bi-graph-up-arrow',         'admin.perekonomian.index', 'success'],
+            ['infrastruktur digital', 'Infrastruktur Digital', 'bi-wifi', 'admin.infrastruktur-digital.index', 'info'],
         ];
     @endphp
     @foreach ($cards as [$key, $label, $icon, $route, $color])

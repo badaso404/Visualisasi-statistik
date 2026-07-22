@@ -7,6 +7,7 @@ use App\Models\PendudukKelurahan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 /**
@@ -16,6 +17,7 @@ use Tests\TestCase;
 class ImportKelurahanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -32,6 +34,8 @@ class ImportKelurahanTest extends TestCase
 
     public function test_import_membuat_baris_baru(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         Kecamatan::create(['nama_kecamatan' => 'Kebon Jeruk']);
 
         $csv = "kecamatan,tahun,nama_kelurahan,latitude,longitude,jumlah_penduduk\n"
@@ -51,6 +55,8 @@ class ImportKelurahanTest extends TestCase
 
     public function test_import_memperbarui_termasuk_koordinat(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Kebon Jeruk']);
         PendudukKelurahan::create([
             'kecamatan_id'    => $k->id,
@@ -76,6 +82,8 @@ class ImportKelurahanTest extends TestCase
 
     public function test_import_melewati_baris_bermasalah_tapi_menyimpan_sisanya(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         Kecamatan::create(['nama_kecamatan' => 'Kebon Jeruk']);
 
         $csv = "kecamatan,tahun,nama_kelurahan,latitude,longitude,jumlah_penduduk\n"
@@ -94,6 +102,8 @@ class ImportKelurahanTest extends TestCase
 
     public function test_import_menerima_pemisah_titik_koma(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         Kecamatan::create(['nama_kecamatan' => 'Kebon Jeruk']);
 
         $csv = "kecamatan;tahun;nama_kelurahan;latitude;longitude;jumlah_penduduk\n"
@@ -137,6 +147,8 @@ class ImportKelurahanTest extends TestCase
 
     public function test_tambah_dan_ubah_baris_kelurahan(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Kebon Jeruk']);
 
         $this->actingAs($this->admin())

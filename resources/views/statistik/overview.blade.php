@@ -204,13 +204,19 @@
         {{-- TABEL LINTAS MODUL PER KECAMATAN --}}
         @if ($perKecamatan->isNotEmpty())
         <div class="chart-card">
-            <div class="chart-title">Ringkasan per Kecamatan</div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div class="chart-title">Ringkasan per Kecamatan</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-overview-kecamatan',
+                    'nama'   => 'ringkasan-per-kecamatan',
+                ])
+            </div>
             <div class="chart-hint">
                 Setiap kolom berasal dari modul berbeda pada tahun terbarunya masing-masing,
                 sehingga angkanya tidak selalu setahun. Tanda &mdash; berarti data belum diisi.
             </div>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-overview-kecamatan" data-unduh-angka="id">
                     <thead>
                         <tr>
                             <th>Kecamatan</th>

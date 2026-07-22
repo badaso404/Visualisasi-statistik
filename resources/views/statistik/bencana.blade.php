@@ -250,10 +250,14 @@
                     <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
                     <input type="text" id="bencana-search" class="form-control" placeholder="Cari periode atau jenis">
                 </div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-bencana-rekap',
+                    'nama'   => 'rekap-bencana-' . $tahun,
+                ])
             </div>
         </div>
         <div style="overflow-x:auto;">
-            <table class="bencana-table">
+            <table class="bencana-table" id="tabel-bencana-rekap" data-unduh-angka="en">
                 <thead>
                     <tr>
                         <th>Periode</th><th>Triwulan</th><th>Jenis Bencana</th>

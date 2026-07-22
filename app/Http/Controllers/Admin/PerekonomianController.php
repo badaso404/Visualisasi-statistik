@@ -2,65 +2,23 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\Concerns\CsvPerPeriode;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\DataPerekonomian;
 use App\Models\PdrbSektor;
 use Illuminate\Http\Request;
 
+/**
+ * Ringkasan PDRB tingkat kota — satu baris per tahun.
+ *
+ * Sengaja TANPA export/import CSV: satu tahun hanya berisi tiga angka, jadi
+ * mengunduh template lalu mengunggah berkas justru lebih lama daripada mengetik
+ * langsung di modal. Rincian per lapangan usaha (17 baris per tahun) yang butuh
+ * CSV, dan itu ditangani PdrbSektorController.
+ */
 class PerekonomianController extends Controller
 {
-    use CsvPerPeriode;
     use ValidasiPeriodeUnik;
-
-    /* ── CSV: ringkasan tahunan, satu baris per tahun ─────────────────── */
-
-    protected function csvNama(): string
-    {
-        return 'perekonomian';
-    }
-
-    protected function csvModel(): string
-    {
-        return DataPerekonomian::class;
-    }
-
-    protected function csvKunci(): array
-    {
-        return ['tahun'];
-    }
-
-    protected function csvKolom(): array
-    {
-        return [
-            'pdrb_adhb'        => 'desimal',
-            'pdrb_adhk'        => 'desimal',
-            'laju_pertumbuhan' => 'desimal',
-            'sumber'           => 'teks',
-        ];
-    }
-
-    /** `sumber` boleh kosong (nullable), sisanya NOT NULL. */
-    protected function csvKolomWajib(): array
-    {
-        return ['pdrb_adhb', 'pdrb_adhk', 'laju_pertumbuhan'];
-    }
-
-    protected function csvContoh(): array
-    {
-        return [
-            'pdrb_adhb'        => 627869621.19,
-            'pdrb_adhk'        => 383113079.03,
-            'laju_pertumbuhan' => 5.27,
-            'sumber'           => 'BPS Kota Jakarta Barat',
-        ];
-    }
-
-    protected function csvRedirect(): string
-    {
-        return 'admin.perekonomian.index';
-    }
 
     public function index()
     {

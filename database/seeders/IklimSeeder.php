@@ -31,10 +31,15 @@ class IklimSeeder extends Seeder
             return;
         }
 
-        DataIklim::truncate();   // idempoten — hanya data BPS yang ditampilkan
-
+        // updateOrCreate, bukan truncate: seeder ini juga dipakai tombol
+        // "Sinkronkan BPS" di portal, dan mengosongkan tabel akan melenyapkan
+        // bulan-bulan yang ditambal manual operator (BPS kerap belum merilis
+        // bulan terakhir). Kunci barisnya tahun + bulan.
         foreach ($rows as $row) {
-            DataIklim::create($row);
+            DataIklim::updateOrCreate(
+                ['tahun' => $row['tahun'], 'bulan' => $row['bulan']],
+                $row,
+            );
         }
 
         $tahunUnik = array_values(array_unique(array_map(fn ($r) => $r['tahun'], $rows)));

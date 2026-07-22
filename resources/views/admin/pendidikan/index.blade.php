@@ -10,14 +10,17 @@
 <div class="tab-content">
     {{-- ================= Ringkasan APM/APK ================= --}}
     <div class="tab-pane fade show active" id="tab-ringkasan">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h6 class="mb-0">Pendidikan (ringkasan APM/APK per tahun)</h6>
+            <div class="d-flex gap-2 flex-wrap">
+            <x-admin.sync-bps modul="pendidikan" isi="APM/APK dan rincian sekolah per kecamatan" />
             <button class="btn btn-primary btn-sm"
                     data-modal-form="#modalPendidikan"
                     data-action="{{ route('admin.pendidikan.store') }}"
                     data-title="Tambah Pendidikan">
                 <i class="bi bi-plus-lg"></i> Tambah
             </button>
+            </div>
         </div>
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
@@ -179,7 +182,7 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Tahun</label>
-        <input type="number" name="tahun" value="{{ old('tahun') }}" class="form-control" required>
+        <x-admin.tahun-induk :induk="$items" sebutan="ringkasan pendidikan" tab="tab Ringkasan" />
     </div>
     <div class="row g-3 mb-3">
         <div class="col-md-6">

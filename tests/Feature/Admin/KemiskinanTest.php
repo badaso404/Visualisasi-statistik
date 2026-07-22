@@ -5,11 +5,13 @@ namespace Tests\Feature\Admin;
 use App\Models\Kecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 class KemiskinanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -44,6 +46,8 @@ class KemiskinanTest extends TestCase
     /** Kolom persentase bertipe desimal — batch tidak boleh membulatkannya. */
     public function test_batch_menerima_nilai_desimal(): void
     {
+        $this->indukKemiskinan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
         $this->actingAs($this->admin())

@@ -7,6 +7,8 @@
       $existing     - koleksi data tahun terpilih, di-key by kecamatan_id
       $tahun        - tahun yang sedang dibuka
       $tahunAda     - daftar tahun yang sudah punya data
+      $tahunInduk   - tahun yang sudah punya ringkasan induk (kosong = tak terikat)
+      $sebutanInduk - sebutan ringkasan induk untuk pesan, null bila tak terikat
       $routeBatch   - nama route form (GET)
       $routeSimpan  - nama route simpan (POST)
       $routeKembali - nama route index modul
@@ -27,9 +29,26 @@
     <div class="card-body d-flex align-items-end gap-2 flex-wrap">
         <div>
             <label class="form-label mb-1">Tahun</label>
-            <input type="number" name="tahun" value="{{ $tahun }}" class="form-control" style="width:140px" required>
+            {{--
+                Modul yang terikat induk hanya boleh diisi pada tahun yang
+                ringkasannya sudah ada: halaman publik menyusun daftar tahunnya
+                dari induk, jadi tahun lain tersimpan tapi tak pernah tampil.
+            --}}
+            @if ($sebutanInduk)
+                <select name="tahun" class="form-select" style="width:140px" required>
+                    @forelse ($tahunInduk as $t)
+                        <option value="{{ $t }}" @selected($t == $tahun)>{{ $t }}</option>
+                    @empty
+                        <option value="">— belum ada —</option>
+                    @endforelse
+                </select>
+            @else
+                <input type="number" name="tahun" value="{{ $tahun }}" class="form-control" style="width:140px" required>
+            @endif
         </div>
-        <button class="btn btn-outline-primary"><i class="bi bi-arrow-repeat"></i> Muat Tahun Ini</button>
+        <button class="btn btn-outline-primary" @disabled($sebutanInduk && $tahunInduk->isEmpty())>
+            <i class="bi bi-arrow-repeat"></i> Muat Tahun Ini
+        </button>
         @if ($tahunAda->isNotEmpty())
             <div class="ms-auto small text-muted align-self-center">
                 Tahun tersedia:
@@ -40,6 +59,13 @@
             </div>
         @endif
     </div>
+    @if ($sebutanInduk && $tahunInduk->isEmpty())
+        <div class="card-footer bg-warning-subtle border-0 small">
+            <i class="bi bi-exclamation-triangle"></i>
+            Belum ada {{ $sebutanInduk }} satu tahun pun. Isi ringkasan tahunannya lebih dulu —
+            tanpa itu data per kecamatan tersimpan tetapi tidak akan tampil di situs publik.
+        </div>
+    @endif
 </form>
 
 <form method="POST" action="{{ route($routeSimpan) }}">

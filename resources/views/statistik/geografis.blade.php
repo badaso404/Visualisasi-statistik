@@ -291,12 +291,13 @@
                 <div class="tbl-title">Tabel Geografis Rinci</div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <input class="geo-search-input" type="text" id="geo-search" placeholder="Cari kecamatan..." oninput="filterTable()">
-                    <button type="button" class="btn-export-csv" onclick="exportTableCSV()">
-                        <i class="fa fa-file-csv"></i> Export CSV
-                    </button>
+                    @include('statistik.partials.unduh-tabel', [
+                        'target' => '#geo-table',
+                        'nama'   => 'geografis-jakarta-barat-' . $tahun,
+                    ])
                 </div>
             </div>
-            <table class="geo-table" id="geo-table">
+            <table class="geo-table" id="geo-table" data-unduh-angka="id">
                 <thead>
                     <tr>
                         <th>Kecamatan</th>
@@ -512,42 +513,7 @@ function setView(v) {
     document.getElementById('btn-table-view').classList.toggle('active', v === 'table');
 }
 
-// ── Export tabel ke CSV (kompatibel Excel) ────────────────────
-function exportTableCSV() {
-    var table = document.getElementById('geo-table');
-    var rows = [];
-
-    // Header
-    var head = [];
-    table.querySelectorAll('thead th').forEach(function(th) { head.push(th.textContent.trim()); });
-    rows.push(head);
-
-    // Semua baris (abaikan pagination display:none), buang pemisah ribuan agar angka bersih
-    table.querySelectorAll('tbody tr').forEach(function(tr) {
-        var row = [];
-        tr.querySelectorAll('td').forEach(function(td, i) {
-            var txt = td.textContent.trim();
-            if (i > 0) txt = txt.replace(/\./g, '').replace(',', '.');  // "1.234,5" → "1234.5"
-            row.push(txt);
-        });
-        rows.push(row);
-    });
-
-    var csv = rows.map(function(r) {
-        return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
-    }).join('\r\n');
-
-    // BOM agar UTF-8 terbaca benar di Excel
-    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href = url;
-    a.download = 'tabel-geografis-jakarta-barat.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+// Unduh CSV ditangani statistik.partials.unduh-tabel (dipakai semua modul).
 </script>
 
 <script>

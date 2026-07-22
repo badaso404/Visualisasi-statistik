@@ -181,9 +181,15 @@
 
         {{-- TABEL SEKTOR --}}
         <div class="chart-card">
-            <div class="chart-title">Lapangan Usaha Terbesar {{ $tahun }}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div class="chart-title" style="margin-bottom:0;">Lapangan Usaha Terbesar {{ $tahun }}</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-lapangan-usaha',
+                    'nama'   => 'lapangan-usaha-' . $tahun,
+                ])
+            </div>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-lapangan-usaha" data-unduh-angka="id">
                     <thead>
                         <tr>
                             <th>Kategori</th>
@@ -240,9 +246,15 @@
 
         {{-- RINGKASAN ANTAR-TAHUN --}}
         <div class="chart-card">
-            <div class="chart-title">Ringkasan Antar-Tahun</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div class="chart-title" style="margin-bottom:0;">Ringkasan Antar-Tahun</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-perekonomian-tahun',
+                    'nama'   => 'perekonomian-antar-tahun',
+                ])
+            </div>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-perekonomian-tahun" data-unduh-angka="id">
                     <thead>
                         <tr>
                             <th>Tahun</th>

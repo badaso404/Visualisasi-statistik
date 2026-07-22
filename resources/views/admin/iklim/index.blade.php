@@ -6,14 +6,18 @@
 @endphp
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h5 class="mb-0">Data Iklim (per bulan)</h5>
-    <button class="btn btn-primary btn-sm"
-            data-modal-form="#modalIklim"
-            data-action="{{ route('admin.iklim.store') }}"
-            data-title="Tambah Data Iklim">
-        <i class="bi bi-plus-lg"></i> Tambah
-    </button>
+    <div class="d-flex gap-2 flex-wrap">
+        <x-admin.sync-bps modul="iklim" isi="data iklim bulanan" />
+        <x-admin.csv-tools prefix="admin.iklim" judul="Data Iklim" kunci="tahun + bulan" />
+        <button class="btn btn-primary btn-sm"
+                data-modal-form="#modalIklim"
+                data-action="{{ route('admin.iklim.store') }}"
+                data-title="Tambah Data Iklim">
+            <i class="bi bi-plus-lg"></i> Tambah
+        </button>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm">

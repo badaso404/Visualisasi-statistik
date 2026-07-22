@@ -645,7 +645,13 @@
                 total, aktif, Math.max(0, total - aktif),
             ].join(','));
         });
-        var blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        // Export ini sengaja tidak memakai statistik.partials.unduh-tabel:
+        // ia menghitung kolom turunan (Offline = total - aktif) dan hanya
+        // mengambil baris yang lolos filter pencarian, dua hal yang tidak bisa
+        // disimpulkan dari tabel apa adanya.
+        //
+        // BOM agar Excel membaca berkas sebagai UTF-8, sama seperti modul lain.
+        var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'rincian-infrastruktur-digital-{{ $tahun }}.csv';

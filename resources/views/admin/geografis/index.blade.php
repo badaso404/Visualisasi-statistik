@@ -10,14 +10,17 @@
 <div class="tab-content">
     {{-- ================= Ringkasan ================= --}}
     <div class="tab-pane fade show active" id="tab-ringkasan">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h6 class="mb-0">Data Geografis (ringkasan)</h6>
+            <div class="d-flex gap-2 flex-wrap">
+            <x-admin.sync-bps modul="geografis" isi="jumlah kelurahan/RW/RT per kecamatan" />
             <button class="btn btn-primary btn-sm"
                     data-modal-form="#modalGeografis"
                     data-action="{{ route('admin.geografis.store') }}"
                     data-title="Tambah Data Geografis">
                 <i class="bi bi-plus-lg"></i> Tambah
             </button>
+            </div>
         </div>
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
@@ -59,20 +62,26 @@
 
     {{-- ================= Luas per kecamatan ================= --}}
     <div class="tab-pane fade" id="tab-luas">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h6 class="mb-0">Luas per Kecamatan</h6>
-            <button class="btn btn-primary btn-sm"
-                    data-modal-form="#modalLuasKecamatan"
-                    data-action="{{ route('admin.luas-kecamatan.store') }}"
-                    data-title="Tambah Luas Kecamatan">
-                <i class="bi bi-plus-lg"></i> Tambah
-            </button>
+            <div class="d-flex gap-2 flex-wrap">
+                <x-admin.csv-tools prefix="admin.luas-kecamatan" judul="Luas per Kecamatan" kunci="kecamatan + tahun" />
+                <button class="btn btn-primary btn-sm"
+                        data-modal-form="#modalLuasKecamatan"
+                        data-action="{{ route('admin.luas-kecamatan.store') }}"
+                        data-title="Tambah Luas Kecamatan">
+                    <i class="bi bi-plus-lg"></i> Tambah
+                </button>
+            </div>
         </div>
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
-                        <tr><th>Kecamatan</th><th>Tahun Data</th><th>Luas (km²)</th><th>Persentase (%)</th><th class="text-end">Aksi</th></tr>
+                        <tr>
+                            <th>Kecamatan</th><th>Tahun Data</th><th>Luas (km²)</th><th>Persentase (%)</th>
+                            <th>Kelurahan</th><th>RW</th><th>RT</th><th class="text-end">Aksi</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @forelse ($luas as $row)
@@ -81,13 +90,16 @@
                                 <td>{{ $row->dataGeografis->tahun ?? '-' }}</td>
                                 <td>{{ $row->luas_km2 }}</td>
                                 <td>{{ $row->persentase }}</td>
+                                <td>{{ $row->jumlah_kelurahan ?? '-' }}</td>
+                                <td>{{ $row->jumlah_rw ?? '-' }}</td>
+                                <td>{{ $row->jumlah_rt ?? '-' }}</td>
                                 <td class="text-end text-nowrap">
                                     <button class="btn btn-sm btn-outline-primary"
                                             data-modal-form="#modalLuasKecamatan"
                                             data-action="{{ route('admin.luas-kecamatan.update', $row) }}"
                                             data-method="PUT"
                                             data-title="Edit Luas {{ $row->kecamatan->nama_kecamatan ?? '' }}"
-                                            data-fields="{{ json_encode($row->only(['kecamatan_id', 'data_geografis_id', 'luas_km2', 'persentase'])) }}">
+                                            data-fields="{{ json_encode($row->only(['kecamatan_id', 'data_geografis_id', 'luas_km2', 'persentase', 'jumlah_kelurahan', 'jumlah_rw', 'jumlah_rt'])) }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <form action="{{ route('admin.luas-kecamatan.destroy', $row) }}" method="POST" class="d-inline"
@@ -98,7 +110,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data.</td></tr>
+                            <tr><td colspan="8" class="text-center text-muted py-4">Belum ada data.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -153,9 +165,28 @@
         <label class="form-label">Luas (km²)</label>
         <input type="number" step="0.01" name="luas_km2" value="{{ old('luas_km2') }}" class="form-control" required>
     </div>
-    <div>
+    <div class="mb-3">
         <label class="form-label">Persentase (%)</label>
         <input type="number" step="0.01" name="persentase" value="{{ old('persentase') }}" class="form-control" required>
+    </div>
+    {{--
+        Kelurahan/RW/RT bersumber BPS var 155 dan boleh kosong. Sebelumnya hanya
+        bisa diisi lewat seeder padahal ikut tampil di halaman publik, sehingga
+        koreksi kecil pun mengharuskan akses server.
+    --}}
+    <div class="row g-2">
+        <div class="col-4">
+            <label class="form-label">Kelurahan</label>
+            <input type="number" min="0" name="jumlah_kelurahan" value="{{ old('jumlah_kelurahan') }}" class="form-control" placeholder="opsional">
+        </div>
+        <div class="col-4">
+            <label class="form-label">RW</label>
+            <input type="number" min="0" name="jumlah_rw" value="{{ old('jumlah_rw') }}" class="form-control" placeholder="opsional">
+        </div>
+        <div class="col-4">
+            <label class="form-label">RT</label>
+            <input type="number" min="0" name="jumlah_rt" value="{{ old('jumlah_rt') }}" class="form-control" placeholder="opsional">
+        </div>
     </div>
 </x-admin.modal-form>
 @endsection

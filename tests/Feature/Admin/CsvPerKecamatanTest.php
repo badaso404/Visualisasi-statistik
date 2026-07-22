@@ -8,11 +8,13 @@ use App\Models\PendudukKecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 class CsvPerKecamatanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -56,6 +58,8 @@ class CsvPerKecamatanTest extends TestCase
 
     public function test_import_membuat_dan_memperbarui_baris(): void
     {
+        $this->indukPendidikan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         PendidikanKecamatan::create([
             'kecamatan_id'          => $k->id,
@@ -80,6 +84,8 @@ class CsvPerKecamatanTest extends TestCase
 
     public function test_import_menerima_pemisah_titik_koma(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
         $csv = "kecamatan;tahun;jumlah_penduduk\nCakung;2025;9999\n";
@@ -92,6 +98,8 @@ class CsvPerKecamatanTest extends TestCase
 
     public function test_import_melewati_kecamatan_tak_dikenal(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
         $csv = "kecamatan,tahun,jumlah_penduduk\nEntahDimana,2025,500\nCakung,2025,700\n";

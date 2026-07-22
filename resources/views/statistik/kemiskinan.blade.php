@@ -195,9 +195,15 @@
 
         {{-- TABEL RINGKASAN ANTAR-TAHUN (data BPS) --}}
         <div class="chart-card">
-            <div class="chart-title">Ringkasan Antar-Tahun</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div class="chart-title" style="margin-bottom:0;">Ringkasan Antar-Tahun</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-kemiskinan-tahun',
+                    'nama'   => 'kemiskinan-antar-tahun',
+                ])
+            </div>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-kemiskinan-tahun" data-unduh-angka="id">
                     <thead>
                         <tr>
                             <th>Tahun</th>
@@ -268,9 +274,15 @@
         </div>
 
         <div class="chart-card">
-            <div class="chart-title">Data Per Kecamatan</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div class="chart-title" style="margin-bottom:0;">Data Per Kecamatan</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-kemiskinan-kecamatan',
+                    'nama'   => 'kemiskinan-per-kecamatan-' . $tahun,
+                ])
+            </div>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-kemiskinan-kecamatan" data-unduh-angka="id">
                     <thead>
                         <tr>
                             <th>Kecamatan</th>

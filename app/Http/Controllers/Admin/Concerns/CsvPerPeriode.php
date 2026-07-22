@@ -47,9 +47,81 @@ trait CsvPerPeriode
         return [];
     }
 
+    /**
+     * Pemeriksaan tambahan atas kolom kunci sebuah baris CSV, mis. bulan harus
+     * 1-12. Kembalikan pesan galat untuk melewati baris, atau null bila lolos.
+     *
+     * Menerima kunci yang SUDAH diterjemahkan ke bentuk database. Tanpa ini
+     * nilai di luar jangkauan baru ketahuan sebagai error database di tengah
+     * impor, dan seluruh berkas ikut dibatalkan.
+     */
+    protected function csvKunciValid(array $kunci): ?string
+    {
+        return null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kunci berkas vs kunci database
+    |--------------------------------------------------------------------------
+    |
+    | Bawaannya keduanya sama: kolom kunci di CSV persis kolom kunci di tabel.
+    | Tabel anak yang periodenya dipegang tabel induk (mis. luas_kecamatan yang
+    | tahunnya ada di data_geografis) menimpa tiga method di bawah supaya
+    | operator tetap menulis 'kecamatan' dan 'tahun' yang bisa dibaca manusia,
+    | bukan id yang hanya berarti bagi database.
+    |
+    */
+
+    /** Nama kolom kunci sebagaimana ditulis di berkas CSV. */
+    protected function csvKunciCsv(): array
+    {
+        return $this->csvKunci();
+    }
+
+    /**
+     * Terjemahkan nilai kunci dari berkas menjadi kunci database.
+     * Kembalikan array [kolom_db => nilai], atau string berisi pesan galat
+     * untuk melewati baris tersebut.
+     */
+    protected function csvKunciKeDatabase(array $mentah): array|string
+    {
+        $kunci = [];
+
+        foreach ($mentah as $kolom => $isi) {
+            if ($isi === null || $isi === '' || !is_numeric($isi)) {
+                return "kolom '{$kolom}' kosong atau bukan angka";
+            }
+            $kunci[$kolom] = (int) $isi;
+        }
+
+        if (isset($kunci['tahun']) && ($kunci['tahun'] < 1900 || $kunci['tahun'] > 2100)) {
+            return 'tahun tidak valid';
+        }
+
+        return $kunci;
+    }
+
+    /** Kebalikan csvKunciKeDatabase(), dipakai saat menyusun baris export. */
+    protected function csvKunciDariRecord($record): array
+    {
+        $nilai = [];
+        foreach ($this->csvKunci() as $kolom) {
+            $nilai[] = $record->{$kolom};
+        }
+
+        return $nilai;
+    }
+
+    /** Relasi yang di-eager-load saat export, agar tidak memicu query per baris. */
+    protected function csvRelasiExport(): array
+    {
+        return [];
+    }
+
     private function csvHeader(): array
     {
-        return array_merge($this->csvKunci(), array_keys($this->csvKolom()));
+        return array_merge($this->csvKunciCsv(), array_keys($this->csvKolom()));
     }
 
     public function template()
@@ -73,9 +145,13 @@ trait CsvPerPeriode
             $query->orderBy($kunci);
         }
 
+        if ($relasi = $this->csvRelasiExport()) {
+            $query->with($relasi);
+        }
+
         $rows = $query->get()->map(function ($r) {
-            $baris = [];
-            foreach ($this->csvHeader() as $kolom) {
+            $baris = $this->csvKunciDariRecord($r);
+            foreach (array_keys($this->csvKolom()) as $kolom) {
                 $baris[] = $r->{$kolom};
             }
 
@@ -112,7 +188,7 @@ trait CsvPerPeriode
         $header = array_map(fn ($h) => strtolower(trim(str_replace("\xEF\xBB\xBF", '', (string) $h))), $header);
         $col    = array_flip($header);
 
-        foreach ($this->csvKunci() as $wajib) {
+        foreach ($this->csvKunciCsv() as $wajib) {
             if (!isset($col[$wajib])) {
                 fclose($handle);
 
@@ -140,18 +216,19 @@ trait CsvPerPeriode
 
                     $ambil = fn ($key) => isset($col[$key], $data[$col[$key]]) ? trim((string) $data[$col[$key]]) : null;
 
-                    $kunci = [];
-                    foreach ($this->csvKunci() as $kolom) {
-                        $isi = $ambil($kolom);
-                        if ($isi === null || $isi === '' || !is_numeric($isi)) {
-                            $gagal[] = "Baris {$baris}: kolom '{$kolom}' kosong atau bukan angka";
-                            continue 2;
-                        }
-                        $kunci[$kolom] = (int) $isi;
+                    $mentah = [];
+                    foreach ($this->csvKunciCsv() as $kolom) {
+                        $mentah[$kolom] = $ambil($kolom);
                     }
 
-                    if (isset($kunci['tahun']) && ($kunci['tahun'] < 1900 || $kunci['tahun'] > 2100)) {
-                        $gagal[] = "Baris {$baris}: tahun tidak valid";
+                    $kunci = $this->csvKunciKeDatabase($mentah);
+                    if (is_string($kunci)) {
+                        $gagal[] = "Baris {$baris}: {$kunci}";
+                        continue;
+                    }
+
+                    if ($keluhan = $this->csvKunciValid($kunci)) {
+                        $gagal[] = "Baris {$baris}: {$keluhan}";
                         continue;
                     }
 

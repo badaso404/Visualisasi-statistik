@@ -26,9 +26,9 @@ class KemiskinanSeeder extends Seeder
             return;
         }
 
-        // Bersihkan data lama agar seeder idempoten
-        KemiskinanKecamatan::truncate();   // kosongkan estimasi lama; kini hanya data BPS ditampilkan
-        DataKemiskinan::truncate();
+        // Tidak ada truncate: seeder ini juga dipakai tombol "Sinkronkan BPS" di
+        // portal, dan mengosongkan tabel akan melenyapkan tahun yang diisi
+        // manual operator. Baris dicocokkan per tahun lewat updateOrCreate.
 
         /* ── ESTIMASI PER-KECAMATAN (DINONAKTIFKAN) ───────────────────────────
            BPS hanya merilis kemiskinan sampai level kota, tidak ada rincian per
@@ -52,15 +52,17 @@ class KemiskinanSeeder extends Seeder
             // 58 = Jumlah Penduduk Miskin (ribu orang) → dikonversi ke jiwa
             $totalMiskin = (int) round(($ind[58] ?? 0) * 1000);
 
-            DataKemiskinan::create([
-                'tahun'                      => $tahun,
-                'jumlah_penduduk_miskin'     => $totalMiskin,
-                'persentase_penduduk_miskin' => $ind[59] ?? 0,   // Persentase (%)
-                'garis_kemiskinan'           => $ind[60] ?? 0,   // Garis Kemiskinan (Rp/kapita/bulan)
-                'indeks_kedalaman'           => $ind[61] ?? 0,   // P1
-                'indeks_keparahan'           => $ind[62] ?? 0,   // P2
-                'sumber'                     => 'BPS Kota Jakarta Barat (webapi.bps.go.id), var 117',
-            ]);
+            DataKemiskinan::updateOrCreate(
+                ['tahun' => $tahun],
+                [
+                    'jumlah_penduduk_miskin'     => $totalMiskin,
+                    'persentase_penduduk_miskin' => $ind[59] ?? 0,   // Persentase (%)
+                    'garis_kemiskinan'           => $ind[60] ?? 0,   // Garis Kemiskinan (Rp/kapita/bulan)
+                    'indeks_kedalaman'           => $ind[61] ?? 0,   // P1
+                    'indeks_keparahan'           => $ind[62] ?? 0,   // P2
+                    'sumber'                     => 'BPS Kota Jakarta Barat (webapi.bps.go.id), var 117',
+                ],
+            );
 
             /* ── Estimasi distribusi per-kecamatan (DINONAKTIFKAN, lihat catatan di atas) ──
             foreach ($bobot as $nama => $w) {

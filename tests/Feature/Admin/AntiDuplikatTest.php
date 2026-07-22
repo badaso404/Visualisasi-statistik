@@ -8,6 +8,7 @@ use App\Models\Kecamatan;
 use App\Models\PendudukKecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 /**
@@ -18,6 +19,7 @@ use Tests\TestCase;
 class AntiDuplikatTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -48,6 +50,8 @@ class AntiDuplikatTest extends TestCase
 
     public function test_per_kecamatan_tidak_boleh_kembar(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $admin = $this->admin();
         $k     = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
@@ -65,6 +69,8 @@ class AntiDuplikatTest extends TestCase
     /** Kecamatan berbeda pada tahun sama tetap boleh — kunci gabungan, bukan tahun saja. */
     public function test_kecamatan_berbeda_tahun_sama_tetap_boleh(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $admin = $this->admin();
         $a     = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         $b     = Kecamatan::create(['nama_kecamatan' => 'Matraman']);
@@ -83,6 +89,8 @@ class AntiDuplikatTest extends TestCase
     /** Menyimpan baris yang sama tanpa mengubah tahun tidak boleh dianggap bentrok dengan dirinya sendiri. */
     public function test_edit_baris_yang_sama_tidak_dianggap_duplikat(): void
     {
+        $this->indukKependudukan(2024, 2025, 2026);
+
         $admin = $this->admin();
         $k     = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         $row   = PendudukKecamatan::create(['kecamatan_id' => $k->id, 'tahun' => 2025, 'jumlah_penduduk' => 100]);

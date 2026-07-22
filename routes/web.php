@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\KemiskinanController;
 use App\Http\Controllers\Admin\KemiskinanKecamatanController;
 use App\Http\Controllers\Admin\PerekonomianController;
 use App\Http\Controllers\Admin\PdrbSektorController;
+use App\Http\Controllers\Admin\SinkronisasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,9 +33,10 @@ use App\Http\Controllers\Admin\PdrbSektorController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Situs ini hanya punya satu wajah publik, yaitu portal statistik. Root
+// dialihkan ke sana supaya tautan "Lihat situs" di panel admin dan tautan yang
+// disebar ke luar sama-sama mendarat di halaman yang benar.
+Route::redirect('/', '/statistik')->name('home');
 
 Route::prefix('statistik')->name('statistik.')->group(function () {
     // Ringkasan lintas modul; jadi halaman pembuka /statistik sekaligus.
@@ -57,10 +59,14 @@ Route::prefix('statistik')->name('statistik.')->group(function () {
 */
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    // Login (hanya untuk yang belum masuk)
+    // Login (hanya untuk yang belum masuk). Percobaan masuk dibatasi karena ini
+    // satu-satunya pintu ke seluruh data: tanpa itu tebak-tebakan sandi bisa
+    // dijalankan tanpa hambatan.
     Route::middleware('guest')->group(function () {
         Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-        Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
+        Route::post('login', [AuthController::class, 'login'])
+            ->middleware('throttle:login')
+            ->name('login.attempt');
     });
 
     // Area admin (wajib login)
@@ -69,6 +75,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        // Sinkronisasi BPS WebAPI per modul. Dibatasi karena satu penekanan
+        // memicu puluhan permintaan keluar ke BPS; menekan berulang-ulang hanya
+        // memperbesar peluang kena WAF, bukan mempercepat.
+        Route::post('sinkronisasi/{modul}', SinkronisasiController::class)
+            ->middleware('throttle:3,1')
+            ->name('sinkronisasi');
+
         Route::resource('kecamatan', KecamatanController::class)
             ->parameters(['kecamatan' => 'kecamatan'])
             ->only(['index', 'store', 'update', 'destroy']);
@@ -76,11 +89,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Geografis + detail luas kecamatan (form berupa modal di halaman index)
         Route::resource('geografis', GeografisController::class)
             ->only(['index', 'store', 'update', 'destroy']);
+        Route::get('luas-kecamatan/export', [LuasKecamatanController::class, 'export'])->name('luas-kecamatan.export');
+        Route::get('luas-kecamatan/template', [LuasKecamatanController::class, 'template'])->name('luas-kecamatan.template');
+        Route::post('luas-kecamatan/import', [LuasKecamatanController::class, 'import'])->name('luas-kecamatan.import');
         Route::resource('luas-kecamatan', LuasKecamatanController::class)
             ->parameters(['luas-kecamatan' => 'luasKecamatan'])
             ->only(['store', 'update', 'destroy']);
 
-        // Iklim
+        // Iklim (12 baris per tahun — CSV jadi jalur utama pengisian)
+        Route::get('iklim/export', [IklimController::class, 'export'])->name('iklim.export');
+        Route::get('iklim/template', [IklimController::class, 'template'])->name('iklim.template');
+        Route::post('iklim/import', [IklimController::class, 'import'])->name('iklim.import');
         Route::resource('iklim', IklimController::class)
             ->only(['index', 'store', 'update', 'destroy']);
 
@@ -165,11 +184,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->only(['store', 'update', 'destroy']);
 
         // Perekonomian + rincian lapangan usaha (form berupa modal di halaman index).
-        // Route CSV didaftarkan sebelum resource agar 'export'/'template' tidak
-        // tertangkap sebagai parameter {perekonomian}.
-        Route::get('perekonomian/export', [PerekonomianController::class, 'export'])->name('perekonomian.export');
-        Route::get('perekonomian/template', [PerekonomianController::class, 'template'])->name('perekonomian.template');
-        Route::post('perekonomian/import', [PerekonomianController::class, 'import'])->name('perekonomian.import');
+        // Ringkasan tahunan tidak punya route CSV — lihat PerekonomianController.
         Route::resource('perekonomian', PerekonomianController::class)
             ->only(['index', 'store', 'update', 'destroy']);
 

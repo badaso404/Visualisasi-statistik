@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
 use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\TenagaKesehatanKecamatan;
@@ -12,9 +13,20 @@ use Illuminate\Http\Request;
 class TenagaKesehatanController extends Controller
 {
     use ValidasiPeriodeUnik;
+    use TahunMengikutiInduk;
 
     use IsiMassalPerKecamatan;
     use CsvPerKecamatan;
+
+    protected function tabelInduk(): ?string
+    {
+        return 'data_kesehatan';
+    }
+
+    protected function sebutanInduk(): string
+    {
+        return 'ringkasan kesehatan';
+    }
 
     protected function csvNama(): string
     {
@@ -78,15 +90,15 @@ class TenagaKesehatanController extends Controller
     {
         return $request->validate([
             'kecamatan_id' => ['required', 'exists:kecamatan,id'],
-            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100',
+            'tahun'        => array_merge($this->aturanTahunInduk(), [
                 $this->unikPerPeriode('tenaga_kesehatan_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
-            ],
+            ]),
             'jumlah_total' => ['required', 'integer', 'min:0'],
             'dokter'       => ['required', 'integer', 'min:0'],
             'perawat'      => ['required', 'integer', 'min:0'],
             'bidan'        => ['required', 'integer', 'min:0'],
             'ahli_gizi'    => ['required', 'integer', 'min:0'],
             'farmasi'      => ['required', 'integer', 'min:0'],
-        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut') + $this->pesanTahunInduk());
     }
 }

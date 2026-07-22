@@ -6,11 +6,13 @@ use App\Models\Kecamatan;
 use App\Models\PendidikanKecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 class PendidikanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -45,6 +47,8 @@ class PendidikanTest extends TestCase
 
     public function test_batch_menyimpan_empat_kolom_sekaligus(): void
     {
+        $this->indukPendidikan(2024, 2025, 2026);
+
         $a = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         $b = Kecamatan::create(['nama_kecamatan' => 'Matraman']);
 
@@ -80,6 +84,8 @@ class PendidikanTest extends TestCase
 
     public function test_batch_memperbarui_bukan_menduplikat(): void
     {
+        $this->indukPendidikan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
         PendidikanKecamatan::create([
             'kecamatan_id'          => $k->id,

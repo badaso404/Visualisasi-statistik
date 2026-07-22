@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\Kecamatan;
@@ -12,6 +13,17 @@ use Illuminate\Support\Facades\DB;
 class PendudukKelurahanController extends Controller
 {
     use ValidasiPeriodeUnik;
+    use TahunMengikutiInduk;
+
+    protected function tabelInduk(): ?string
+    {
+        return 'data_kependudukan';
+    }
+
+    protected function sebutanInduk(): string
+    {
+        return 'ringkasan kependudukan';
+    }
 
     public function store(Request $request)
     {
@@ -38,14 +50,14 @@ class PendudukKelurahanController extends Controller
     {
         return $request->validate([
             'kecamatan_id'    => ['required', 'exists:kecamatan,id'],
-            'tahun'           => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'           => $this->aturanTahunInduk(),
             'nama_kelurahan'  => ['required', 'string', 'max:255',
                 $this->unikPerPeriode('penduduk_kelurahan', ['tahun' => $request->input('tahun')], $item),
             ],
             'latitude'        => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'       => ['nullable', 'numeric', 'between:-180,180'],
             'jumlah_penduduk' => ['required', 'integer', 'min:0'],
-        ], $this->pesanPeriodeUnik('kelurahan ini untuk tahun tersebut'));
+        ], $this->pesanPeriodeUnik('kelurahan ini untuk tahun tersebut') + $this->pesanTahunInduk());
     }
 
     /** Kolom CSV yang dipakai untuk import/export/template. */
@@ -139,6 +151,13 @@ class PendudukKelurahanController extends Controller
                     $tahun   = (int) $get('tahun');
                     if ($namaKel === '' || $tahun < 1900) {
                         $gagal[] = "Baris {$baris}: nama_kelurahan/tahun tidak valid";
+                        continue;
+                    }
+
+                    // 56 kelurahan per tahun; tanpa ringkasan kependudukan tahun
+                    // itu, seluruhnya tersimpan tanpa pernah bisa dibuka publik.
+                    if (!$this->tahunPunyaInduk($tahun)) {
+                        $gagal[] = "Baris {$baris}: belum ada " . $this->sebutanInduk() . " tahun {$tahun}";
                         continue;
                     }
 

@@ -125,6 +125,14 @@ trait CsvPerKecamatan
                         continue;
                     }
 
+                    // Baris untuk tahun yang belum punya ringkasan induk tidak
+                    // akan pernah tampil di situs publik, jadi lebih baik ditolak
+                    // dengan pesan daripada tersimpan diam-diam lalu hilang.
+                    if (!$this->tahunPunyaInduk($tahun)) {
+                        $gagal[] = "Baris {$baris}: belum ada " . $this->sebutanInduk() . " tahun {$tahun}";
+                        continue;
+                    }
+
                     $nilai = [];
                     foreach ($defs as $field => $def) {
                         $isi = $ambil($field);

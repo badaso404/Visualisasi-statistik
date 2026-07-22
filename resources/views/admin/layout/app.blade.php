@@ -147,5 +147,6 @@ document.addEventListener('submit', function (e) {
     });
 @endif
 </script>
+@stack('scripts')
 </body>
 </html>

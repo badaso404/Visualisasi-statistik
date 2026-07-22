@@ -66,33 +66,38 @@ class PerekonomianSeeder extends Seeder
             return;
         }
 
+        // Tidak lagi mengosongkan tabel lebih dulu: seeder ini juga dipakai
+        // tombol "Sinkronkan BPS" di portal, dan menghapus-lalu-isi akan
+        // melenyapkan tahun yang diinput manual operator. Baris dicocokkan per
+        // tahun (ringkasan) dan per tahun+kode_sektor (rincian).
+        //
+        // Transaksinya dipertahankan supaya kegagalan di tengah tidak
+        // menyisakan sebagian tahun sudah diperbarui dan sisanya belum.
         DB::transaction(function () use ($tahunan) {
-            // delete(), bukan truncate(): TRUNCATE bersifat DDL sehingga MySQL
-            // meng-commit transaksi secara implisit dan rollback jadi mustahil.
-            PdrbSektor::query()->delete();
-            DataPerekonomian::query()->delete();
-
             foreach ($tahunan as $tahun => $isi) {
-                DataPerekonomian::create([
-                    'tahun'            => $tahun,
-                    'pdrb_adhb'        => $isi['total']['adhb'],
-                    'pdrb_adhk'        => $isi['total']['adhk'],
-                    'laju_pertumbuhan' => $isi['total']['laju_pertumbuhan'],
-                    'sumber'           => self::SUMBER,
-                ]);
+                DataPerekonomian::updateOrCreate(
+                    ['tahun' => $tahun],
+                    [
+                        'pdrb_adhb'        => $isi['total']['adhb'],
+                        'pdrb_adhk'        => $isi['total']['adhk'],
+                        'laju_pertumbuhan' => $isi['total']['laju_pertumbuhan'],
+                        'sumber'           => self::SUMBER,
+                    ],
+                );
 
                 foreach ($isi['sektor'] as $kode => $s) {
-                    PdrbSektor::create([
-                        'tahun'            => $tahun,
-                        'kode_sektor'      => $kode,
-                        'kategori'         => $s['kategori'],
-                        'nama_sektor'      => $s['nama_sektor'],
-                        // ADHK sengaja tidak disimpan per sektor — hanya tingkat
-                        // kota yang dipakai (lihat migration drop_adhk_from_pdrb_sektor).
-                        'adhb'             => $s['adhb'],
-                        'distribusi'       => $s['distribusi'],
-                        'laju_pertumbuhan' => $s['laju_pertumbuhan'],
-                    ]);
+                    PdrbSektor::updateOrCreate(
+                        ['tahun' => $tahun, 'kode_sektor' => $kode],
+                        [
+                            'kategori'         => $s['kategori'],
+                            'nama_sektor'      => $s['nama_sektor'],
+                            // ADHK sengaja tidak disimpan per sektor — hanya tingkat
+                            // kota yang dipakai (lihat migration drop_adhk_from_pdrb_sektor).
+                            'adhb'             => $s['adhb'],
+                            'distribusi'       => $s['distribusi'],
+                            'laju_pertumbuhan' => $s['laju_pertumbuhan'],
+                        ],
+                    );
                 }
             }
         });

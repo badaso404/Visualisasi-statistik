@@ -15,7 +15,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h6 class="mb-0">PDRB Jakarta Barat (ringkasan per tahun)</h6>
             <div class="d-flex gap-2 flex-wrap">
-                <x-admin.csv-tools prefix="admin.perekonomian" judul="Ringkasan Perekonomian" kunci="tahun" />
+                <x-admin.sync-bps modul="perekonomian" isi="PDRB dan 17 lapangan usaha" />
                 <button class="btn btn-primary btn-sm"
                         data-modal-form="#modalPerekonomian"
                         data-action="{{ route('admin.perekonomian.store') }}"
@@ -200,8 +200,7 @@
 <x-admin.modal-form id="modalPdrbSektor" title="Tambah Lapangan Usaha" :action="route('admin.pdrb-sektor.store')" size="modal-lg">
     <div class="row g-3">
         <div class="col-md-4">
-            <label class="form-label">Tahun</label>
-            <input type="number" name="tahun" value="{{ old('tahun') }}" class="form-control" required>
+            <x-admin.tahun-induk :induk="$items" sebutan="ringkasan PDRB" tab="tab Ringkasan Tahunan" />
         </div>
         <div class="col-md-4">
             <label class="form-label">Kode Sektor <span class="text-muted">(1–17)</span></label>

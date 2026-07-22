@@ -323,10 +323,16 @@
 
         {{-- DATA KECAMATAN --}}
         <div class="chart-card">
-            <div class="chart-title">Data Per Kecamatan</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div class="chart-title" style="margin-bottom:0;">Data Per Kecamatan</div>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#tabel-pendidikan-kecamatan',
+                    'nama'   => 'pendidikan-per-kecamatan-' . $tahun,
+                ])
+            </div>
 
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm" id="tabel-pendidikan-kecamatan" data-unduh-angka="en">
                     <thead>
                         <tr>
                             <th>Kecamatan</th>

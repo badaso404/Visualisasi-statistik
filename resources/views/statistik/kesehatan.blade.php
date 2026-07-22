@@ -336,8 +336,12 @@
                         <p class="table-title">Fasilitas per Kecamatan</p>
                         <p class="table-sub">Rincian unit fasilitas kesehatan tahun {{ $tahun }}</p>
                     </div>
+                    @include('statistik.partials.unduh-tabel', [
+                        'target' => '#tabel-faskes-kecamatan',
+                        'nama'   => 'fasilitas-kesehatan-per-kecamatan-' . $tahun,
+                    ])
                 </div>
-                <table class="kes-table">
+                <table class="kes-table" id="tabel-faskes-kecamatan" data-unduh-angka="en">
                     <thead>
                         <tr>
                             <th>Kecamatan</th>

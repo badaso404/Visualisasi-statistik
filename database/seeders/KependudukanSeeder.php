@@ -44,7 +44,7 @@ class KependudukanSeeder extends Seeder
         // 1) Referensi koordinat (norm(nama) => baris)
         $koordinat = $this->loadKoordinat();
         if (empty($koordinat)) {
-            $this->command->error('database/data/koordinat-kelurahan.csv tidak ditemukan/ kosong. Batal.');
+            $this->command?->error('database/data/koordinat-kelurahan.csv tidak ditemukan/ kosong. Batal.');
             return;
         }
 
@@ -53,17 +53,17 @@ class KependudukanSeeder extends Seeder
         foreach (self::TAHUN_BPS as $thId => $tahun) {
             $rows = $this->fetchKelurahan($thId, $koordinat);
             if ($rows === null) {
-                $this->command->error("Gagal ambil BPS tahun $tahun (th $thId). Data lama TIDAK diubah.");
+                $this->command?->error("Gagal ambil BPS tahun $tahun (th $thId). Data lama TIDAK diubah.");
                 return;
             }
             $perTahun[$tahun] = $rows;
-            $this->command->info("BPS $tahun: " . count($rows) . ' kelurahan diambil.');
+            $this->command?->info("BPS $tahun: " . count($rows) . ' kelurahan diambil.');
         }
 
-        // 3) Semua sukses → baru truncate & tulis ulang
-        DataKependudukan::truncate();
-        PendudukKecamatan::truncate();
-        PendudukKelurahan::truncate();
+        // 3) Semua sukses → tulis. Tanpa truncate: seeder ini juga dipakai
+        //    tombol "Sinkronkan BPS" di portal, dan mengosongkan tabel akan
+        //    melenyapkan baris yang ditambal manual operator — termasuk
+        //    koordinat kelurahan yang tidak disediakan BPS.
 
         $kecamatanId = Kecamatan::pluck('id', 'nama_kecamatan'); // nama => id
 
@@ -78,16 +78,17 @@ class KependudukanSeeder extends Seeder
                     continue;
                 }
 
-                PendudukKelurahan::create([
-                    'kecamatan_id'     => $kecId,
-                    'tahun'            => $tahun,
-                    'nama_kelurahan'   => $r['nama_kelurahan'],
-                    'latitude'         => $r['latitude'],
-                    'longitude'        => $r['longitude'],
-                    'jumlah_laki_laki' => $r['L'],
-                    'jumlah_perempuan' => $r['P'],
-                    'jumlah_penduduk'  => $r['L'] + $r['P'],
-                ]);
+                PendudukKelurahan::updateOrCreate(
+                    ['nama_kelurahan' => $r['nama_kelurahan'], 'tahun' => $tahun],
+                    [
+                        'kecamatan_id'     => $kecId,
+                        'latitude'         => $r['latitude'],
+                        'longitude'        => $r['longitude'],
+                        'jumlah_laki_laki' => $r['L'],
+                        'jumlah_perempuan' => $r['P'],
+                        'jumlah_penduduk'  => $r['L'] + $r['P'],
+                    ],
+                );
 
                 $aggKec[$r['kecamatan']]['L'] = ($aggKec[$r['kecamatan']]['L'] ?? 0) + $r['L'];
                 $aggKec[$r['kecamatan']]['P'] = ($aggKec[$r['kecamatan']]['P'] ?? 0) + $r['P'];
@@ -97,26 +98,29 @@ class KependudukanSeeder extends Seeder
 
             // Kecamatan = SUM kelurahan (konsisten by construction)
             foreach ($aggKec as $namaKec => $lp) {
-                PendudukKecamatan::create([
-                    'kecamatan_id'     => $kecamatanId[$namaKec],
-                    'tahun'            => $tahun,
-                    'jumlah_laki_laki' => $lp['L'],
-                    'jumlah_perempuan' => $lp['P'],
-                    'jumlah_penduduk'  => $lp['L'] + $lp['P'],
-                ]);
+                PendudukKecamatan::updateOrCreate(
+                    ['kecamatan_id' => $kecamatanId[$namaKec], 'tahun' => $tahun],
+                    [
+                        'jumlah_laki_laki' => $lp['L'],
+                        'jumlah_perempuan' => $lp['P'],
+                        'jumlah_penduduk'  => $lp['L'] + $lp['P'],
+                    ],
+                );
             }
 
             // Jakarta Barat = SUM semua
-            DataKependudukan::create([
-                'tahun'            => $tahun,
-                'jumlah_laki_laki' => $totalL,
-                'jumlah_perempuan' => $totalP,
-                'jumlah_total'     => $totalL + $totalP,
-                'sumber'           => "BPS Kota Jakarta Barat — Penduduk menurut Kelurahan & Jenis Kelamin ($tahun)",
-            ]);
+            DataKependudukan::updateOrCreate(
+                ['tahun' => $tahun],
+                [
+                    'jumlah_laki_laki' => $totalL,
+                    'jumlah_perempuan' => $totalP,
+                    'jumlah_total'     => $totalL + $totalP,
+                    'sumber'           => "BPS Kota Jakarta Barat — Penduduk menurut Kelurahan & Jenis Kelamin ($tahun)",
+                ],
+            );
         }
 
-        $this->command->info('Selesai. Kecamatan & Jakarta Barat diturunkan dari kelurahan (konsisten).');
+        $this->command?->info('Selesai. Kecamatan & Jakarta Barat diturunkan dari kelurahan (konsisten).');
     }
 
     /** Fetch var 162 satu tahun → array kelurahan siap simpan, atau null bila gagal. */

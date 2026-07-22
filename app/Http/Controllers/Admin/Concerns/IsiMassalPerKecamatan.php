@@ -54,7 +54,16 @@ trait IsiMassalPerKecamatan
     public function batch(Request $request)
     {
         $model = $this->batchModel();
-        $tahun = (int) ($request->query('tahun') ?: now()->year);
+
+        // Untuk modul yang terikat induk, tahun bawaannya adalah tahun ringkasan
+        // TERBARU, bukan tahun berjalan: now()->year kerap belum punya ringkasan
+        // sehingga form langsung terbuka pada pilihan yang tidak bisa disimpan.
+        $tahunInduk = $this->tahunInduk();
+        $bawaan     = $this->terikatInduk()
+            ? (int) ($tahunInduk->first() ?: now()->year)
+            : now()->year;
+
+        $tahun = (int) ($request->query('tahun') ?: $bawaan);
 
         return view('admin.partials.isi-massal', [
             'judul'        => $this->batchJudul(),
@@ -63,6 +72,9 @@ trait IsiMassalPerKecamatan
             'kecamatan'    => Kecamatan::orderBy('nama_kecamatan')->get(),
             'existing'     => $model::where('tahun', $tahun)->get()->keyBy('kecamatan_id'),
             'tahunAda'     => $model::distinct()->orderByDesc('tahun')->pluck('tahun'),
+            // Kosong = modul tidak terikat induk, view menampilkan input bebas.
+            'tahunInduk'   => $tahunInduk,
+            'sebutanInduk' => $this->terikatInduk() ? $this->sebutanInduk() : null,
             'routeBatch'   => $this->batchRoutePrefix() . '.batch',
             'routeSimpan'  => $this->batchRoutePrefix() . '.batch.store',
             'routeKembali' => $this->batchRedirect(),
@@ -76,7 +88,7 @@ trait IsiMassalPerKecamatan
         $fields = array_keys($defs);
 
         $rules = [
-            'tahun'  => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tahun'  => $this->aturanTahunInduk(),
             'data'   => ['required', 'array'],
             'data.*' => ['array'],
         ];
@@ -84,7 +96,10 @@ trait IsiMassalPerKecamatan
             $rules["data.*.{$field}"] = ['nullable', $def['desimal'] ? 'numeric' : 'integer', 'min:0'];
         }
 
-        $validated = $request->validate($rules);
+        // Isi massal menulis satu tahun untuk SEMUA kecamatan sekaligus, jadi
+        // salah tahun di sini menghasilkan delapan baris yang tak terlihat di
+        // situs publik — bukan satu. Karena itu ikatan induknya ikut diperiksa.
+        $validated = $request->validate($rules, $this->pesanTahunInduk());
 
         // Satu tabel isian = satu satuan kerja. Kalau baris ke-5 gagal, empat
         // baris sebelumnya ikut dibatalkan supaya tidak tersimpan separuh.

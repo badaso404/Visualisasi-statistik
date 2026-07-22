@@ -5,11 +5,13 @@ namespace Tests\Feature\Admin;
 use App\Models\Kecamatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\MembuatRingkasanInduk;
 use Tests\TestCase;
 
 class KesehatanTest extends TestCase
 {
     use RefreshDatabase;
+    use MembuatRingkasanInduk;
 
     private function admin(): User
     {
@@ -40,6 +42,8 @@ class KesehatanTest extends TestCase
 
     public function test_batch_tenaga_kesehatan(): void
     {
+        $this->indukKesehatan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
         $this->actingAs($this->admin())
@@ -65,6 +69,8 @@ class KesehatanTest extends TestCase
 
     public function test_batch_fasilitas_kesehatan(): void
     {
+        $this->indukKesehatan(2024, 2025, 2026);
+
         $k = Kecamatan::create(['nama_kecamatan' => 'Cakung']);
 
         $this->actingAs($this->admin())

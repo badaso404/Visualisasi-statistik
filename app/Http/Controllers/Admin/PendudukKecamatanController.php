@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
 use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\PendudukKecamatan;
@@ -12,9 +13,20 @@ use Illuminate\Http\Request;
 class PendudukKecamatanController extends Controller
 {
     use ValidasiPeriodeUnik;
+    use TahunMengikutiInduk;
 
     use IsiMassalPerKecamatan;
     use CsvPerKecamatan;
+
+    protected function tabelInduk(): ?string
+    {
+        return 'data_kependudukan';
+    }
+
+    protected function sebutanInduk(): string
+    {
+        return 'ringkasan kependudukan';
+    }
 
     protected function csvNama(): string
     {
@@ -71,10 +83,10 @@ class PendudukKecamatanController extends Controller
     {
         return $request->validate([
             'kecamatan_id'    => ['required', 'exists:kecamatan,id'],
-            'tahun'           => ['required', 'integer', 'min:1900', 'max:2100',
+            'tahun'           => array_merge($this->aturanTahunInduk(), [
                 $this->unikPerPeriode('penduduk_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
-            ],
+            ]),
             'jumlah_penduduk' => ['required', 'integer', 'min:0'],
-        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut') + $this->pesanTahunInduk());
     }
 }

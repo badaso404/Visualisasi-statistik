@@ -363,13 +363,14 @@
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div class="chart-title" style="margin-bottom:0;">DATA IKLIM PER BULAN</div>
-                <button type="button" class="btn-export-csv" onclick="exportIklimCSV()">
-                    <i class="fa fa-file-csv"></i> Export CSV
-                </button>
+                @include('statistik.partials.unduh-tabel', [
+                    'target' => '#iklim-table',
+                    'nama'   => 'iklim-per-bulan-' . $tahun,
+                ])
             </div>
 
             <div class="iklim-table-scroll">
-            <table class="iklim-table" id="iklim-table">
+            <table class="iklim-table" id="iklim-table" data-unduh-angka="en">
                 <colgroup>
                     <col style="width:13%"> <col style="width:11%"> <col style="width:10%"> <col style="width:13%">
                     <col style="width:11%"> <col style="width:12%"> <col style="width:14%"> <col style="width:16%">
@@ -803,41 +804,6 @@
 
     renderIklimTable();
 
-    // ── Export CSV tabel iklim (semua bulan, abaikan pagination) ───
-    function exportIklimCSV() {
-        var table = document.getElementById('iklim-table');
-        var rows = [];
-
-        // Header
-        var head = [];
-        table.querySelectorAll('thead th').forEach(function(th) { head.push(th.textContent.trim()); });
-        rows.push(head);
-
-        // Semua baris; angka default PHP "1,008.5" → buang pemisah ribuan & simbol %
-        table.querySelectorAll('tbody tr').forEach(function(tr) {
-            var row = [];
-            tr.querySelectorAll('td').forEach(function(td, i) {
-                var txt = td.textContent.trim();
-                if (i > 0) txt = txt.replace(/,/g, '').replace('%', '');   // "1,008.5" → "1008.5"
-                row.push(txt);
-            });
-            rows.push(row);
-        });
-
-        var csv = rows.map(function(r) {
-            return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
-        }).join('\r\n');
-
-        // BOM agar UTF-8 terbaca benar di Excel
-        var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-        var url  = URL.createObjectURL(blob);
-        var a    = document.createElement('a');
-        a.href = url;
-        a.download = 'data-iklim-jakarta-barat-{{ $tahun }}.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+    // Unduh CSV ditangani statistik.partials.unduh-tabel (dipakai semua modul).
 </script>
 @endpush

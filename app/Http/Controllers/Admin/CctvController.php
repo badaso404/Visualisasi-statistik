@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\CsvPerKecamatan;
 use App\Http\Controllers\Admin\Concerns\IsiMassalPerKecamatan;
+use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
 use App\Models\CctvKecamatan;
@@ -12,9 +13,15 @@ use Illuminate\Http\Request;
 class CctvController extends Controller
 {
     use ValidasiPeriodeUnik;
+    use TahunMengikutiInduk;
 
     use IsiMassalPerKecamatan;
     use CsvPerKecamatan;
+
+    protected function tabelInduk(): ?string
+    {
+        return null;
+    }
 
     protected function csvNama(): string
     {
@@ -75,13 +82,13 @@ class CctvController extends Controller
     {
         return $request->validate([
             'kecamatan_id' => ['required', 'exists:kecamatan,id'],
-            'tahun'        => ['required', 'integer', 'min:1900', 'max:2100',
+            'tahun'        => array_merge($this->aturanTahunInduk(), [
                 $this->unikPerPeriode('cctv_kecamatan', ['kecamatan_id' => $request->input('kecamatan_id')], $item),
-            ],
+            ]),
             'jumlah_unit'  => ['required', 'integer', 'min:0'],
             'unit_aktif'   => ['required', 'integer', 'min:0'],
             'terintegrasi' => ['required', 'integer', 'min:0'],
             'keterangan'   => ['nullable', 'string', 'max:255'],
-        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut'));
+        ], $this->pesanPeriodeUnik('kecamatan ini untuk tahun tersebut') + $this->pesanTahunInduk());
     }
 }
