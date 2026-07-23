@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PesanHasilImpor;
 use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 class PendudukKelurahanController extends Controller
 {
     use ValidasiPeriodeUnik;
+    use PesanHasilImpor;
     use TahunMengikutiInduk;
 
     protected function tabelInduk(): ?string
@@ -187,16 +189,9 @@ class PendudukKelurahanController extends Controller
 
         fclose($handle);
 
-        $pesan = "$sukses baris berhasil diimpor.";
-        if (!empty($gagal)) {
-            $pesan .= ' ' . count($gagal) . ' baris dilewati: ' . implode('; ', array_slice($gagal, 0, 5));
-            if (count($gagal) > 5) {
-                $pesan .= '; ...';
-            }
-        }
+        [$channel, $pesan] = $this->hasilImpor($sukses, $gagal);
 
-        return redirect()->route('admin.kependudukan.index')
-            ->with($sukses > 0 ? 'success' : 'error', $pesan);
+        return redirect()->route('admin.kependudukan.index')->with($channel, $pesan);
     }
 
     /** Helper: stream array baris ke unduhan CSV (dengan BOM agar Excel baca UTF-8). */

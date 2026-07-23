@@ -254,7 +254,8 @@
 
         {{-- Highlight Cards --}}
         @php
-            $sortedLuas = $luas->sortByDesc('luas_km2');
+            // Hanya baris yang kecamatannya sudah terisi — hindari null saat data tahun tertentu belum lengkap
+            $sortedLuas = $luas->filter(fn($r) => $r->kecamatan !== null)->sortByDesc('luas_km2');
             $terluas    = $sortedLuas->first();
             $terkecil   = $sortedLuas->last();
         @endphp
@@ -263,16 +264,16 @@
                 <div class="hl-icon" style="background:#E5ECF5;"><i class="fa fa-expand-arrows-alt" style="color:#34527A;"></i></div>
                 <div>
                     <div class="hl-tag" style="color:#34527A;">TERLUAS</div>
-                    <div class="hl-name">Kecamatan {{ $terluas->kecamatan->nama_kecamatan }}</div>
-                    <div class="hl-sub">{{ number_format($terluas->luas_km2, 2) }} km² ({{ number_format($terluas->persentase, 1) }}% dari total)</div>
+                    <div class="hl-name">{{ $terluas ? 'Kecamatan ' . $terluas->kecamatan->nama_kecamatan : 'Data belum tersedia' }}</div>
+                    <div class="hl-sub">{{ $terluas ? number_format($terluas->luas_km2, 2) . ' km² (' . number_format($terluas->persentase, 1) . '% dari total)' : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
                 <div class="hl-icon" style="background:#EDF1F8;"><i class="fa fa-compress-arrows-alt" style="color:#7B97C2;"></i></div>
                 <div>
                     <div class="hl-tag" style="color:#5B7BB0;">TERKECIL</div>
-                    <div class="hl-name">Kecamatan {{ $terkecil->kecamatan->nama_kecamatan }}</div>
-                    <div class="hl-sub">{{ number_format($terkecil->luas_km2, 2) }} km² ({{ number_format($terkecil->persentase, 1) }}% dari total)</div>
+                    <div class="hl-name">{{ $terkecil ? 'Kecamatan ' . $terkecil->kecamatan->nama_kecamatan : 'Data belum tersedia' }}</div>
+                    <div class="hl-sub">{{ $terkecil ? number_format($terkecil->luas_km2, 2) . ' km² (' . number_format($terkecil->persentase, 1) . '% dari total)' : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
@@ -311,6 +312,7 @@
                 </thead>
                 <tbody id="geo-table-body">
                     @foreach($luas->sortByDesc('luas_km2') as $row)
+                    @continue($row->kecamatan === null)
                     @php $s = $kecStats[strtoupper($row->kecamatan->nama_kecamatan)] ?? null; @endphp
                     <tr data-name="{{ strtolower($row->kecamatan->nama_kecamatan) }}">
                         <td>{{ $row->kecamatan->nama_kecamatan }}</td>

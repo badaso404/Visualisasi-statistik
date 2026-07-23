@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 trait CsvPerPeriode
 {
+    use PesanHasilImpor;
+
     /** Nama berkas tanpa ekstensi, mis. 'perekonomian'. */
     abstract protected function csvNama(): string;
 
@@ -277,16 +279,9 @@ trait CsvPerPeriode
 
         fclose($handle);
 
-        $pesan = "{$sukses} baris berhasil diimpor.";
-        if ($gagal !== []) {
-            $pesan .= ' ' . count($gagal) . ' baris dilewati: ' . implode('; ', array_slice($gagal, 0, 5));
-            if (count($gagal) > 5) {
-                $pesan .= '; ...';
-            }
-        }
+        [$channel, $pesan] = $this->hasilImpor($sukses, $gagal);
 
-        return redirect()->route($this->csvRedirect())
-            ->with($sukses > 0 ? 'success' : 'error', $pesan);
+        return redirect()->route($this->csvRedirect())->with($channel, $pesan);
     }
 
     /** Stream baris ke unduhan CSV; BOM dipasang agar Excel membacanya sebagai UTF-8. */

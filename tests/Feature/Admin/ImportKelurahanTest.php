@@ -92,10 +92,15 @@ class ImportKelurahanTest extends TestCase
              . "\n"
              . "Kebon Jeruk,1800,Tahun Ngawur,,,10\n";
 
+        // Impor yang sebagian barisnya ditolak dilaporkan sebagai PERINGATAN,
+        // bukan sukses. Sebelumnya notifikasinya hijau bertuliskan "berhasil"
+        // sehingga operator tidak sadar ada baris yang tidak masuk.
         $this->actingAs($this->admin())
             ->post(route('admin.penduduk-kelurahan.import'), ['file' => $this->csv($csv)])
-            ->assertSessionHas('success');
+            ->assertSessionMissing('success')
+            ->assertSessionHas('error');
 
+        // Baris yang sah tetap tersimpan — ditolak sebagian bukan berarti batal.
         $this->assertDatabaseCount('penduduk_kelurahan', 1);
         $this->assertDatabaseHas('penduduk_kelurahan', ['nama_kelurahan' => 'Kelapa Dua']);
     }

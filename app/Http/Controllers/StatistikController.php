@@ -431,6 +431,11 @@ class StatistikController extends Controller
         }
 
         $summary = DataKesehatan::where('tahun', $tahun)->first();
+
+        if (!$summary) {
+            return $this->dataKosong('Kesehatan', $tahun, $availableTahun);
+        }
+
         $tenaga = TenagaKesehatanKecamatan::with('kecamatan')
             ->where('tahun', $tahun)
             ->orderByDesc('jumlah_total')
@@ -593,6 +598,10 @@ class StatistikController extends Controller
         }
 
         $summary = DataKemiskinan::where('tahun', $tahun)->first();
+
+        if (!$summary) {
+            return $this->dataKosong('Kemiskinan', $tahun, $availableTahun);
+        }
 
         // Riwayat seluruh tahun (asc) untuk grafik tren antar-tahun — semua dari BPS
         $riwayat = DataKemiskinan::orderBy('tahun')->get();
