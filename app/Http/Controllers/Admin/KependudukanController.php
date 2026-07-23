@@ -21,7 +21,46 @@ class KependudukanController extends Controller
         $perKelurahan = PendudukKelurahan::with('kecamatan')->orderByDesc('tahun')->orderBy('nama_kelurahan')->get();
         $kecamatan    = Kecamatan::orderBy('nama_kecamatan')->get();
 
-        return view('admin.kependudukan.index', compact('items', 'perKecamatan', 'perKelurahan', 'kecamatan'));
+        // [kecamatan_id => [nama kelurahan, ...]] untuk dropdown dependen di form.
+        $kelurahanPerKecamatan = $this->kelurahanPerKecamatan($kecamatan);
+
+        return view('admin.kependudukan.index', compact(
+            'items', 'perKecamatan', 'perKelurahan', 'kecamatan', 'kelurahanPerKecamatan'
+        ));
+    }
+
+    /**
+     * Peta kelurahan per kecamatan dari berkas referensi (56 kelurahan Jakarta
+     * Barat, ter-commit & stabil), untuk mengisi dropdown kelurahan berdasarkan
+     * kecamatan yang dipilih. Dikunci berdasar id kecamatan.
+     *
+     * @return array<int, list<string>>
+     */
+    private function kelurahanPerKecamatan($kecamatan): array
+    {
+        $idByNama = $kecamatan->keyBy(fn ($k) => mb_strtolower(trim($k->nama_kecamatan)));
+        $file     = base_path('database/data/koordinat-kelurahan.csv');
+
+        $map = [];
+        if (!is_file($file) || ($handle = fopen($file, 'r')) === false) {
+            return $map;
+        }
+
+        fgetcsv($handle); // lewati header: kecamatan, nama_kelurahan, latitude, longitude
+        while (($row = fgetcsv($handle)) !== false) {
+            $kec  = $idByNama->get(mb_strtolower(trim((string) ($row[0] ?? ''))));
+            $nama = trim((string) ($row[1] ?? ''));
+            if ($kec && $nama !== '') {
+                $map[$kec->id][] = $nama;
+            }
+        }
+        fclose($handle);
+
+        foreach ($map as &$daftar) {
+            sort($daftar);
+        }
+
+        return $map;
     }
 
     public function store(Request $request)

@@ -189,7 +189,8 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Jumlah Total</label>
-        <input type="number" name="jumlah_total" value="{{ old('jumlah_total') }}" class="form-control" required>
+        <input type="number" name="jumlah_total" value="{{ old('jumlah_total') }}" class="form-control bg-light" required readonly>
+        <div class="form-text">Terisi otomatis dari laki-laki + perempuan.</div>
     </div>
     <div>
         <label class="form-label">Sumber <span class="text-muted">(opsional)</span></label>
@@ -228,7 +229,9 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Nama Kelurahan</label>
-        <input type="text" name="nama_kelurahan" value="{{ old('nama_kelurahan') }}" class="form-control" required>
+        <select name="nama_kelurahan" class="form-select" required data-kelurahan-select>
+            <option value="">— pilih kecamatan dulu —</option>
+        </select>
     </div>
     <div class="mb-3">
         <x-admin.tahun-induk :induk="$items" sebutan="ringkasan kependudukan" tab="tab Ringkasan" />
@@ -277,3 +280,70 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// ── Form induk: Jumlah Total = laki-laki + perempuan (otomatis, read-only) ──
+(function () {
+    const modal = document.getElementById('modalKependudukan');
+    if (!modal) return;
+    const lk  = modal.querySelector('[name="jumlah_laki_laki"]');
+    const pr  = modal.querySelector('[name="jumlah_perempuan"]');
+    const tot = modal.querySelector('[name="jumlah_total"]');
+    if (!lk || !pr || !tot) return;
+
+    const hitung = function () {
+        tot.value = (parseInt(lk.value, 10) || 0) + (parseInt(pr.value, 10) || 0);
+    };
+    lk.addEventListener('input', hitung);
+    pr.addEventListener('input', hitung);
+    // Sinkronkan saat modal dibuka (tambah maupun edit).
+    modal.addEventListener('shown.bs.modal', hitung);
+})();
+
+// ── Form kelurahan: dropdown kelurahan mengikuti kecamatan terpilih ──
+(function () {
+    const MAP   = @json($kelurahanPerKecamatan);
+    const modal = document.getElementById('modalPendudukKelurahan');
+    if (!modal) return;
+    const kec = modal.querySelector('[name="kecamatan_id"]');
+    const kel = modal.querySelector('[name="nama_kelurahan"]');
+    if (!kec || !kel) return;
+
+    const isi = function (kecId, pilih) {
+        const daftar = MAP[kecId] || [];
+        if (!kecId) {
+            kel.innerHTML = '<option value="">— pilih kecamatan dulu —</option>';
+            return;
+        }
+        kel.innerHTML = '<option value="">— pilih —</option>';
+        daftar.forEach(function (nama) {
+            const opt = document.createElement('option');
+            opt.value = nama;
+            opt.textContent = nama;
+            if (nama === pilih) opt.selected = true;
+            kel.appendChild(opt);
+        });
+    };
+
+    // Ganti kecamatan secara manual → daftar kelurahan diperbarui, pilihan direset.
+    kec.addEventListener('change', function () { isi(this.value, null); });
+
+    // Tombol Tambah/Edit: jalan SETELAH handler modal global mengisi field,
+    // lalu bangun ulang daftar kelurahan sesuai kecamatan & pilihan tersimpan.
+    document.addEventListener('click', function (e) {
+        const t = e.target.closest('[data-modal-form="#modalPendudukKelurahan"]');
+        if (!t) return;
+        const f = JSON.parse(t.dataset.fields || '{}');
+        isi(f.kecamatan_id ? String(f.kecamatan_id) : '', f.nama_kelurahan || null);
+    });
+
+    // Validasi gagal → modal dibuka ulang otomatis; pulihkan dari input lama.
+    document.addEventListener('DOMContentLoaded', function () {
+        if (modal.hasAttribute('data-modal-autoopen')) {
+            isi(kec.value || '', @json(old('nama_kelurahan')));
+        }
+    });
+})();
+</script>
+@endpush

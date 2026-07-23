@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\MenghapusAnakPerTahun;
 use Illuminate\Database\Eloquent\Model;
 
 class DataPerekonomian extends Model
 {
+    use MenghapusAnakPerTahun;
+
     protected $table = 'data_perekonomian';
+
+    /** Tabel anak yang terhubung lewat kolom tahun (ikut terhapus bersama induk). */
+    protected array $anakPerTahun = [PdrbSektor::class];
 
     protected $fillable = [
         'tahun',

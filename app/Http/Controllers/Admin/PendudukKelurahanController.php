@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Concerns\PesanHasilImpor;
 use App\Http\Controllers\Admin\Concerns\TahunMengikutiInduk;
 use App\Http\Controllers\Admin\Concerns\ValidasiPeriodeUnik;
 use App\Http\Controllers\Controller;
+use App\Models\DataKependudukan;
 use App\Models\Kecamatan;
 use App\Models\PendudukKelurahan;
 use Illuminate\Http\Request;
@@ -58,8 +59,36 @@ class PendudukKelurahanController extends Controller
             ],
             'latitude'        => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'       => ['nullable', 'numeric', 'between:-180,180'],
-            'jumlah_penduduk' => ['required', 'integer', 'min:0'],
-        ], $this->pesanPeriodeUnik('kelurahan ini untuk tahun tersebut') + $this->pesanTahunInduk());
+            'jumlah_penduduk' => ['required', 'integer', 'min:0', 'max:2147483647',
+                $this->tidakMelebihiTotalInduk($request, $item),
+            ],
+        ], $this->pesanPeriodeUnik('kelurahan ini untuk tahun tersebut') + $this->pesanTahunInduk() + [
+            'jumlah_penduduk.max' => 'Nilai jumlah penduduk terlalu besar (maksimum 2.147.483.647).',
+        ]);
+    }
+
+    /**
+     * Closure: jumlah penduduk kelurahan lain pada tahun yang sama + nilai baru
+     * ini tidak boleh melebihi total ringkasan (induk) tahun tersebut.
+     */
+    private function tidakMelebihiTotalInduk(Request $request, ?\Illuminate\Database\Eloquent\Model $item): \Closure
+    {
+        return function (string $attribute, $value, \Closure $fail) use ($request, $item) {
+            $tahun = (int) $request->input('tahun');
+            $total = DataKependudukan::where('tahun', $tahun)->value('jumlah_total');
+            if ($total === null) {
+                return;
+            }
+
+            $lain = PendudukKelurahan::where('tahun', $tahun)
+                ->when($item, fn ($q) => $q->whereKeyNot($item->getKey()))
+                ->sum('jumlah_penduduk');
+
+            if ($lain + (int) $value > $total) {
+                $fail('Angka ini membuat total semua kelurahan (' . number_format($lain + (int) $value, 0, ',', '.')
+                    . ') melebihi total ringkasan tahun ' . $tahun . ' (' . number_format($total, 0, ',', '.') . ').');
+            }
+        };
     }
 
     /** Kolom CSV yang dipakai untuk import/export/template. */

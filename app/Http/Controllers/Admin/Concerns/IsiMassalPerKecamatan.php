@@ -51,6 +51,17 @@ trait IsiMassalPerKecamatan
     /** Nama route tujuan setelah simpan. */
     abstract protected function batchRedirect(): string;
 
+    /**
+     * Pemeriksaan lintas-baris spesifik modul sebelum data batch disimpan.
+     * Kembalikan pesan error untuk membatalkan penyimpanan, atau null bila lolos.
+     *
+     * @param array<int|string, array<string, mixed>> $data  kecamatan_id => [field => nilai]
+     */
+    protected function batchPeriksaTambahan(int $tahun, array $data): ?string
+    {
+        return null;
+    }
+
     public function batch(Request $request)
     {
         $model = $this->batchModel();
@@ -92,14 +103,34 @@ trait IsiMassalPerKecamatan
             'data'   => ['required', 'array'],
             'data.*' => ['array'],
         ];
+        // Pesan ramah: tanpa batas 'max', angka > 2,1 M lolos validasi lalu
+        // ditolak MySQL dengan "Out of range" (layar merah). Batas ini
+        // mengubahnya jadi pesan yang bisa dibaca operator. 2147483647 = batas
+        // atas kolom INT bertanda MySQL.
+        $maksInt  = 2147483647;
+        $messages = $this->pesanTahunInduk();
         foreach ($defs as $field => $def) {
-            $rules["data.*.{$field}"] = ['nullable', $def['desimal'] ? 'numeric' : 'integer', 'min:0'];
+            $rules["data.*.{$field}"] = $def['desimal']
+                ? ['nullable', 'numeric', 'min:0']
+                : ['nullable', 'integer', 'min:0', 'max:' . $maksInt];
+
+            $label = $def['label'];
+            $messages["data.*.{$field}.max"]     = "Nilai {$label} terlalu besar (maksimum " . number_format($maksInt, 0, ',', '.') . ').';
+            $messages["data.*.{$field}.integer"] = "Nilai {$label} harus berupa bilangan bulat.";
+            $messages["data.*.{$field}.numeric"] = "Nilai {$label} harus berupa angka.";
+            $messages["data.*.{$field}.min"]     = "Nilai {$label} tidak boleh negatif.";
         }
 
         // Isi massal menulis satu tahun untuk SEMUA kecamatan sekaligus, jadi
         // salah tahun di sini menghasilkan delapan baris yang tak terlihat di
         // situs publik — bukan satu. Karena itu ikatan induknya ikut diperiksa.
-        $validated = $request->validate($rules, $this->pesanTahunInduk());
+        $validated = $request->validate($rules, $messages);
+
+        // Kesempatan modul memeriksa keseluruhan (mis. total anak tak boleh
+        // melebihi ringkasan induk) sebelum satu baris pun ditulis.
+        if ($pesan = $this->batchPeriksaTambahan((int) $validated['tahun'], $validated['data'])) {
+            return back()->withInput()->with('error', $pesan);
+        }
 
         // Satu tabel isian = satu satuan kerja. Kalau baris ke-5 gagal, empat
         // baris sebelumnya ikut dibatalkan supaya tidak tersimpan separuh.
