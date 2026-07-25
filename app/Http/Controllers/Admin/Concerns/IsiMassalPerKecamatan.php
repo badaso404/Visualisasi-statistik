@@ -25,18 +25,19 @@ trait IsiMassalPerKecamatan
      *
      * Bentuk sederhana (bilangan bulat):  ['jumlah_pelajar' => 'Pelajar']
      * Kolom desimal:                      ['persentase' => ['label' => 'Persentase (%)', 'desimal' => true]]
+     * Kolom dengan batas khusus (mis. smallint): ['jumlah_rw' => ['label' => 'RW', 'maks' => 65535]]
      */
     abstract protected function batchFields(): array;
 
-    /** Normalisasi batchFields() jadi ['nama' => ['label' => ..., 'desimal' => bool]]. */
+    /** Normalisasi batchFields() jadi ['nama' => ['label', 'desimal', 'maks']]. */
     private function batchFieldsNormal(): array
     {
         $hasil = [];
 
         foreach ($this->batchFields() as $nama => $def) {
             $hasil[$nama] = is_array($def)
-                ? ['label' => $def['label'], 'desimal' => (bool) ($def['desimal'] ?? false)]
-                : ['label' => $def, 'desimal' => false];
+                ? ['label' => $def['label'], 'desimal' => (bool) ($def['desimal'] ?? false), 'maks' => $def['maks'] ?? null]
+                : ['label' => $def, 'desimal' => false, 'maks' => null];
         }
 
         return $hasil;
@@ -62,6 +63,31 @@ trait IsiMassalPerKecamatan
         return null;
     }
 
+    /*
+     * Tiga seam di bawah memisahkan "tahun yang dipilih operator" dari "cara baris
+     * disimpan". Default-nya berbasis kolom `tahun` (dipakai semua modul anak
+     * kecuali luas_kecamatan, yang menyimpan data_geografis_id sebagai foreign
+     * key sehingga meng-override ketiganya). Perilaku modul lain tak berubah.
+     */
+
+    /** Baris anak tahun terpilih, dikunci per kecamatan_id untuk mengisi form. */
+    protected function batchExisting(int $tahun): \Illuminate\Support\Collection
+    {
+        return $this->batchModel()::where('tahun', $tahun)->get()->keyBy('kecamatan_id');
+    }
+
+    /** Tahun-tahun yang sudah punya data anak, terbaru dulu. */
+    protected function batchTahunAda(): \Illuminate\Support\Collection
+    {
+        return $this->batchModel()::distinct()->orderByDesc('tahun')->pluck('tahun');
+    }
+
+    /** Kolom kunci updateOrCreate untuk satu baris (kecamatan pada tahun tsb). */
+    protected function batchKunciSimpan(int $tahun, $kecamatanId): array
+    {
+        return ['kecamatan_id' => $kecamatanId, 'tahun' => $tahun];
+    }
+
     public function batch(Request $request)
     {
         $model = $this->batchModel();
@@ -81,8 +107,8 @@ trait IsiMassalPerKecamatan
             'tahun'        => $tahun,
             'fields'       => $this->batchFieldsNormal(),
             'kecamatan'    => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'existing'     => $model::where('tahun', $tahun)->get()->keyBy('kecamatan_id'),
-            'tahunAda'     => $model::distinct()->orderByDesc('tahun')->pluck('tahun'),
+            'existing'     => $this->batchExisting($tahun),
+            'tahunAda'     => $this->batchTahunAda(),
             // Kosong = modul tidak terikat induk, view menampilkan input bebas.
             'tahunInduk'   => $tahunInduk,
             'sebutanInduk' => $this->terikatInduk() ? $this->sebutanInduk() : null,
@@ -110,12 +136,16 @@ trait IsiMassalPerKecamatan
         $maksInt  = 2147483647;
         $messages = $this->pesanTahunInduk();
         foreach ($defs as $field => $def) {
+            // Batas ikut tipe kolom: kolom smallint (mis. RW/kelurahan) memberi
+            // 'maks' sendiri; selain itu memakai batas INT bertanda.
+            $maks = $def['maks'] ?? $maksInt;
+
             $rules["data.*.{$field}"] = $def['desimal']
                 ? ['nullable', 'numeric', 'min:0']
-                : ['nullable', 'integer', 'min:0', 'max:' . $maksInt];
+                : ['nullable', 'integer', 'min:0', 'max:' . $maks];
 
             $label = $def['label'];
-            $messages["data.*.{$field}.max"]     = "Nilai {$label} terlalu besar (maksimum " . number_format($maksInt, 0, ',', '.') . ').';
+            $messages["data.*.{$field}.max"]     = "Nilai {$label} terlalu besar (maksimum " . number_format($maks, 0, ',', '.') . ').';
             $messages["data.*.{$field}.integer"] = "Nilai {$label} harus berupa bilangan bulat.";
             $messages["data.*.{$field}.numeric"] = "Nilai {$label} harus berupa angka.";
             $messages["data.*.{$field}.min"]     = "Nilai {$label} tidak boleh negatif.";
@@ -153,7 +183,7 @@ trait IsiMassalPerKecamatan
                 }
 
                 $model::updateOrCreate(
-                    ['kecamatan_id' => $kecamatanId, 'tahun' => $validated['tahun']],
+                    $this->batchKunciSimpan((int) $validated['tahun'], $kecamatanId),
                     $nilai,
                 );
                 $jumlah++;

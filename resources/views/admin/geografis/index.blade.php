@@ -66,12 +66,9 @@
             <h6 class="mb-0">Luas per Kecamatan</h6>
             <div class="d-flex gap-2 flex-wrap">
                 <x-admin.csv-tools prefix="admin.luas-kecamatan" judul="Luas per Kecamatan" kunci="kecamatan + tahun" />
-                <button class="btn btn-primary btn-sm"
-                        data-modal-form="#modalLuasKecamatan"
-                        data-action="{{ route('admin.luas-kecamatan.store') }}"
-                        data-title="Tambah Luas Kecamatan">
-                    <i class="bi bi-plus-lg"></i> Tambah
-                </button>
+                <a href="{{ route('admin.luas-kecamatan.batch') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
+                </a>
             </div>
         </div>
         <div class="card border-0 shadow-sm">

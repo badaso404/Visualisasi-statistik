@@ -17,12 +17,6 @@
                 <a href="{{ route('admin.jak-wifi.batch') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
                 </a>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal-form="#modalJakWifi"
-                        data-action="{{ route('admin.jak-wifi.store') }}"
-                        data-title="Tambah JakWiFi">
-                    <i class="bi bi-plus-lg"></i> Tambah Satuan
-                </button>
             </div>
         </div>
         <div class="card border-0 shadow-sm">
@@ -74,12 +68,6 @@
                 <a href="{{ route('admin.cctv.batch') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
                 </a>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal-form="#modalCctv"
-                        data-action="{{ route('admin.cctv.store') }}"
-                        data-title="Tambah CCTV">
-                    <i class="bi bi-plus-lg"></i> Tambah Satuan
-                </button>
             </div>
         </div>
         <div class="card border-0 shadow-sm">

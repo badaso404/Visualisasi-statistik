@@ -92,6 +92,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('luas-kecamatan/export', [LuasKecamatanController::class, 'export'])->name('luas-kecamatan.export');
         Route::get('luas-kecamatan/template', [LuasKecamatanController::class, 'template'])->name('luas-kecamatan.template');
         Route::post('luas-kecamatan/import', [LuasKecamatanController::class, 'import'])->name('luas-kecamatan.import');
+        Route::get('luas-kecamatan/batch', [LuasKecamatanController::class, 'batch'])->name('luas-kecamatan.batch');
+        Route::post('luas-kecamatan/batch', [LuasKecamatanController::class, 'batchStore'])->name('luas-kecamatan.batch.store');
         Route::resource('luas-kecamatan', LuasKecamatanController::class)
             ->parameters(['luas-kecamatan' => 'luasKecamatan'])
             ->only(['store', 'update', 'destroy']);

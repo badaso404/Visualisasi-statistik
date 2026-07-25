@@ -16,7 +16,6 @@
         <small class="text-muted">Jakarta Barat &middot; sumber: API Satu Data Jakarta</small>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('statistik.bencana') }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i> Lihat publik</a>
         <form action="{{ route('admin.bencana.sync') }}" method="POST" class="d-inline">
             @csrf
             <button class="btn btn-outline-info btn-sm"><i class="bi bi-arrow-repeat"></i> Sync dari API</button>
@@ -102,7 +101,6 @@
         <small class="text-muted">Zona rawan banjir (Prioritas 1–3), pos Damkar, dan zona aman evakuasi</small>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('statistik.bencana') }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i> Lihat publik</a>
         <a href="{{ route('admin.titik-bencana.export') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-download"></i> Export CSV</a>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#importTitik"><i class="bi bi-upload"></i> Import CSV</button>
         <button class="btn btn-primary btn-sm"

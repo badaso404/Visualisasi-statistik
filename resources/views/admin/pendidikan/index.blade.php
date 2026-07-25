@@ -77,12 +77,6 @@
                 <a href="{{ route('admin.pendidikan-kecamatan.batch') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
                 </a>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal-form="#modalPendidikanKecamatan"
-                        data-action="{{ route('admin.pendidikan-kecamatan.store') }}"
-                        data-title="Tambah Pendidikan Kecamatan">
-                    <i class="bi bi-plus-lg"></i> Tambah Satuan
-                </button>
             </div>
         </div>
         <div class="card border-0 shadow-sm">

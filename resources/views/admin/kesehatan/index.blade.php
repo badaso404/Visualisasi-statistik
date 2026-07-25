@@ -70,12 +70,6 @@
                 <a href="{{ route('admin.tenaga-kesehatan.batch') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
                 </a>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal-form="#modalTenaga"
-                        data-action="{{ route('admin.tenaga-kesehatan.store') }}"
-                        data-title="Tambah Tenaga Kesehatan">
-                    <i class="bi bi-plus-lg"></i> Tambah Satuan
-                </button>
             </div>
         </div>
         <div class="card border-0 shadow-sm">
@@ -129,12 +123,6 @@
                 <a href="{{ route('admin.fasilitas-kesehatan.batch') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-grid-3x3-gap"></i> Isi Massal per Tahun
                 </a>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal-form="#modalFasilitas"
-                        data-action="{{ route('admin.fasilitas-kesehatan.store') }}"
-                        data-title="Tambah Fasilitas Kesehatan">
-                    <i class="bi bi-plus-lg"></i> Tambah Satuan
-                </button>
             </div>
         </div>
         <div class="card border-0 shadow-sm">
