@@ -32,7 +32,7 @@
 <button type="button" class="btn-unduh-tabel"
         data-unduh-tabel="{{ $target }}"
         data-unduh-nama="{{ $namaBerkas }}">
-    <i class="fa fa-file-csv"></i> Unduh CSV
+    <i class="fa fa-file-csv"></i> {{ __('iklim.unduh_csv') }}
 </button>
 
 @once

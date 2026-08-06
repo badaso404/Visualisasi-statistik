@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('iklim.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -21,6 +22,20 @@
         font-size: 18px; margin-bottom: 0; letter-spacing: 1px;
     }
     .dropdown-tahun { position: relative; flex-shrink: 0; }
+
+    /* Pemilih bahasa (inline di header row) */
+    .lang-switcher-inline {
+        display: flex; gap: 4px; flex-shrink: 0;
+    }
+    .lang-switcher-inline form { margin: 0; }
+    .lang-switcher-inline button {
+        padding: 5px 10px; border-radius: 6px; font-size: 12px;
+        font-weight: 700; cursor: pointer; border: 1.5px solid #ddd;
+        background: #fff; color: #888; transition: all .15s; letter-spacing: .3px;
+        line-height: 1;
+    }
+    .lang-switcher-inline button:hover  { border-color: #ffbf00; color: #b8860b; background: #fff8e1; }
+    .lang-switcher-inline button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
     .dropdown-tahun-btn {
         display: flex; align-items: center; gap: 8px;
         border: 2px solid #ffbf00; border-radius: 6px; background: #fff;
@@ -166,8 +181,8 @@
 @endpush
 
 @php
-    $bulanLabel = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',
-                   7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
+    // Nama bulan dari file terjemahan agar otomatis berganti sesuai locale
+    $bulanLabel = __('iklim.months');
 
     $avgSuhu          = $iklim->avg('suhu_udara');
     $avgHariHujan     = $iklim->avg('hari_hujan');          // rata-rata hari hujan/bulan
@@ -179,22 +194,22 @@
     // ── Kategori standar (mengikuti acuan BMKG) ───────────────────
     // Curah hujan — berdasarkan jumlah hari hujan per bulan
     $rainCat = function ($h) {
-        if ($h >= 25) return ['Awas',    'cat-red'];      // curah hujan ekstrem
-        if ($h >= 20) return ['Siaga',   'cat-orange'];   // potensi banjir ringan
-        if ($h >= 15) return ['Waspada', 'cat-yellow'];   // di atas normal
-        return ['Normal', 'cat-green'];                   // sesuai rata-rata historis
+        if ($h >= 25) return [__('iklim.status_awas'),    'cat-red'];
+        if ($h >= 20) return [__('iklim.status_siaga'),   'cat-orange'];
+        if ($h >= 15) return [__('iklim.status_waspada'), 'cat-yellow'];
+        return [__('iklim.status_normal'), 'cat-green'];
     };
     // Suhu udara (°C)
     $suhuCat = function ($t) {
-        if ($t > 33)  return ['Ekstrem', 'cat-red'];
-        if ($t >= 30) return ['Panas',   'cat-yellow'];
-        return ['Nyaman', 'cat-green'];                   // 24–30°C normal tropis
+        if ($t > 33)  return [__('iklim.status_ekstrem'), 'cat-red'];
+        if ($t >= 30) return [__('iklim.status_panas'),   'cat-yellow'];
+        return [__('iklim.status_nyaman'), 'cat-green'];
     };
     // Kelembaban udara (%)
     $lembabCat = function ($k) {
-        if ($k > 90)  return ['Sangat Lembab', 'cat-red'];
-        if ($k >= 80) return ['Lembab',        'cat-yellow'];
-        return ['Ideal', 'cat-green'];                    // 60–80%
+        if ($k > 90)  return [__('iklim.status_sangat_lembab'), 'cat-red'];
+        if ($k >= 80) return [__('iklim.status_lembab'),        'cat-yellow'];
+        return [__('iklim.status_ideal'), 'cat-green'];
     };
 
     // Warna dot per kelas kategori
@@ -241,9 +256,23 @@
         {{-- KONTEN --}}
         <div class="statistik-content">
 
-            {{-- Header --}}
+        {{-- Header --}}
             <div class="stat-header-wrap">
-                <div class="stat-header">IKLIM JAKARTA BARAT {{ $tahun }}</div>
+                <div class="stat-header">{{ __('iklim.header', ['tahun' => $tahun]) }}</div>
+
+                {{-- Pemilih bahasa (di sebelah dropdown tahun) --}}
+                <div class="lang-switcher-inline">
+                    @php $currentLocale = app()->getLocale(); @endphp
+                    <form method="POST" action="{{ route('locale.switch', 'id') }}">
+                        @csrf
+                        <button type="submit" class="{{ $currentLocale === 'id' ? 'active' : '' }}" title="{{ __('iklim.lang_id') }}">ID</button>
+                    </form>
+                    <form method="POST" action="{{ route('locale.switch', 'en') }}">
+                        @csrf
+                        <button type="submit" class="{{ $currentLocale === 'en' ? 'active' : '' }}" title="{{ __('iklim.lang_en') }}">EN</button>
+                    </form>
+                </div>
+
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                         <i class="fa fa-calendar"></i>
@@ -264,9 +293,9 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label" id="lbl-suhu">RATA-RATA SUHU UDARA (°C)</div>
+                        <div class="label" id="lbl-suhu">{{ __('iklim.card_suhu_label') }}</div>
                         <div class="value" id="val-suhu">{{ number_format($avgSuhu, 2) }}</div>
-                        <div class="sub">suhu rata-rata harian</div>
+                        <div class="sub">{{ __('iklim.card_suhu_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
                         <i class="fa fa-thermometer-half" style="color:#fff;"></i>
@@ -276,9 +305,9 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label" id="lbl-hujan">RATA-RATA HARI HUJAN (HARI/BLN)</div>
+                        <div class="label" id="lbl-hujan">{{ __('iklim.card_hujan_label') }}</div>
                         <div class="value" id="val-hujan">{{ number_format($avgHariHujan, 1) }}</div>
-                        <div class="sub">jumlah hari turun hujan</div>
+                        <div class="sub">{{ __('iklim.card_hujan_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-tint" style="color:#fff;"></i>
@@ -288,9 +317,9 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label" id="lbl-lembab">KELEMBABAN UDARA (%)</div>
+                        <div class="label" id="lbl-lembab">{{ __('iklim.card_lembab_label') }}</div>
                         <div class="value" id="val-lembab">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
-                        <div class="sub">kadar uap air di udara</div>
+                        <div class="sub">{{ __('iklim.card_lembab_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#1baf7a; margin-left:auto;">
                         <i class="fa fa-water" style="color:#fff;"></i>
@@ -300,13 +329,13 @@
             <div class="col-md-3 d-flex">
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
-                        <div class="label" id="lbl-status">STATUS CURAH HUJAN</div>
+                        <div class="label" id="lbl-status">{{ __('iklim.card_status_label') }}</div>
                         <div class="value-status" id="val-status" style="margin-top:4px;">
                             <span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;">
                                 <span class="dot"></span>{{ $statusWilayah }}
                             </span>
                         </div>
-                        <div class="sub">klasifikasi intensitas hujan</div>
+                        <div class="sub">{{ __('iklim.card_status_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#eb6834; margin-left:auto;">
                         <i class="fa fa-info-circle" style="color:#fff;"></i>
@@ -320,26 +349,26 @@
 
             {{-- Donut: Distribusi Curah Hujan --}}
             <div class="chart-card">
-                <div class="chart-title">DISTRIBUSI CURAH HUJAN</div>
+                <div class="chart-title">{{ __('iklim.chart_donut_title') }}</div>
                 <div id="chart-donut"></div>
                 {{-- Warna dot legenda WAJIB sama dgn segmen donut (donutColors di script) --}}
                 {{-- WARNA LAMA (gradasi biru): #34527A / #5B82C0 / #A9C0E0 --}}
                 <div class="donut-legend">
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#e34948;"></span> Sangat Tinggi
+                            <span class="donut-legend-dot" style="background:#e34948;"></span> {{ __('iklim.humidity_very_high') }}
                         </div>
                         <span class="donut-legend-pct">{{ $pctST }}%</span>
                     </div>
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#eb6834;"></span> Tinggi
+                            <span class="donut-legend-dot" style="background:#eb6834;"></span> {{ __('iklim.humidity_high') }}
                         </div>
                         <span class="donut-legend-pct">{{ $pctT }}%</span>
                     </div>
                     <div class="donut-legend-item">
                         <div class="donut-legend-left">
-                            <span class="donut-legend-dot" style="background:#eda100;"></span> Sedang
+                            <span class="donut-legend-dot" style="background:#eda100;"></span> {{ __('iklim.humidity_medium') }}
                         </div>
                         <span class="donut-legend-pct">{{ $pctS }}%</span>
                     </div>
@@ -350,10 +379,10 @@
             <div class="chart-card" id="chart-bar">
                 <div class="chart-title-row">
                     <div>
-                        <div class="chart-title">TREN HARI HUJAN BULANAN</div>
-                        <div style="font-size:11px; color:#aaa; margin-top:2px;">Klik salah satu bulan untuk melihat detailnya di kartu ringkasan</div>
+                        <div class="chart-title">{{ __('iklim.chart_bar_title') }}</div>
+                        <div style="font-size:11px; color:#aaa; margin-top:2px;">{{ __('iklim.chart_bar_hint') }}</div>
                     </div>
-                    <span class="chart-total-badge">Rata-rata: {{ number_format($avgHariHujan, 1) }} hari/bln</span>
+                    <span class="chart-total-badge">{{ __('iklim.chart_bar_avg', ['avg' => number_format($avgHariHujan, 1)]) }}</span>
                 </div>
                 <div id="chart-bar-hujan"></div>
             </div>
@@ -362,7 +391,7 @@
         {{-- Table section --}}
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <div class="chart-title" style="margin-bottom:0;">DATA IKLIM PER BULAN</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('iklim.table_title') }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#iklim-table',
                     'nama'   => 'iklim-per-bulan-' . $tahun,
@@ -377,14 +406,14 @@
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Bulan</th>
-                        <th>Hari Hujan</th>
-                        <th>Suhu (°C)</th>
-                        <th>Kelembaban (%)</th>
-                        <th>Angin (km/h)</th>
-                        <th>Tekanan (mb)</th>
-                        <th>Penyinaran (%)</th>
-                        <th>Status</th>
+                        <th>{{ __('iklim.col_bulan') }}</th>
+                        <th>{{ __('iklim.col_hari_hujan') }}</th>
+                        <th>{{ __('iklim.col_suhu') }}</th>
+                        <th>{{ __('iklim.col_kelembaban') }}</th>
+                        <th>{{ __('iklim.col_angin') }}</th>
+                        <th>{{ __('iklim.col_tekanan') }}</th>
+                        <th>{{ __('iklim.col_penyinaran') }}</th>
+                        <th>{{ __('iklim.col_status') }}</th>
                     </tr>
                 </thead>
                 <tbody id="iklim-table-body">
@@ -425,33 +454,36 @@
 
         {{-- Keterangan kategori (acuan BMKG) --}}
         <div class="chart-card">
-            <div class="chart-title">KETERANGAN KATEGORI</div>
+            <div class="chart-title">{{ __('iklim.legend_title') }}</div>
             <div class="kategori-grid">
                 <div class="kategori-col">
-                    <div class="kategori-head">CURAH HUJAN</div>
-                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span><b>Normal</b> — sesuai rata-rata historis</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span><b>Waspada</b> — di atas normal, perlu perhatian</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#fb8c00;"></span><span><b>Siaga</b> — potensi banjir ringan</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span><b>Awas</b> — curah hujan ekstrem</span></div>
+                    <div class="kategori-head">{{ __('iklim.legend_rain_head') }}</div>
+                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span>{!! __('iklim.cat_rain_normal',  ['label' => '<b>' . __('iklim.status_normal')  . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span>{!! __('iklim.cat_rain_waspada', ['label' => '<b>' . __('iklim.status_waspada') . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#fb8c00;"></span><span>{!! __('iklim.cat_rain_siaga',   ['label' => '<b>' . __('iklim.status_siaga')   . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span>{!! __('iklim.cat_rain_awas',    ['label' => '<b>' . __('iklim.status_awas')    . '</b>']) !!}</span></div>
                 </div>
                 <div class="kategori-col">
-                    <div class="kategori-head">SUHU UDARA</div>
-                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span><b>Nyaman</b> — 24–30°C (normal tropis)</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span><b>Panas</b> — 30–33°C</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span><b>Ekstrem</b> — &gt;33°C</span></div>
+                    <div class="kategori-head">{{ __('iklim.legend_temp_head') }}</div>
+                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span>{!! __('iklim.cat_temp_nyaman',  ['label' => '<b>' . __('iklim.status_nyaman')  . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span>{!! __('iklim.cat_temp_panas',   ['label' => '<b>' . __('iklim.status_panas')   . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span>{!! __('iklim.cat_temp_ekstrem', ['label' => '<b>' . __('iklim.status_ekstrem') . '</b>']) !!}</span></div>
                 </div>
                 <div class="kategori-col">
-                    <div class="kategori-head">KELEMBABAN</div>
-                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span><b>Ideal</b> — 60–80%</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span><b>Lembab</b> — 80–90%</span></div>
-                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span><b>Sangat Lembab</b> — &gt;90%</span></div>
+                    <div class="kategori-head">{{ __('iklim.legend_humidity_head') }}</div>
+                    <div class="kategori-item"><span class="dot" style="background:#43a047;"></span><span>{!! __('iklim.cat_hum_ideal',         ['label' => '<b>' . __('iklim.status_ideal')         . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#f9a825;"></span><span>{!! __('iklim.cat_hum_lembab',        ['label' => '<b>' . __('iklim.status_lembab')        . '</b>']) !!}</span></div>
+                    <div class="kategori-item"><span class="dot" style="background:#e53935;"></span><span>{!! __('iklim.cat_hum_sangat_lembab', ['label' => '<b>' . __('iklim.status_sangat_lembab') . '</b>']) !!}</span></div>
                 </div>
             </div>
-            <div style="font-size:11px; color:#aaa; margin-top:14px;">Mengikuti acuan kategori BMKG.</div>
+            <div style="font-size:11px; color:#aaa; margin-top:14px;">{{ __('iklim.bmkg_note') }}</div>
         </div>
 
         <div style="text-align:right; font-size:12px; color:#bbb; margin-top:16px;">
-            Sumber: {{ $iklim->first()->sumber ?? 'BPS Kota Jakarta Barat (webapi.bps.go.id)' }} &bull; Data Tahun {{ $tahun }}
+            {!! __('iklim.source', [
+                'sumber' => $iklim->first()->sumber ?? __('iklim.source_default'),
+                'tahun'  => $tahun,
+            ]) !!}
         </div>
         </div>{{-- statistik-content --}}
 
@@ -522,7 +554,7 @@
     var CAT_HEX = { 'cat-green': '#43a047', 'cat-yellow': '#f9a825', 'cat-orange': '#fb8c00', 'cat-red': '#e53935' };
     var barColors = iklimData.map(function(d) { return CAT_HEX[d.statusClass] || CAT_HEX['cat-green']; });
 
-    var idID = 'id-ID';
+    var idID = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     function setHTML(id, h) { var el = document.getElementById(id); if (el) el.innerHTML = h; }
     function fmt1(v) { return Number(v).toLocaleString(idID, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
@@ -537,20 +569,32 @@
     }
 
     var cardDefaults = {
-        suhuLbl:   'RATA-RATA SUHU UDARA (°C)',          suhuVal:   '{{ number_format($avgSuhu, 2) }}',
-        hujanLbl:  'RATA-RATA HARI HUJAN (HARI/BLN)',    hujanVal:  '{{ number_format($avgHariHujan, 1) }}',
-        lembabLbl: 'KELEMBABAN UDARA (%)',               lembabVal: '{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small>',
-        statusLbl: 'STATUS CURAH HUJAN',                 statusVal: '<span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>{{ $statusWilayah }}</span>',
+        suhuLbl:   '{{ __('iklim.card_suhu_label') }}',      suhuVal:   '{{ number_format($avgSuhu, 2) }}',
+        hujanLbl:  '{{ __('iklim.card_hujan_label') }}',     hujanVal:  '{{ number_format($avgHariHujan, 1) }}',
+        lembabLbl: '{{ __('iklim.card_lembab_label') }}',    lembabVal: '{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small>',
+        statusLbl: '{{ __('iklim.card_status_label') }}',    statusVal: '<span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>{{ $statusWilayah }}</span>',
+    };
+
+    // Prefisks label kartu per bulan (dikirim dari PHP agar terjemahan konsisten)
+    var cardMonthLabels = {
+        suhu:   '{{ addslashes(__('iklim.card_suhu_month',   ['month' => ''])) }}',
+        hujan:  '{{ addslashes(__('iklim.card_hujan_month',  ['month' => ''])) }}',
+        lembab: '{{ addslashes(__('iklim.card_lembab_month', ['month' => ''])) }}',
+        status: '{{ addslashes(__('iklim.card_status_month', ['month' => ''])) }}',
     };
 
     function updateCards(i) {
         var d = iklimData[i];
         if (!d) return;
         var bln = d.bulan.toUpperCase();
-        setText('lbl-suhu',   'SUHU — ' + bln);          setText('val-suhu',   fmt1(d.suhu));
-        setText('lbl-hujan',  'HARI HUJAN — ' + bln);    setText('val-hujan',  fmt1(d.hari_hujan));
-        setText('lbl-lembab', 'KELEMBABAN — ' + bln);    setHTML('val-lembab', d.kelembaban + '<small style="font-size:13px; font-weight:500; color:#888;">%</small>');
-        setText('lbl-status', 'STATUS — ' + bln);        setHTML('val-status', '<span class="cat-badge ' + d.statusClass + '" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>' + d.status + '</span>');
+        setText('lbl-suhu',   cardMonthLabels.suhu.replace(':month', bln));
+        setText('val-suhu',   fmt1(d.suhu));
+        setText('lbl-hujan',  cardMonthLabels.hujan.replace(':month', bln));
+        setText('val-hujan',  fmt1(d.hari_hujan));
+        setText('lbl-lembab', cardMonthLabels.lembab.replace(':month', bln));
+        setHTML('val-lembab', d.kelembaban + '<small style="font-size:13px; font-weight:500; color:#888;">%</small>');
+        setText('lbl-status', cardMonthLabels.status.replace(':month', bln));
+        setHTML('val-status', '<span class="cat-badge ' + d.statusClass + '" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>' + d.status + '</span>');
         animateCards();
     }
 
@@ -612,7 +656,7 @@
                 }
             }
         },
-        series: [{ name: 'Hari Hujan (hari)', data: hariHujan }],
+        series: [{ name: '{{ __('iklim.chart_bar_series') }}', data: hariHujan }],
         xaxis: {
             categories: bulanLabels,
             labels: { style: { fontSize: '11px', colors: '#aaa' } },
@@ -621,7 +665,7 @@
         },
         yaxis: {
             labels: { style: { colors: '#aaa', fontSize: '11px' } },
-            title: { text: 'Hari', style: { color: '#aaa', fontSize: '11px' } }
+            title: { text: '{{ __('iklim.chart_bar_yaxis') }}', style: { color: '#aaa', fontSize: '11px' } }
         },
         colors: barColors,
         fill: { colors: barColors },
@@ -642,7 +686,7 @@
                 borderWidth: 1,
                 strokeDashArray: 4,
                 label: {
-                    text: 'Rata-rata: ' + avgHariHujan + ' hari',
+                    text: '{{ __('iklim.chart_bar_annotation', ['avg' => '']) }}' + avgHariHujan + '{{ app()->getLocale() === 'id' ? ' hari' : ' days' }}',
                     style: { color: '#666', fontSize: '10px', background: '#f9f9f9' }
                 }
             }]
@@ -650,13 +694,13 @@
         legend: { show: false },
         grid: { borderColor: '#f0f0f0', strokeDashArray: 4 },
         tooltip: {
-            y: { formatter: function(v) { return v + ' hari'; } }
+            y: { formatter: function(v) { return v + ' {{ __('iklim.chart_bar_yaxis') }}'; } }
         }
     });
     barChart.render();
 
     var donutValues  = [{{ $pctST }}, {{ $pctT }}, {{ $pctS }}];
-    var donutLabels  = ['Sangat Tinggi', 'Tinggi', 'Sedang'];
+    var donutLabels  = ['{{ __('iklim.humidity_very_high') }}', '{{ __('iklim.humidity_high') }}', '{{ __('iklim.humidity_medium') }}'];
     // Warna kategorikal per level intensitas (warna-warni)
     var donutColors  = ['#e34948', '#eb6834', '#eda100'];   // Sangat Tinggi / Tinggi / Sedang
     // var donutColors  = ['#34527A', '#5B82C0', '#A9C0E0'];   // WARNA LAMA (gradasi biru)
@@ -720,7 +764,7 @@
                         show: true,
                         total: {
                             show: true,
-                            label: 'Tinggi',
+                            label: '{{ __('iklim.donut_label_center') }}',
                             color: '#333', fontSize: '13px', fontWeight: 600,
                             formatter: function() { return donutMain + '%'; }
                         },
@@ -775,7 +819,10 @@
         rows.forEach(function(r, i) { r.style.display = (i >= start && i < end) ? '' : 'none'; });
 
         document.getElementById('iklim-pager-info').textContent =
-            'Menampilkan ' + (total ? start + 1 : 0) + '–' + end + ' dari ' + total + ' bulan';
+            '{{ __('iklim.pager_showing', ['from' => ':from', 'to' => ':to', 'total' => ':total']) }}'
+                .replace(':from',  total ? start + 1 : 0)
+                .replace(':to',    end)
+                .replace(':total', total);
 
         var pages = Math.ceil(total / IKLIM_PAGE_SIZE) || 1;
         var pager = document.getElementById('iklim-pager');

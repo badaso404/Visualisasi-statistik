@@ -38,6 +38,15 @@ use App\Http\Controllers\Admin\SinkronisasiController;
 // disebar ke luar sama-sama mendarat di halaman yang benar.
 Route::redirect('/', '/statistik')->name('home');
 
+// Ganti bahasa antarmuka dan kembali ke halaman sebelumnya.
+Route::post('locale/{locale}', function (string $locale) {
+    $supported = ['id', 'en'];
+    if (in_array($locale, $supported, true)) {
+        session(['locale' => $locale]);
+    }
+    return back();
+})->name('locale.switch');
+
 Route::prefix('statistik')->name('statistik.')->group(function () {
     // Ringkasan lintas modul; jadi halaman pembuka /statistik sekaligus.
     Route::get('/',             [StatistikController::class, 'overview'])->name('overview');
