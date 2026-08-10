@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('kesehatan.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -180,7 +181,7 @@
         'tahun'                   => $tahun,
         'jumlah_tempat_tidur_rs'  => 0,
         'cakupan_imunisasi_dasar' => 0,
-        'sumber'                  => 'Dinas Kesehatan Jakarta Barat',
+        'sumber'                  => __('kesehatan.sumber_default'),
     ]);
 
     $totalTenaga    = $tenaga->sum('jumlah_total');
@@ -223,7 +224,7 @@
 
             {{-- Header --}}
             <div class="stat-header-wrap">
-                <div class="stat-header">KESEHATAN JAKARTA BARAT {{ $tahun }}</div>
+                <div class="stat-header">{{ __('kesehatan.header', ['tahun' => $tahun]) }}</div>
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                         <i class="fa fa-calendar"></i>
@@ -245,9 +246,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label" id="kc-lbl-1">Tempat Tidur Rumah Sakit</div>
+                            <div class="sc-label" id="kc-lbl-1">{{ __('kesehatan.card_tt_label') }}</div>
                             <div class="sc-value" id="kc-val-1">{{ number_format($summary->jumlah_tempat_tidur_rs) }}</div>
-                            <div class="sc-desc" id="kc-desc-1">Total ketersediaan TT di RS</div>
+                            <div class="sc-desc" id="kc-desc-1">{{ __('kesehatan.card_tt_desc') }}</div>
                         </div>
                         <div class="sc-icon yellow"><i class="fa fa-bed-pulse"></i></div>
                     </div>
@@ -258,9 +259,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label" id="kc-lbl-2">Total Rumah Sakit</div>
+                            <div class="sc-label" id="kc-lbl-2">{{ __('kesehatan.card_rs_label') }}</div>
                             <div class="sc-value" id="kc-val-2">{{ number_format($totalRumahSakit) }}</div>
-                            <div class="sc-desc" id="kc-desc-2">RS Umum, Khusus &amp; Bersalin</div>
+                            <div class="sc-desc" id="kc-desc-2">{{ __('kesehatan.card_rs_desc') }}</div>
                         </div>
                         <div class="sc-icon green"><i class="fa fa-hospital"></i></div>
                     </div>
@@ -269,9 +270,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label" id="kc-lbl-3">Total Tenaga Kesehatan</div>
+                            <div class="sc-label" id="kc-lbl-3">{{ __('kesehatan.card_nakes_label') }}</div>
                             <div class="sc-value" id="kc-val-3">{{ number_format($totalTenaga) }}</div>
-                            <div class="sc-desc" id="kc-desc-3">Terbanyak: {{ $topTenaga?->kecamatan->nama_kecamatan ?? '-' }}</div>
+                            <div class="sc-desc" id="kc-desc-3">{{ __('kesehatan.card_nakes_desc', ['nama' => $topTenaga?->kecamatan->nama_kecamatan ?? '-']) }}</div>
                         </div>
                         <div class="sc-icon blue"><i class="fa fa-stethoscope"></i></div>
                     </div>
@@ -280,9 +281,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label" id="kc-lbl-4">Total Fasilitas Kesehatan</div>
+                            <div class="sc-label" id="kc-lbl-4">{{ __('kesehatan.card_fas_label') }}</div>
                             <div class="sc-value" id="kc-val-4">{{ number_format($totalFasilitas) }}</div>
-                            <div class="sc-desc" id="kc-desc-4">RS, Puskesmas, Klinik &amp; Posyandu</div>
+                            <div class="sc-desc" id="kc-desc-4">{{ __('kesehatan.card_fas_desc') }}</div>
                         </div>
                         <div class="sc-icon teal"><i class="fa fa-hospital"></i></div>
                     </div>
@@ -296,8 +297,8 @@
                 <div class="panel-card">
                     <div class="pc-header">
                         <div>
-                            <div class="pc-title">Tenaga Kesehatan per Kecamatan</div>
-                            <div class="pc-subtitle">Distribusi personel medis aktif — {{ $tahun }} · klik batang untuk rincian</div>
+                            <div class="pc-title">{{ __('kesehatan.chart_tenaga_title') }}</div>
+                            <div class="pc-subtitle">{{ __('kesehatan.chart_tenaga_sub', ['tahun' => $tahun]) }}</div>
                         </div>
                         <i class="fa fa-ellipsis-vertical" style="color:#ccc;"></i>
                     </div>
@@ -308,10 +309,10 @@
                 <div class="panel-card">
                     <div class="pc-header">
                         <div>
-                            <div class="pc-title">Fasilitas Kesehatan per Kecamatan</div>
-                            <div class="pc-subtitle">Jumlah unit fasilitas — {{ $tahun }} · klik batang untuk rincian</div>
+                            <div class="pc-title">{{ __('kesehatan.chart_fasilitas_title') }}</div>
+                            <div class="pc-subtitle">{{ __('kesehatan.chart_fasilitas_sub', ['tahun' => $tahun]) }}</div>
                         </div>
-                        <span class="pc-badge">Data {{ $tahun }}</span>
+                        <span class="pc-badge">{{ __('kesehatan.badge_data', ['tahun' => $tahun]) }}</span>
                     </div>
                     <div id="chart-fasilitas" style="min-height:280px;"></div>
                 </div>
@@ -322,8 +323,8 @@
             <div class="detail-card">
                 <div class="detail-header">
                     <div>
-                        <div class="detail-title">Perbandingan Statistik Lanjutan</div>
-                        <div class="detail-sub">Komparasi jumlah tenaga medis dan unit fasilitas kesehatan per kecamatan — {{ $tahun }}</div>
+                        <div class="detail-title">{{ __('kesehatan.detail_title') }}</div>
+                        <div class="detail-sub">{{ __('kesehatan.detail_sub', ['tahun' => $tahun]) }}</div>
                     </div>
                 </div>
                 <div id="chart-detail" style="min-height:280px;"></div>
@@ -333,23 +334,23 @@
             <div class="table-card">
                 <div class="table-header">
                     <div>
-                        <p class="table-title">Fasilitas per Kecamatan</p>
-                        <p class="table-sub">Rincian unit fasilitas kesehatan tahun {{ $tahun }}</p>
+                        <p class="table-title">{{ __('kesehatan.table_title') }}</p>
+                        <p class="table-sub">{{ __('kesehatan.table_sub', ['tahun' => $tahun]) }}</p>
                     </div>
                     @include('statistik.partials.unduh-tabel', [
                         'target' => '#tabel-faskes-kecamatan',
-                        'nama'   => 'fasilitas-kesehatan-per-kecamatan-' . $tahun,
+                        'nama'   => __('kesehatan.table_file', ['tahun' => $tahun]),
                     ])
                 </div>
                 <table class="kes-table" id="tabel-faskes-kecamatan" data-unduh-angka="en">
                     <thead>
                         <tr>
-                            <th>Kecamatan</th>
-                            <th>Total</th>
-                            <th>Rumah Sakit</th>
-                            <th>Puskesmas</th>
-                            <th>Klinik Kesehatan</th>
-                            <th>Posyandu</th>
+                            <th>{{ __('kesehatan.col_kecamatan') }}</th>
+                            <th>{{ __('kesehatan.col_total') }}</th>
+                            <th>{{ __('kesehatan.col_rs') }}</th>
+                            <th>{{ __('kesehatan.col_pkm') }}</th>
+                            <th>{{ __('kesehatan.col_klinik') }}</th>
+                            <th>{{ __('kesehatan.col_posyandu') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -369,7 +370,7 @@
 
             {{-- Footer --}}
             <div class="kes-footer">
-                Sumber: {{ $summary->sumber ?? 'Dinas Kesehatan Jakarta Barat' }} &bull; Data Tahun {{ $tahun }}
+                {!! __('kesehatan.source', ['sumber' => $summary->sumber ?? __('kesehatan.sumber_default'), 'tahun' => $tahun]) !!}
             </div>
 
         </div>{{-- /.kes-content --}}
@@ -443,10 +444,23 @@
     var kesStats = {!! json_encode($kesStatsData) !!};
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     var cardDefaults = {
-        l1: 'Tempat Tidur Rumah Sakit', v1: '{{ number_format($summary->jumlah_tempat_tidur_rs) }}',          d1: 'Total ketersediaan TT di RS',
-        l2: 'Total Rumah Sakit',        v2: '{{ number_format($totalRumahSakit) }}',                           d2: 'RS Umum, Khusus & Bersalin',
-        l3: 'Total Tenaga Kesehatan',   v3: '{{ number_format($totalTenaga) }}',                               d3: 'Terbanyak: {{ $topTenaga?->kecamatan->nama_kecamatan ?? '-' }}',
-        l4: 'Total Fasilitas Kesehatan',v4: '{{ number_format($totalFasilitas) }}',                            d4: 'RS, Puskesmas, Klinik & Posyandu',
+        l1: @json(__('kesehatan.card_tt_label')),    v1: '{{ number_format($summary->jumlah_tempat_tidur_rs) }}', d1: @json(__('kesehatan.card_tt_desc')),
+        l2: @json(__('kesehatan.card_rs_label')),    v2: '{{ number_format($totalRumahSakit) }}',                 d2: @json(__('kesehatan.card_rs_desc')),
+        l3: @json(__('kesehatan.card_nakes_label')), v3: '{{ number_format($totalTenaga) }}',                     d3: @json(__('kesehatan.card_nakes_desc', ['nama' => $topTenaga?->kecamatan->nama_kecamatan ?? '-'])),
+        l4: @json(__('kesehatan.card_fas_label')),   v4: '{{ number_format($totalFasilitas) }}',                  d4: @json(__('kesehatan.card_fas_desc')),
+    };
+
+    // Label kartu per kecamatan. :nama diganti di sisi JS karena kecamatannya
+    // baru diketahui setelah pengunjung mengklik batang.
+    var L = {
+        dokter:      @json(__('kesehatan.kc_dokter')),      dokterDesc:  @json(__('kesehatan.kc_dokter_desc')),
+        perawat:     @json(__('kesehatan.kc_perawat')),     perawatDesc: @json(__('kesehatan.kc_perawat_desc')),
+        bidan:       @json(__('kesehatan.kc_bidan')),       bidanDesc:   @json(__('kesehatan.kc_bidan_desc')),
+        nakes:       @json(__('kesehatan.card_nakes_label')), nakesDesc: @json(__('kesehatan.kc_nakes_desc')),
+        rs:          @json(__('kesehatan.kc_rs')),          rsDesc:      @json(__('kesehatan.kc_rs_desc')),
+        pkm:         @json(__('kesehatan.kc_pkm')),         pkmDesc:     @json(__('kesehatan.kc_pkm_desc')),
+        klinik:      @json(__('kesehatan.kc_klinik')),      klinikDesc:  @json(__('kesehatan.kc_klinik_desc')),
+        fas:         @json(__('kesehatan.kc_fas')),         fasDesc:     @json(__('kesehatan.kc_fas_desc')),
     };
     // Animasi fade halus pada isi kartu saat nilainya berubah (selaras modul Geo & Iklim)
     function animateCards() {
@@ -465,15 +479,15 @@
         if (!s) return;
         var nm = (s.nama || namaUp);
         if (mode === 'tenaga') {
-            setText('kc-lbl-1', 'Dokter');                 setText('kc-val-1', fmt(s.dokter || 0));  setText('kc-desc-1', 'Dokter di ' + nm);
-            setText('kc-lbl-2', 'Perawat');                setText('kc-val-2', fmt(s.perawat || 0)); setText('kc-desc-2', 'Perawat di ' + nm);
-            setText('kc-lbl-3', 'Bidan');                  setText('kc-val-3', fmt(s.bidan || 0));   setText('kc-desc-3', 'Bidan di ' + nm);
-            setText('kc-lbl-4', 'Total Tenaga Kesehatan'); setText('kc-val-4', fmt(s.tenaga || 0));  setText('kc-desc-4', 'Farmasi ' + fmt(s.farmasi || 0) + ' · Gizi ' + fmt(s.ahli_gizi || 0));
+            setText('kc-lbl-1', L.dokter);  setText('kc-val-1', fmt(s.dokter || 0));  setText('kc-desc-1', L.dokterDesc.replace(':nama', nm));
+            setText('kc-lbl-2', L.perawat); setText('kc-val-2', fmt(s.perawat || 0)); setText('kc-desc-2', L.perawatDesc.replace(':nama', nm));
+            setText('kc-lbl-3', L.bidan);   setText('kc-val-3', fmt(s.bidan || 0));   setText('kc-desc-3', L.bidanDesc.replace(':nama', nm));
+            setText('kc-lbl-4', L.nakes);   setText('kc-val-4', fmt(s.tenaga || 0));  setText('kc-desc-4', L.nakesDesc.replace(':farmasi', fmt(s.farmasi || 0)).replace(':gizi', fmt(s.ahli_gizi || 0)));
         } else {
-            setText('kc-lbl-1', 'Rumah Sakit');      setText('kc-val-1', fmt(s.rs || 0));        setText('kc-desc-1', 'Unit RS di ' + nm);
-            setText('kc-lbl-2', 'Puskesmas');        setText('kc-val-2', fmt(s.puskesmas || 0)); setText('kc-desc-2', 'Unit puskesmas di ' + nm);
-            setText('kc-lbl-3', 'Klinik Kesehatan'); setText('kc-val-3', fmt(s.klinik || 0));    setText('kc-desc-3', 'Klinik di ' + nm);
-            setText('kc-lbl-4', 'Total Fasilitas');  setText('kc-val-4', fmt(s.fasilitas || 0)); setText('kc-desc-4', 'Posyandu ' + fmt(s.posyandu || 0) + ' unit');
+            setText('kc-lbl-1', L.rs);     setText('kc-val-1', fmt(s.rs || 0));        setText('kc-desc-1', L.rsDesc.replace(':nama', nm));
+            setText('kc-lbl-2', L.pkm);    setText('kc-val-2', fmt(s.puskesmas || 0)); setText('kc-desc-2', L.pkmDesc.replace(':nama', nm));
+            setText('kc-lbl-3', L.klinik); setText('kc-val-3', fmt(s.klinik || 0));    setText('kc-desc-3', L.klinikDesc.replace(':nama', nm));
+            setText('kc-lbl-4', L.fas);    setText('kc-val-4', fmt(s.fasilitas || 0)); setText('kc-desc-4', L.fasDesc.replace(':jumlah', fmt(s.posyandu || 0)));
         }
         animateCards();
     }
@@ -534,12 +548,12 @@
     // ── Chart Tenaga (gradien biru) ───────────────────────────────
     var tenagaKec  = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
     var tenagaData = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('jumlah_total')->map(fn($v) => (int)$v)->values()) !!};
-    makeKesBar('#chart-tenaga', tenagaKec, tenagaData, 'Tenaga Kesehatan', 'tenaga');
+    makeKesBar('#chart-tenaga', tenagaKec, tenagaData, @json(__('kesehatan.series_tenaga')), 'tenaga');
 
     // ── Chart Fasilitas (gradien teal) ────────────────────────────
     var fasKec  = {!! json_encode($fasilitas->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
     var fasData = {!! json_encode($fasilitas->sortByDesc('jumlah_total')->pluck('jumlah_total')->map(fn($v) => (int)$v)->values()) !!};
-    makeKesBar('#chart-fasilitas', fasKec, fasData, 'Fasilitas Kesehatan', 'fasilitas');
+    makeKesBar('#chart-fasilitas', fasKec, fasData, @json(__('kesehatan.series_fasilitas')), 'fasilitas');
 
     // ── Chart Detail Grouped Bar ──────────────────────────────
     var kec          = {!! json_encode($tenaga->sortByDesc('jumlah_total')->pluck('kecamatan.nama_kecamatan')->values()) !!};
@@ -560,8 +574,8 @@
             animations: { enabled: true, speed: 600 },
         },
         series: [
-            { name: 'Tenaga Medis', data: dataTenaga },
-            { name: 'Fasilitas',    data: dataFasilitas },
+            { name: @json(__('kesehatan.series_medis')), data: dataTenaga },
+            { name: @json(__('kesehatan.series_fas')),   data: dataFasilitas },
         ],
         xaxis: {
             categories: kec,
@@ -570,12 +584,12 @@
             axisTicks:  { show: false },
         },
         yaxis: [
-            { seriesName: 'Tenaga Medis',
-              title: { text: 'Tenaga Medis', style: { fontSize: '9px', color: '#2a78d6' } },
+            { seriesName: @json(__('kesehatan.series_medis')),
+              title: { text: @json(__('kesehatan.series_medis')), style: { fontSize: '9px', color: '#2a78d6' } },
               labels: { style: { fontSize: '9px', colors: '#2a78d6' },
                         formatter: function (v) { return v >= 1000 ? (v / 1000).toFixed(0) + 'rb' : v.toFixed(0); } } },
-            { seriesName: 'Fasilitas', opposite: true,
-              title: { text: 'Fasilitas', style: { fontSize: '9px', color: '#eb6834' } },
+            { seriesName: @json(__('kesehatan.series_fas')), opposite: true,
+              title: { text: @json(__('kesehatan.series_fas')), style: { fontSize: '9px', color: '#eb6834' } },
               labels: { style: { fontSize: '9px', colors: '#eb6834' },
                         formatter: function (v) { return v.toFixed(0); } } },
         ],

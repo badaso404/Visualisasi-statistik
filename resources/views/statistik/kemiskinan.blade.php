@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('kemiskinan.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -90,7 +91,7 @@
     <div class="statistik-content">
 
         <div class="stat-header-wrap">
-            <div class="stat-header">KEMISKINAN JAKARTA BARAT {{ $tahun }}</div>
+            <div class="stat-header">{{ __('kemiskinan.header', ['tahun' => $tahun]) }}</div>
             <div class="dropdown-tahun">
                 <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                     <i class="fa fa-calendar"></i>
@@ -113,10 +114,10 @@
                 <div class="col-6 col-md">
                     <div class="poverty-card">
                         <div class="poverty-icon ic-red"><i class="fa fa-people-group"></i></div>
-                        <div class="poverty-label">Penduduk Miskin</div>
+                        <div class="poverty-label">{{ __('kemiskinan.card_jumlah') }}</div>
                         <div class="poverty-value">{{ number_format($summary->jumlah_penduduk_miskin, 0, ',', '.') }}</div>
                         <div class="poverty-sub">
-                            jiwa
+                            {{ __('kemiskinan.card_jumlah_sub') }}
                             @if($tren !== null)
                                 &middot;
                                 <span class="{{ $tren > 0 ? 'tren-up' : 'tren-down' }}">
@@ -130,33 +131,33 @@
                 <div class="col-6 col-md">
                     <div class="poverty-card">
                         <div class="poverty-icon ic-orange"><i class="fa fa-percent"></i></div>
-                        <div class="poverty-label">Persentase</div>
+                        <div class="poverty-label">{{ __('kemiskinan.card_persen') }}</div>
                         <div class="poverty-value">{{ $summary->persentase_penduduk_miskin }}%</div>
-                        <div class="poverty-sub">dari total penduduk</div>
+                        <div class="poverty-sub">{{ __('kemiskinan.card_persen_sub') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md">
                     <div class="poverty-card">
                         <div class="poverty-icon ic-amber"><i class="fa fa-money-bill-wave"></i></div>
-                        <div class="poverty-label">Garis Kemiskinan</div>
+                        <div class="poverty-label">{{ __('kemiskinan.card_garis') }}</div>
                         <div class="poverty-value" style="font-size:16px;">Rp {{ number_format($summary->garis_kemiskinan, 0, ',', '.') }}</div>
-                        <div class="poverty-sub">per kapita/bulan</div>
+                        <div class="poverty-sub">{{ __('kemiskinan.card_garis_sub') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md">
                     <div class="poverty-card">
                         <div class="poverty-icon ic-violet"><i class="fa fa-arrow-down-wide-short"></i></div>
-                        <div class="poverty-label">Indeks Kedalaman (P1)</div>
+                        <div class="poverty-label">{{ __('kemiskinan.card_p1') }}</div>
                         <div class="poverty-value">{{ $summary->indeks_kedalaman }}</div>
-                        <div class="poverty-sub">jarak ke garis miskin</div>
+                        <div class="poverty-sub">{{ __('kemiskinan.card_p1_sub') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md">
                     <div class="poverty-card">
                         <div class="poverty-icon ic-blue"><i class="fa fa-chart-simple"></i></div>
-                        <div class="poverty-label">Indeks Keparahan (P2)</div>
+                        <div class="poverty-label">{{ __('kemiskinan.card_p2') }}</div>
                         <div class="poverty-value">{{ $summary->indeks_keparahan }}</div>
-                        <div class="poverty-sub">ketimpangan antar-miskin</div>
+                        <div class="poverty-sub">{{ __('kemiskinan.card_p2_sub') }}</div>
                     </div>
                 </div>
             </div>
@@ -166,13 +167,13 @@
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Tren Jumlah Penduduk Miskin (jiwa)</div>
+                    <div class="chart-title">{{ __('kemiskinan.chart_miskin_title') }}</div>
                     <div id="chart-tren-miskin" class="chart-box"></div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Tren Persentase Penduduk Miskin (%)</div>
+                    <div class="chart-title">{{ __('kemiskinan.chart_persen_title') }}</div>
                     <div id="chart-tren-persen" class="chart-box"></div>
                 </div>
             </div>
@@ -181,13 +182,13 @@
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Tren Garis Kemiskinan (Rp/kapita/bulan)</div>
+                    <div class="chart-title">{{ __('kemiskinan.chart_garis_title') }}</div>
                     <div id="chart-tren-garis" class="chart-box"></div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Tren Indeks Kedalaman (P1) & Keparahan (P2)</div>
+                    <div class="chart-title">{{ __('kemiskinan.chart_indeks_title') }}</div>
                     <div id="chart-tren-indeks" class="chart-box"></div>
                 </div>
             </div>
@@ -196,22 +197,22 @@
         {{-- TABEL RINGKASAN ANTAR-TAHUN (data BPS) --}}
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">Ringkasan Antar-Tahun</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('kemiskinan.table_title') }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-kemiskinan-tahun',
-                    'nama'   => 'kemiskinan-antar-tahun',
+                    'nama'   => __('kemiskinan.table_file'),
                 ])
             </div>
             <div class="table-responsive">
                 <table class="table table-sm" id="tabel-kemiskinan-tahun" data-unduh-angka="id">
                     <thead>
                         <tr>
-                            <th>Tahun</th>
-                            <th>Penduduk Miskin</th>
-                            <th>Persentase</th>
-                            <th>Garis Kemiskinan</th>
-                            <th>P1</th>
-                            <th>P2</th>
+                            <th>{{ __('kemiskinan.col_tahun') }}</th>
+                            <th>{{ __('kemiskinan.col_jumlah') }}</th>
+                            <th>{{ __('kemiskinan.col_persen') }}</th>
+                            <th>{{ __('kemiskinan.col_garis') }}</th>
+                            <th>{{ __('kemiskinan.col_p1') }}</th>
+                            <th>{{ __('kemiskinan.col_p2') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -231,7 +232,7 @@
         </div>
 
         <div class="sumber">
-            Sumber: {{ $summary->sumber }}
+            {{ __('kemiskinan.source', ['sumber' => $summary->sumber]) }}
         </div>
 
         {{-- ── CHART & TABEL PER-KECAMATAN (DINONAKTIFKAN) ────────────────────────
@@ -309,7 +310,7 @@
         ──────────────────────────────────────────────────────────────────────── --}}
         @else
         <div class="chart-card text-center text-muted py-5">
-            Belum ada data kemiskinan untuk ditampilkan.
+            {{ __('kemiskinan.empty') }}
         </div>
         @endif
 
@@ -386,11 +387,11 @@ function trenChart(sel, series, colors, fmtY) {
     return chart;
 }
 
-trenChart('#chart-tren-miskin', [{ name: 'Penduduk Miskin', data: trMiskin }], ['#e34948'], fmt);
-trenChart('#chart-tren-persen', [{ name: 'Persentase',      data: trPersen }], ['#eb6834'], fmtPersen);
-trenChart('#chart-tren-garis',  [{ name: 'Garis Kemiskinan',data: trGaris  }], ['#eda100'], fmtRp);
+trenChart('#chart-tren-miskin', [{ name: @json(__('kemiskinan.series_miskin')), data: trMiskin }], ['#e34948'], fmt);
+trenChart('#chart-tren-persen', [{ name: @json(__('kemiskinan.series_persen')), data: trPersen }], ['#eb6834'], fmtPersen);
+trenChart('#chart-tren-garis',  [{ name: @json(__('kemiskinan.series_garis')),  data: trGaris  }], ['#eda100'], fmtRp);
 trenChart('#chart-tren-indeks',
-    [{ name: 'P1 (Kedalaman)', data: trP1 }, { name: 'P2 (Keparahan)', data: trP2 }],
+    [{ name: @json(__('kemiskinan.series_p1')), data: trP1 }, { name: @json(__('kemiskinan.series_p2')), data: trP2 }],
     ['#4a3aa7', '#2a78d6']);
 
 /* ── CHART PER-KECAMATAN (DINONAKTIFKAN — BPS tanpa rincian kecamatan) ──────

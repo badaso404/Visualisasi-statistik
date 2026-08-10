@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('kependudukan.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -98,7 +99,7 @@
         {{-- KONTEN --}}
         <div class="statistik-content">
             <div class="stat-header-wrap">
-                <div class="stat-header">KEPENDUDUKAN JAKARTA BARAT {{ $tahun }}</div>
+                <div class="stat-header">{{ __('kependudukan.header', ['tahun' => $tahun]) }}</div>
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                         <i class="fa fa-calendar"></i>
@@ -121,7 +122,7 @@
                 <div class="col-md-4">
                     <div class="stat-summary-card">
                         <div class="card-text">
-                            <div class="label" id="sum-label-1">LAKI-LAKI</div>
+                            <div class="label" id="sum-label-1">{{ __('kependudukan.card_laki') }}</div>
                             <div class="value" id="sum-value-1">{{ number_format($summary->jumlah_laki_laki) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-1" style="background:#2a78d6; margin-left:auto;">
@@ -132,7 +133,7 @@
                 <div class="col-md-4">
                     <div class="stat-summary-card">
                         <div class="card-text">
-                            <div class="label" id="sum-label-2">PEREMPUAN</div>
+                            <div class="label" id="sum-label-2">{{ __('kependudukan.card_perempuan') }}</div>
                             <div class="value" id="sum-value-2">{{ number_format($summary->jumlah_perempuan) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-2" style="background:#e87ba4; margin-left:auto;">
@@ -143,7 +144,7 @@
                 <div class="col-md-4">
                     <div class="stat-summary-card">
                         <div class="card-text">
-                            <div class="label" id="sum-label-3">TOTAL PENDUDUK</div>
+                            <div class="label" id="sum-label-3">{{ __('kependudukan.card_total') }}</div>
                             <div class="value" id="sum-value-3">{{ number_format($summary->jumlah_total) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-3" style="background:#008300; margin-left:auto;">
@@ -158,10 +159,10 @@
                 <div class="col-md-6">
                     <div class="chart-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="chart-title mb-0">POPULASI PENDUDUK KELURAHAN</div>
+                            <div class="chart-title mb-0">{{ __('kependudukan.chart_kelurahan_title') }}</div>
                             <button id="btn-back" onclick="backToKecamatan()"
                                 style="display:none; font-size:11px; padding:4px 10px; border:1px solid #ccc; border-radius:4px; background:#f9f9f9; cursor:pointer;">
-                                ← Kembali
+                                {{ __('kependudukan.btn_kembali') }}
                             </button>
                         </div>
                         <div id="chart-kelurahan"></div>
@@ -169,7 +170,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="chart-card">
-                        <div class="chart-title">POPULASI PENDUDUK KECAMATAN</div>
+                        <div class="chart-title">{{ __('kependudukan.chart_kecamatan_title') }}</div>
                         <div id="chart-kecamatan"></div>
                     </div>
                 </div>
@@ -177,11 +178,11 @@
 
             {{-- Map --}}
             <div class="chart-card">
-                <div class="chart-title">PERSEBARAN PENDUDUK KECAMATAN & KELURAHAN</div>
+                <div class="chart-title">{{ __('kependudukan.map_title') }}</div>
                 <div id="map-kelurahan"></div>
             </div>
 
-            <div class="sumber">Sumber: {{ $summary->sumber }}</div>
+            <div class="sumber">{{ __('kependudukan.source', ['sumber' => $summary->sumber]) }}</div>
         </div>
 
     </div>
@@ -208,6 +209,9 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // Pemisah ribuan ikut bahasa aktif: 1.234 di Indonesia, 1,234 di Inggris.
+    var localeAngka = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
+
     // Data dari Laravel
     var namaKecamatan = {!! json_encode($perKecamatan->pluck('kecamatan.nama_kecamatan')) !!};
     var popKecamatan  = {!! json_encode($perKecamatan->pluck('jumlah_penduduk')->map(fn($v) => (int)$v)) !!};
@@ -261,9 +265,9 @@
 
     // Kondisi default (Jakarta Barat keseluruhan) — dari data_kependudukan
     var SUMMARY_DEFAULT = [
-        { bg: '#2a78d6', icon: 'fa-male',   label: 'LAKI-LAKI',      value: {{ (int) $summary->jumlah_laki_laki }} },
-        { bg: '#e87ba4', icon: 'fa-female', label: 'PEREMPUAN',      value: {{ (int) $summary->jumlah_perempuan }} },
-        { bg: '#008300', icon: 'fa-users',  label: 'TOTAL PENDUDUK', value: {{ (int) $summary->jumlah_total }} },
+        { bg: '#2a78d6', icon: 'fa-male',   label: @json(__('kependudukan.card_laki')),      value: {{ (int) $summary->jumlah_laki_laki }} },
+        { bg: '#e87ba4', icon: 'fa-female', label: @json(__('kependudukan.card_perempuan')), value: {{ (int) $summary->jumlah_perempuan }} },
+        { bg: '#008300', icon: 'fa-users',  label: @json(__('kependudukan.card_total')),     value: {{ (int) $summary->jumlah_total }} },
     ];
 
     function setCard(i, bg, icon, label, valueText) {
@@ -284,7 +288,7 @@
 
     function resetSummary() {
         SUMMARY_DEFAULT.forEach(function(c, idx) {
-            setCard(idx + 1, c.bg, c.icon, c.label, c.value.toLocaleString('id-ID'));
+            setCard(idx + 1, c.bg, c.icon, c.label, c.value.toLocaleString(localeAngka));
         });
         animateCards();
     }
@@ -298,21 +302,21 @@
         var jmlKel = (k && k.labels) ? k.labels.length : 0;
         var persen = totalJakbar ? (total / totalJakbar * 100) : 0;
 
-        setCard(1, warna,     'fa-users',      'PENDUDUK KECAMATAN', total.toLocaleString('id-ID'));
-        setCard(2, '#6c5ce7', 'fa-building',   'JUMLAH KELURAHAN',   jmlKel.toString());
-        setCard(3, '#e17055', 'fa-chart-pie',  'KONTRIBUSI JAKBAR',  persen.toFixed(1) + '%');
+        setCard(1, warna,     'fa-users',      @json(__('kependudukan.card_kec_total')),  total.toLocaleString(localeAngka));
+        setCard(2, '#6c5ce7', 'fa-building',   @json(__('kependudukan.card_kec_kel')),    jmlKel.toString());
+        setCard(3, '#e17055', 'fa-chart-pie',  @json(__('kependudukan.card_kec_persen')), persen.toFixed(1) + '%');
         animateCards();
     }
 
     // Chart Kelurahan (drill-down)
     var chartKelurahan = new ApexCharts(document.querySelector("#chart-kelurahan"), {
         chart: { type: 'bar', height: 320, toolbar: { show: false } },
-        series: [{ name: 'Penduduk', data: [] }],
+        series: [{ name: @json(__('kependudukan.series_penduduk')), data: [] }],
         xaxis: { categories: [], labels: { style: { fontSize: '10px' } } },
         colors: ['#26a0fc'],
         dataLabels: { enabled: true, style: { fontSize: '9px' } },
         plotOptions: { bar: { borderRadius: 3, horizontal: true } },
-        noData: { text: 'Klik kecamatan di sebelah kanan →', style: { fontSize: '13px', color: '#999' } }
+        noData: { text: @json(__('kependudukan.chart_nodata')), style: { fontSize: '13px', color: '#999' } }
     });
     chartKelurahan.render();
 
@@ -335,13 +339,13 @@
         });
 
         chartKelurahan.updateOptions({
-            series: [{ name: 'Penduduk', data: data }],
+            series: [{ name: @json(__('kependudukan.series_penduduk')), data: data }],
             xaxis: { categories: labels },
             colors: colors,
             plotOptions: { bar: { borderRadius: 3, horizontal: true, distributed: true } },
             legend: { show: false },
             title: {
-                text: 'Kelurahan Terpadat per Kecamatan',
+                text: @json(__('kependudukan.chart_terpadat')),
                 align: 'left',
                 style: { fontSize: '12px', fontWeight: 600 }
             }
@@ -363,13 +367,13 @@
                 }
             }
         },
-        series: [{ name: 'Penduduk', data: popKecamatan }],
+        series: [{ name: @json(__('kependudukan.series_penduduk')), data: popKecamatan }],
         xaxis: { categories: namaKecamatan, labels: { style: { fontSize: '10px' } } },
         colors: warnaChart,
         dataLabels: { enabled: true, style: { fontSize: '9px' } },
         plotOptions: { bar: { borderRadius: 3, distributed: true } },
         legend: { show: false },
-        title: { text: '👆 Klik bar untuk lihat kelurahan', align: 'center', style: { fontSize: '11px', color: '#999' } }
+        title: { text: @json(__('kependudukan.chart_hint_klik')), align: 'center', style: { fontSize: '11px', color: '#999' } }
     });
     chartKecamatan.render();
 
@@ -381,20 +385,20 @@
         var warna = warnaMap[namaKec.toUpperCase()] || '#26a0fc';
 
         chartKelurahan.updateOptions({
-            series: [{ name: 'Penduduk', data: data.data }],
+            series: [{ name: @json(__('kependudukan.series_penduduk')), data: data.data }],
             xaxis: { categories: data.labels },
             colors: [warna],
             plotOptions: { bar: { borderRadius: 3, horizontal: true, distributed: false } },
             legend: { show: false },
             title: {
-                text: 'Kelurahan - ' + namaKec,
+                text: @json(__('kependudukan.chart_kelurahan_of')).replace(':nama', namaKec),
                 align: 'left',
                 style: { fontSize: '12px', fontWeight: 600 }
             }
         });
 
         chartKecamatan.updateOptions({
-            title: { text: '← Sedang melihat: ' + namaKec, align: 'center', style: { fontSize: '11px', color: '#999' } }
+            title: { text: @json(__('kependudukan.chart_hint_lihat')).replace(':nama', namaKec), align: 'center', style: { fontSize: '11px', color: '#999' } }
         });
 
         filterMarkerMap(namaKec);
@@ -419,7 +423,7 @@
     function backToKecamatan() {
         showTopKelurahan();
         chartKecamatan.updateOptions({
-            title: { text: '👆 Klik bar untuk lihat kelurahan', align: 'center', style: { fontSize: '11px', color: '#999' } }
+            title: { text: @json(__('kependudukan.chart_hint_klik')), align: 'center', style: { fontSize: '11px', color: '#999' } }
         });
         resetMarkerMap();
         resetSummary();
@@ -476,8 +480,8 @@
                 onEachFeature: function(feature, layer) {
                     var nama = feature.properties.name;
                     kecLayers[nama.toUpperCase()] = layer;
-                    var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString('id-ID') + ' jiwa' : '-';
-                    layer.bindPopup('<b>Kec. ' + nama + '</b><br>👥 ' + jumlah);
+                    var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString(localeAngka) + ' ' + @json(__('kependudukan.satuan_jiwa')) : '-';
+                    layer.bindPopup('<b>' + @json(__('kependudukan.map_popup_kec')).replace(':nama', nama) + '</b><br>👥 ' + jumlah);
                     layer.on('mouseover', function() { layer.setStyle({ fillOpacity: 0.8 }); layer.openPopup(); });
                     layer.on('mouseout',  function() { layer.setStyle({ fillOpacity: 0.62 }); layer.closePopup(); });
                 }
@@ -488,9 +492,9 @@
             legend.onAdd = function() {
                 var div = L.DomUtil.create('div');
                 div.style.cssText = 'background:white;padding:10px;border-radius:8px;font-size:12px;line-height:20px;box-shadow:0 1px 5px rgba(0,0,0,0.2);';
-                div.innerHTML = '<b>Kecamatan</b><br>';
+                div.innerHTML = '<b>' + @json(__('kependudukan.legend_title')) + '</b><br>';
                 kecJakbar.forEach(function(nama) {
-                    var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString('id-ID') : '-';
+                    var jumlah = pendudukMap[nama] ? pendudukMap[nama].toLocaleString(localeAngka) : '-';
                     div.innerHTML += '<span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:' + warnaMap[nama] + ';margin-right:6px;vertical-align:middle;"></span>' + nama + ' <b>' + jumlah + '</b><br>';
                 });
                 return div;
@@ -520,7 +524,9 @@
         });
         var marker = L.marker([k.lat, k.lng], { icon: icon })
             .addTo(map)
-            .bindPopup('<b>' + k.nama + '</b><br>Kecamatan: ' + k.kecamatan + '<br>👥 ' + k.jumlah.toLocaleString('id-ID') + ' jiwa');
+            .bindPopup('<b>' + k.nama + '</b><br>'
+                + @json(__('kependudukan.map_popup_kel')).replace(':kecamatan', k.kecamatan)
+                + '<br>👥 ' + k.jumlah.toLocaleString(localeAngka) + ' ' + @json(__('kependudukan.satuan_jiwa')));
         marker._kecamatan = k.kecamatan;
         allMarkers.push(marker);
     });

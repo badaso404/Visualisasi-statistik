@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
 use App\Services\Statistik\DsdaClient;
 use App\Models\DataGeografis;
 use App\Models\LuasKecamatan;
@@ -66,11 +67,13 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Geografis', 'route' => 'statistik.geografis', 'tahun' => $tahunGeo,
                 'icon' => 'fa-map', 'warna' => 'ic-teal',
-                'label' => 'Luas Wilayah',
+                'label' => __('overview.card_geografis'),
                 'nilai' => number_format($geo->luas_kota_km2, 2, ',', '.'),
-                'satuan' => 'km²',
-                'sub' => $luasKec->count() . ' kecamatan &middot; '
-                       . number_format((int) $luasKec->sum('jumlah_kelurahan'), 0, ',', '.') . ' kelurahan',
+                'satuan' => __('overview.unit_km2'),
+                'sub' => __('overview.sub_geografis', [
+                    'kecamatan' => $luasKec->count(),
+                    'kelurahan' => number_format((int) $luasKec->sum('jumlah_kelurahan'), 0, ',', '.'),
+                ]),
             ];
         }
 
@@ -81,11 +84,13 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Kependudukan', 'route' => 'statistik.kependudukan', 'tahun' => $tahunPenduduk,
                 'icon' => 'fa-users', 'warna' => 'ic-blue',
-                'label' => 'Jumlah Penduduk',
+                'label' => __('overview.card_kependudukan'),
                 'nilai' => number_format($penduduk->jumlah_total, 0, ',', '.'),
-                'satuan' => 'jiwa',
-                'sub' => 'L ' . number_format($penduduk->jumlah_laki_laki, 0, ',', '.')
-                       . ' &middot; P ' . number_format($penduduk->jumlah_perempuan, 0, ',', '.'),
+                'satuan' => __('overview.unit_jiwa'),
+                'sub' => __('overview.sub_kependudukan', [
+                    'laki'      => number_format($penduduk->jumlah_laki_laki, 0, ',', '.'),
+                    'perempuan' => number_format($penduduk->jumlah_perempuan, 0, ',', '.'),
+                ]),
             ];
         }
 
@@ -97,10 +102,12 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Pendidikan', 'route' => 'statistik.pendidikan', 'tahun' => $tahunDidik,
                 'icon' => 'fa-graduation-cap', 'warna' => 'ic-amber',
-                'label' => 'Jumlah Pelajar',
+                'label' => __('overview.card_pendidikan'),
                 'nilai' => number_format((int) $didikKec->sum('jumlah_pelajar'), 0, ',', '.'),
-                'satuan' => 'siswa',
-                'sub' => number_format((int) $didikKec->sum('jumlah_pendidik'), 0, ',', '.') . ' tenaga pendidik',
+                'satuan' => __('overview.unit_siswa'),
+                'sub' => __('overview.sub_pendidikan', [
+                    'jumlah' => number_format((int) $didikKec->sum('jumlah_pendidik'), 0, ',', '.'),
+                ]),
             ];
         }
 
@@ -108,7 +115,7 @@ class StatistikController extends Controller
         // berarti kalau disandingkan: selisihnya menunjukkan siswa yang usianya
         // di luar jenjang, jadi digambar sebagai satu grafik dua seri.
         $pendidikanIndikator = $didik ? [
-            'jenjang' => ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA'],
+            'jenjang' => [__('common.jenjang.sd'), __('common.jenjang.smp'), __('common.jenjang.sma')],
             'apm'     => [(float) $didik->apm_sd_mi, (float) $didik->apm_smp_mts, (float) $didik->apm_sma_smk_man],
             'apk'     => [(float) $didik->apk_sd_mi, (float) $didik->apk_smp_mts, (float) $didik->apk_sma_smk_man],
             'tahun'   => $tahunDidik,
@@ -123,28 +130,30 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Kesehatan', 'route' => 'statistik.kesehatan', 'tahun' => $tahunSehat,
                 'icon' => 'fa-plus-circle', 'warna' => 'ic-violet',
-                'label' => 'Fasilitas Kesehatan',
+                'label' => __('overview.card_kesehatan'),
                 'nilai' => number_format((int) $faskes->sum('jumlah_total'), 0, ',', '.'),
-                'satuan' => 'unit',
-                'sub' => number_format((int) $nakes->sum('jumlah_total'), 0, ',', '.') . ' tenaga kesehatan',
+                'satuan' => __('overview.unit_unit'),
+                'sub' => __('overview.sub_kesehatan', [
+                    'jumlah' => number_format((int) $nakes->sum('jumlah_total'), 0, ',', '.'),
+                ]),
             ];
         }
 
         // Komposisi fasilitas & tenaga kesehatan. Kolom nol dibuang supaya
         // potongan kosong tidak muncul di donut saat sebuah jenis belum diisi.
         $faskesJenis = collect([
-            'Posyandu'   => (int) $faskes->sum('posyandu'),
-            'Klinik'     => (int) $faskes->sum('klinik_kesehatan'),
-            'Puskesmas'  => (int) $faskes->sum('puskesmas'),
-            'Rumah Sakit'=> (int) $faskes->sum('rumah_sakit'),
+            __('common.faskes.posyandu')    => (int) $faskes->sum('posyandu'),
+            __('common.faskes.klinik')      => (int) $faskes->sum('klinik_kesehatan'),
+            __('common.faskes.puskesmas')   => (int) $faskes->sum('puskesmas'),
+            __('common.faskes.rumah_sakit') => (int) $faskes->sum('rumah_sakit'),
         ])->filter()->sortDesc();
 
         $nakesJenis = collect([
-            'Perawat'   => (int) $nakes->sum('perawat'),
-            'Dokter'    => (int) $nakes->sum('dokter'),
-            'Farmasi'   => (int) $nakes->sum('farmasi'),
-            'Bidan'     => (int) $nakes->sum('bidan'),
-            'Ahli Gizi' => (int) $nakes->sum('ahli_gizi'),
+            __('common.nakes.perawat')   => (int) $nakes->sum('perawat'),
+            __('common.nakes.dokter')    => (int) $nakes->sum('dokter'),
+            __('common.nakes.farmasi')   => (int) $nakes->sum('farmasi'),
+            __('common.nakes.bidan')     => (int) $nakes->sum('bidan'),
+            __('common.nakes.ahli_gizi') => (int) $nakes->sum('ahli_gizi'),
         ])->filter()->sortDesc();
 
         // ── 5. Kebencanaan ────────────────────────────────────────
@@ -154,16 +163,20 @@ class StatistikController extends Controller
             ->where('wilayah', DataBencana::WILAYAH_JAKBAR);
         $tahunBencana  = (int) $rekapBencana()->max('tahun');
         $bencanaItems  = $tahunBencana ? $rekapBencana()->where('tahun', $tahunBencana)->get() : collect();
+        // Kunci hasil groupBy adalah nilai mentah kolom jenis_bencana; diganti
+        // label terjemahan di sini supaya grafik dan kartu ikut berbahasa aktif.
         $bencanaJenis  = $bencanaItems->groupBy('jenis_bencana')
-            ->map(fn($rows) => (int) $rows->sum('jumlah_kejadian'))->sortDesc();
+            ->map(fn($rows) => (int) $rows->sum('jumlah_kejadian'))
+            ->mapWithKeys(fn($jumlah, $jenis) => [$this->labelJenisBencana($jenis) => $jumlah])
+            ->sortDesc();
         if ($bencanaItems->isNotEmpty()) {
             $kartu[] = [
                 'modul' => 'Kebencanaan', 'route' => 'statistik.bencana', 'tahun' => $tahunBencana,
                 'icon' => 'fa-house-flood-water', 'warna' => 'ic-orange',
-                'label' => 'Kejadian Bencana',
+                'label' => __('overview.card_bencana'),
                 'nilai' => number_format((int) $bencanaItems->sum('jumlah_kejadian'), 0, ',', '.'),
-                'satuan' => 'kejadian',
-                'sub' => 'terbanyak: ' . ($bencanaJenis->keys()->first() ?? '-'),
+                'satuan' => __('overview.unit_kejadian'),
+                'sub' => __('overview.sub_bencana', ['jenis' => $bencanaJenis->keys()->first() ?? '-']),
             ];
         }
 
@@ -175,10 +188,12 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Kemiskinan', 'route' => 'statistik.kemiskinan', 'tahun' => $tahunMiskin,
                 'icon' => 'fa-hand-holding-heart', 'warna' => 'ic-red',
-                'label' => 'Penduduk Miskin',
+                'label' => __('overview.card_kemiskinan'),
                 'nilai' => number_format($miskin->persentase_penduduk_miskin, 2, ',', '.') . '%',
                 'satuan' => '',
-                'sub' => number_format($miskin->jumlah_penduduk_miskin, 0, ',', '.') . ' jiwa',
+                'sub' => __('overview.sub_kemiskinan', [
+                    'jumlah' => number_format($miskin->jumlah_penduduk_miskin, 0, ',', '.'),
+                ]),
                 // Kemiskinan turun = kabar baik, jadi arah trennya dibalik saat
                 // diwarnai di view (lihat 'tren_baik').
                 'tren' => $prevMiskin && $prevMiskin->persentase_penduduk_miskin > 0
@@ -195,10 +210,12 @@ class StatistikController extends Controller
             $kartu[] = [
                 'modul' => 'Perekonomian', 'route' => 'statistik.perekonomian', 'tahun' => $tahunEkon,
                 'icon' => 'fa-sack-dollar', 'warna' => 'ic-green',
-                'label' => 'PDRB Harga Berlaku',
+                'label' => __('overview.card_perekonomian'),
                 'nilai' => 'Rp ' . number_format($ekon->pdrb_adhb / 1000000, 2, ',', '.'),
-                'satuan' => 'triliun',
-                'sub' => 'pertumbuhan ' . number_format($ekon->laju_pertumbuhan, 2, ',', '.') . '%',
+                'satuan' => __('overview.unit_triliun'),
+                'sub' => __('overview.sub_perekonomian', [
+                    'persen' => number_format($ekon->laju_pertumbuhan, 2, ',', '.'),
+                ]),
                 'tren' => (float) $ekon->laju_pertumbuhan,
             ];
         }
@@ -213,11 +230,13 @@ class StatistikController extends Controller
                 'modul' => 'Infrastruktur Digital', 'route' => 'statistik.infrastruktur-digital',
                 'tahun' => max($tahunWifi, $tahunCctv),
                 'icon' => 'fa-wifi', 'warna' => 'ic-pink',
-                'label' => 'Titik JakWiFi & CCTV',
+                'label' => __('overview.card_digital'),
                 'nilai' => number_format((int) $wifi->sum('jumlah_titik') + (int) $cctv->sum('jumlah_unit'), 0, ',', '.'),
-                'satuan' => 'unit',
-                'sub' => number_format((int) $wifi->sum('jumlah_titik'), 0, ',', '.') . ' JakWiFi &middot; '
-                       . number_format((int) $cctv->sum('jumlah_unit'), 0, ',', '.') . ' CCTV',
+                'satuan' => __('overview.unit_unit'),
+                'sub' => __('overview.sub_digital', [
+                    'wifi' => number_format((int) $wifi->sum('jumlah_titik'), 0, ',', '.'),
+                    'cctv' => number_format((int) $cctv->sum('jumlah_unit'), 0, ',', '.'),
+                ]),
             ];
         }
 
@@ -299,7 +318,7 @@ class StatistikController extends Controller
         // Tanpa record induk tidak ada yang bisa dirangkai; tampilkan halaman
         // "belum ada data" daripada menabrak properti pada null.
         if (!$geo) {
-            return $this->dataKosong('Geografis', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_geografis'), $tahun, $availableTahun);
         }
 
         $luas = LuasKecamatan::with('kecamatan')
@@ -367,7 +386,7 @@ class StatistikController extends Controller
         $summary = DataKependudukan::where('tahun', $tahun)->first();
 
         if (!$summary) {
-            return $this->dataKosong('Kependudukan', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_kependudukan'), $tahun, $availableTahun);
         }
 
         $perKecamatan = PendudukKecamatan::with('kecamatan')
@@ -409,7 +428,7 @@ class StatistikController extends Controller
         $summary = DataPendidikan::where('tahun', $tahun)->first();
 
         if (!$summary) {
-            return $this->dataKosong('Pendidikan', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_pendidikan'), $tahun, $availableTahun);
         }
 
         $perKecamatan = PendidikanKecamatan::with('kecamatan')
@@ -433,7 +452,7 @@ class StatistikController extends Controller
         $summary = DataKesehatan::where('tahun', $tahun)->first();
 
         if (!$summary) {
-            return $this->dataKosong('Kesehatan', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_kesehatan'), $tahun, $availableTahun);
         }
 
         $tenaga = TenagaKesehatanKecamatan::with('kecamatan')
@@ -446,6 +465,21 @@ class StatistikController extends Controller
             ->get();
 
         return view('statistik.kesehatan', compact('summary', 'tenaga', 'fasilitas', 'tahun', 'availableTahun'));
+    }
+
+    /**
+     * Label tampilan untuk sebuah nilai kolom jenis_bencana.
+     *
+     * Nilai di basis data selalu bahasa Indonesia karena berasal dari API Satu
+     * Data Jakarta. Jenis yang belum terdaftar di common.jenis_bencana
+     * dikembalikan apa adanya, jadi jenis baru dari sumber tetap tampil
+     * (berbahasa Indonesia) alih-alih menjadi kunci terjemahan yang bocor.
+     */
+    private function labelJenisBencana(string $jenis): string
+    {
+        $kunci = 'common.jenis_bencana.' . $jenis;
+
+        return Lang::has($kunci) ? __($kunci) : $jenis;
     }
 
     public function bencana(Request $request, DsdaClient $dsda)
@@ -468,12 +502,14 @@ class StatistikController extends Controller
         // Perbandingan jenis bencana (donut): total kejadian per jenis
         $perJenis = $items->groupBy('jenis_bencana')
             ->map(fn($rows) => $rows->sum('jumlah_kejadian'))
+            ->mapWithKeys(fn($jumlah, $jenis) => [$this->labelJenisBencana($jenis) => $jumlah])
             ->sortDesc();
 
         $ringkasan = [
             'total_kejadian'  => $items->sum('jumlah_kejadian'),
             'total_meninggal' => $items->sum('jumlah_korban_meninggal'),
             'total_luka'      => $items->sum('jumlah_korban_luka'),
+            // $perJenis sudah berkunci label, jadi ini ikut terterjemahkan.
             'jenis_terbanyak' => $perJenis->keys()->first() ?? '-',
         ];
 
@@ -485,7 +521,7 @@ class StatistikController extends Controller
                 $data = collect([1, 2, 3, 4])->map(function ($tw) use ($items, $jenis) {
                     return (int) $items->where('jenis_bencana', $jenis)->where('triwulan', $tw)->sum('jumlah_kejadian');
                 });
-                return ['name' => $jenis, 'data' => $data->values()];
+                return ['name' => $this->labelJenisBencana($jenis), 'data' => $data->values()];
             })->values(),
         ];
 
@@ -498,7 +534,9 @@ class StatistikController extends Controller
         ];
 
         // Warna konsisten per jenis bencana (dipakai pie chart, peta, & tabel)
-        $warnaJenis = [
+        // Dikunci dengan LABEL terjemahan, bukan nilai mentah, karena grafik dan
+        // tabel mencari warnanya lewat label yang tampil.
+        $warnaJenis = collect([
             'Banjir'        => '#1e88e5',
             'Kebakaran'     => '#e53935',
             'Tanah Longsor' => '#8d6e63',
@@ -506,7 +544,10 @@ class StatistikController extends Controller
             'Pohon Tumbang' => '#7cb342',
             'Gempa Bumi'    => '#8e24aa',
             'Lainnya'       => '#9e9e9e',
-        ];
+        ])->mapWithKeys(fn($warna, $jenis) => [$this->labelJenisBencana($jenis) => $warna])->all();
+
+        // Dipakai view untuk menerjemahkan nilai jenis_bencana per baris tabel.
+        $labelJenis = fn (string $jenis) => $this->labelJenisBencana($jenis);
 
         // Daftar kecamatan Jakarta Barat untuk overlay batas wilayah pada peta
         $kecamatanNames = \App\Models\Kecamatan::orderBy('nama_kecamatan')->pluck('nama_kecamatan');
@@ -583,7 +624,7 @@ class StatistikController extends Controller
 
         return view('statistik.bencana', compact(
             'items', 'perJenis', 'ringkasan', 'tahun', 'availableTahun', 'warnaJenis',
-            'kecamatanNames', 'titikBencana', 'tmaTitik', 'perTriwulan', 'tren'
+            'kecamatanNames', 'titikBencana', 'tmaTitik', 'perTriwulan', 'tren', 'labelJenis'
         ));
     }
 
@@ -600,7 +641,7 @@ class StatistikController extends Controller
         $summary = DataKemiskinan::where('tahun', $tahun)->first();
 
         if (!$summary) {
-            return $this->dataKosong('Kemiskinan', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_kemiskinan'), $tahun, $availableTahun);
         }
 
         // Riwayat seluruh tahun (asc) untuk grafik tren antar-tahun — semua dari BPS
@@ -622,7 +663,7 @@ class StatistikController extends Controller
         $riwayat = DataPerekonomian::orderBy('tahun')->get();
 
         if ($riwayat->isEmpty()) {
-            return $this->dataKosong('Perekonomian', (int) $request->get('tahun', date('Y')), collect());
+            return $this->dataKosong(__('common.nav_perekonomian'), (int) $request->get('tahun', date('Y')), collect());
         }
 
         // Selektor tahun & tabel ringkasan dibatasi beberapa tahun terakhir agar
@@ -642,7 +683,7 @@ class StatistikController extends Controller
         $summary = $riwayat->firstWhere('tahun', $tahun);
 
         if (!$summary) {
-            return $this->dataKosong('Perekonomian', $tahun, $availableTahun);
+            return $this->dataKosong(__('common.nav_perekonomian'), $tahun, $availableTahun);
         }
 
         // Seluruh 17 sektor tahun terpilih — dipakai utuh oleh grafik struktur

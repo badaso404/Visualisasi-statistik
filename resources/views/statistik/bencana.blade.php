@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('bencana.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -141,7 +142,7 @@
 
         <div class="statistik-content">
             <div class="stat-header-wrap">
-                <div class="stat-header">MONITOR BENCANA JAKARTA BARAT</div>
+                <div class="stat-header">{{ __('bencana.header') }}</div>
             @if($availableTahun->isNotEmpty())
             <div class="dropdown-tahun">
                 <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
@@ -160,7 +161,7 @@
             <div class="stat-grid">
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label">TOTAL KEJADIAN</div>
+                        <div class="label">{{ __('bencana.card_kejadian') }}</div>
                         <div class="value" id="sc-kejadian">{{ number_format($ringkasan['total_kejadian']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
@@ -169,7 +170,7 @@
                 </div>
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label">KORBAN MENINGGAL</div>
+                        <div class="label">{{ __('bencana.card_meninggal') }}</div>
                         <div class="value" id="sc-meninggal">{{ number_format($ringkasan['total_meninggal']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
@@ -178,7 +179,7 @@
                 </div>
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label">KORBAN LUKA-LUKA</div>
+                        <div class="label">{{ __('bencana.card_luka') }}</div>
                         <div class="value" id="sc-luka">{{ number_format($ringkasan['total_luka']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#008300; margin-left:auto;">
@@ -187,7 +188,7 @@
                 </div>
                 <div class="stat-summary-card">
                     <div class="card-text">
-                        <div class="label" id="sc-jenis-label">JENIS TERBANYAK</div>
+                        <div class="label" id="sc-jenis-label">{{ __('bencana.card_jenis') }}</div>
                         <div class="value" id="sc-jenis" style="font-size:20px;">{{ $ringkasan['jenis_terbanyak'] }}</div>
                     </div>
                     <div class="card-icon" style="background:#eb6834; margin-left:auto;">
@@ -199,18 +200,18 @@
             <div class="row g-3 mb-4">
                 <div class="col-lg-7 d-flex">
                     <div class="chart-card w-100 d-flex flex-column">
-                        <div class="chart-title">Proporsi Jenis Bencana <span class="text-muted" style="font-weight:400;">· klik jenis untuk lihat ringkasannya</span></div>
+                        <div class="chart-title">{{ __('bencana.chart_donut_title') }} <span class="text-muted" style="font-weight:400;">{{ __('bencana.chart_donut_hint') }}</span></div>
                         <div id="chart-bencana" class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 440px;"></div>
                     </div>
                 </div>
                 <div class="col-lg-5 d-flex">
                     <div class="chart-card map-container w-100">
                         <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 8px; flex-wrap: wrap;">
-                            <div class="chart-title" style="margin-bottom: 0; flex: 1;">Peta Sebaran Bencana</div>
+                            <div class="chart-title" style="margin-bottom: 0; flex: 1;">{{ __('bencana.map_title') }}</div>
                             <div class="map-tabs" style="flex-wrap: wrap;">
-                                <button class="map-tab-btn active" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">Pantau Banjir</button>
-                                <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">Damkar</button>
-                                <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">Zona Aman</button>
+                                <button class="map-tab-btn active" data-filter="banjir" style="font-size: 11px; padding: 6px 10px;">{{ __('bencana.tab_banjir') }}</button>
+                                <button class="map-tab-btn" data-filter="pos-damkar" style="font-size: 11px; padding: 6px 10px;">{{ __('bencana.tab_damkar') }}</button>
+                                <button class="map-tab-btn" data-filter="zona-aman" style="font-size: 11px; padding: 6px 10px;">{{ __('bencana.tab_zona_aman') }}</button>
                             </div>
                         </div>
                         <div id="bencana-map" style="min-height: 520px;"></div>
@@ -221,13 +222,13 @@
             <div class="row g-3 mb-4">
                 <div class="col-lg-7">
                     <div class="chart-card">
-                        <div class="chart-title">Jenis Bencana per Triwulan <span class="text-muted" style="font-weight:400;">· Jakarta Barat {{ $tahun }}</span></div>
+                        <div class="chart-title">{{ __('bencana.chart_tw_title') }} <span class="text-muted" style="font-weight:400;">{{ __('bencana.chart_tw_hint', ['tahun' => $tahun]) }}</span></div>
                         <div id="chart-triwulan" style="min-height: 360px;"></div>
                     </div>
                 </div>
                 <div class="col-lg-5">
                     <div class="chart-card">
-                        <div class="chart-title">Tren Kejadian per Triwulan <span class="text-muted" style="font-weight:400;">· seluruh periode</span></div>
+                        <div class="chart-title">{{ __('bencana.chart_tren_title') }} <span class="text-muted" style="font-weight:400;">{{ __('bencana.chart_tren_hint') }}</span></div>
                         <div id="chart-tren" style="min-height: 360px;"></div>
                     </div>
                 </div>
@@ -236,23 +237,24 @@
     <div class="chart-card">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 table-header">
             <div>
-                <div class="chart-title" style="margin-bottom: 4px;">Rekap Bencana per Triwulan</div>
-                <div class="text-muted" style="font-size:13px;">Jakarta Barat &middot; {{ $tahun }} &middot; agregat triwulanan (bukan log kejadian per lokasi)</div>
+                <div class="chart-title" style="margin-bottom: 4px;">{{ __('bencana.table_title') }}</div>
+                <div class="text-muted" style="font-size:13px;">{!! __('bencana.table_sub', ['tahun' => $tahun]) !!}</div>
             </div>
             <div class="d-flex flex-wrap gap-2 table-controls">
                 <select id="bencana-jenis-filter" class="form-select form-select-sm" style="width:auto;">
-                    <option value="all">Semua jenis</option>
+                    <option value="all">{{ __('bencana.filter_semua') }}</option>
                     @foreach($items->pluck('jenis_bencana')->unique()->sort()->values() as $j)
-                    <option value="{{ $j }}">{{ $j }}</option>
+                    {{-- value tetap nilai mentah supaya penyaringan baris tabel tetap cocok --}}
+                    <option value="{{ $j }}">{{ $labelJenis($j) }}</option>
                     @endforeach
                 </select>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
-                    <input type="text" id="bencana-search" class="form-control" placeholder="Cari periode atau jenis">
+                    <input type="text" id="bencana-search" class="form-control" placeholder="{{ __('bencana.search') }}">
                 </div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-bencana-rekap',
-                    'nama'   => 'rekap-bencana-' . $tahun,
+                    'nama'   => __('bencana.table_file', ['tahun' => $tahun]),
                 ])
             </div>
         </div>
@@ -260,8 +262,8 @@
             <table class="bencana-table" id="tabel-bencana-rekap" data-unduh-angka="en">
                 <thead>
                     <tr>
-                        <th>Periode</th><th>Triwulan</th><th>Jenis Bencana</th>
-                        <th>Kejadian</th><th>Korban Meninggal</th><th>Korban Luka</th>
+                        <th>{{ __('bencana.col_periode') }}</th><th>{{ __('bencana.col_triwulan') }}</th><th>{{ __('bencana.col_jenis') }}</th>
+                        <th>{{ __('bencana.col_kejadian') }}</th><th>{{ __('bencana.col_meninggal') }}</th><th>{{ __('bencana.col_luka') }}</th>
                     </tr>
                 </thead>
                 <tbody id="bencana-tbody">
@@ -269,15 +271,15 @@
                     <tr class="bencana-row" data-jenis="{{ $b->jenis_bencana }}" data-search="{{ strtolower($b->periode_label . ' ' . $b->jenis_bencana) }}">
                         <td>{{ $b->periode_label }}</td>
                         <td>{{ $b->triwulan ? 'TW' . $b->triwulan : '-' }}</td>
-                        <td><span class="badge-jenis" style="background: {{ $warnaJenis[$b->jenis_bencana] ?? '#9e9e9e' }};">{{ $b->jenis_bencana }}</span></td>
+                        <td><span class="badge-jenis" style="background: {{ $warnaJenis[$labelJenis($b->jenis_bencana)] ?? '#9e9e9e' }};">{{ $labelJenis($b->jenis_bencana) }}</span></td>
                         <td>{{ number_format($b->jumlah_kejadian) }}</td>
                         <td>{{ number_format($b->jumlah_korban_meninggal) }}</td>
                         <td>{{ number_format($b->jumlah_korban_luka) }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" style="text-align:center; color:#999; padding:24px;">Belum ada data rekap untuk tahun ini. Jalankan "Sync dari API" di portal admin.</td></tr>
+                    <tr><td colspan="6" style="text-align:center; color:#999; padding:24px;">{{ __('bencana.empty_rekap') }}</td></tr>
                     @endforelse
-                    <tr id="bencana-empty-search" style="display:none;"><td colspan="6" style="text-align:center; color:#999; padding:24px;">Tidak ada data yang cocok dengan pencarian.</td></tr>
+                    <tr id="bencana-empty-search" style="display:none;"><td colspan="6" style="text-align:center; color:#999; padding:24px;">{{ __('bencana.empty_search') }}</td></tr>
                 </tbody>
             </table>
         </div>
@@ -289,7 +291,7 @@
         @endif
     </div>
 
-    <div class="sumber">Sumber: {{ $items->first()->sumber ?? 'Satu Data Jakarta' }} &middot; titik peta: BPBD &amp; DSDA DKI Jakarta</div>
+    <div class="sumber">{!! __('bencana.source', ['sumber' => $items->first()->sumber ?? 'Satu Data Jakarta']) !!}</div>
         </div>
     </div>
 </div>
@@ -322,7 +324,11 @@
             attribution: '© OpenStreetMap contributors', maxZoom: 19
         });
         L.control.layers(
-            { 'Satelit': satelit, 'Peta Terang': petaTerang, 'Peta Jalan': petaJalan },
+            {
+                [@json(__('bencana.basemap_satelit'))]: satelit,
+                [@json(__('bencana.basemap_terang'))]:  petaTerang,
+                [@json(__('bencana.basemap_jalan'))]:   petaJalan,
+            },
             {},
             { position: 'bottomleft' }
         ).addTo(map);
@@ -391,9 +397,9 @@
         });
         // Ikon titik pantau air: pintu air / rumah pompa / posko (merah bila status siaga)
         var tmaStyle = {
-            'pintu-air':   { cls: 'pintu-air-marker', fa: 'fa-water',       label: 'Pintu Air' },
-            'rumah-pompa': { cls: 'pompa-marker',     fa: 'fa-fan',         label: 'Rumah Pompa' },
-            'posko':       { cls: 'posko-marker',     fa: 'fa-tower-observation', label: 'Posko SDA' }
+            'pintu-air':   { cls: 'pintu-air-marker', fa: 'fa-water',       label: @json(__('bencana.titik_pintu_air')) },
+            'rumah-pompa': { cls: 'pompa-marker',     fa: 'fa-fan',         label: @json(__('bencana.titik_rumah_pompa')) },
+            'posko':       { cls: 'posko-marker',     fa: 'fa-tower-observation', label: @json(__('bencana.titik_posko')) }
         };
         function tmaIcon(kind, siaga) {
             var s = tmaStyle[kind] || tmaStyle['pintu-air'];
@@ -426,7 +432,7 @@
                 var navBtn = '<br><a href="' + mapsUrl + '" target="_blank" rel="noopener" '
                     + 'style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;'
                     + 'background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">'
-                    + '<i class="fa fa-location-dot"></i> Buka Maps</a>';
+                    + '<i class="fa fa-location-dot"></i> ' + @json(__('bencana.popup_maps')) + '</a>';
                 if (type === 'pos-damkar') {
                     marker = L.marker([point.lat, point.lng], { icon: damkarIcon })
                         .bindPopup('<b><i class="fa fa-fire-extinguisher"></i> ' + point.name + '</b>' + ket + navBtn);
@@ -436,31 +442,32 @@
                         radius: 350, color: '#2e7d32', fillColor: '#2e7d32', weight: 2, fillOpacity: 0.12
                     });
                     marker = L.marker([point.lat, point.lng], { icon: zonaIcon })
-                        .bindPopup('<b><i class="fa fa-shield-halved"></i> ' + point.name + '</b>' + (ket || '<br>Area aman evakuasi') + navBtn);
+                        .bindPopup('<b><i class="fa fa-shield-halved"></i> ' + point.name + '</b>' + (ket || '<br>' + @json(__('bencana.popup_zona_aman'))) + navBtn);
                     marker._areaLayer = area;
                 } else if (type === 'banjir-air') {
                     var isSiaga = /siaga/i.test(point.status || '');
                     var statusColor = isSiaga ? '#e53935' : '#2e7d32';
                     var st = tmaStyle[point.kind] || tmaStyle['pintu-air'];
-                    var tinggi = (point.tinggi !== null && point.tinggi !== undefined) ? '<br>Tinggi air: <b>' + point.tinggi + ' cm</b>' : '';
-                    var waktu = point.tanggal ? '<br><span style="color:#999;font-size:11px;">Update: ' + point.tanggal.replace('T', ' ').slice(0, 16) + '</span>' : '';
+                    var tinggi = (point.tinggi !== null && point.tinggi !== undefined) ? '<br>' + @json(__('bencana.popup_tinggi')) + ': <b>' + point.tinggi + ' cm</b>' : '';
+                    var waktu = point.tanggal ? '<br><span style="color:#999;font-size:11px;">' + @json(__('bencana.popup_update')) + ': ' + point.tanggal.replace('T', ' ').slice(0, 16) + '</span>' : '';
                     marker = L.marker([point.lat, point.lng], { icon: tmaIcon(point.kind, isSiaga) })
                         .bindPopup('<b><i class="fa ' + st.fa + '"></i> ' + point.name + '</b><br><span style="color:#777;">' + st.label + '</span>'
-                            + '<br>Status: <b style="color:' + statusColor + ';">' + (point.status || '-').replace('Status : ', '') + '</b>'
+                            + '<br>' + @json(__('bencana.popup_status')) + ': <b style="color:' + statusColor + ';">' + (point.status || '-').replace('Status : ', '') + '</b>'
                             + tinggi + waktu
-                            + '<br><span style="color:#bbb;font-size:10px;">Sumber: DSDA DKI Jakarta (real-time)</span>');
+                            + '<br><span style="color:#bbb;font-size:10px;">' + @json(__('bencana.popup_sumber_dsda')) + '</span>');
                 } else {
                     var labelP = type === 'banjir-p1' ? 'Prioritas 1' : (type === 'banjir-p2' ? 'Prioritas 2' : 'Prioritas 3');
                     var isSiaga = /siaga/i.test(point.status || '');
                     var statusLine = '';
                     if (point.status) {
-                        statusLine = '<br>Status: <b style="color:' + (isSiaga ? '#e53935' : '#2e7d32') + ';">'
+                        statusLine = '<br>' + @json(__('bencana.popup_status')) + ': <b style="color:' + (isSiaga ? '#e53935' : '#2e7d32') + ';">'
                             + point.status.replace('Status : ', '') + '</b>'
                             + (point.tinggi !== null && point.tinggi !== undefined ? ' · TMA ' + point.tinggi + ' cm' : '')
-                            + (point.dari ? '<br><span style="color:#999;font-size:11px;">Acuan pos terdekat: ' + point.dari + ' (' + point.jarak + ' km)</span>' : '');
+                            + (point.dari ? '<br><span style="color:#999;font-size:11px;">'
+                                + @json(__('bencana.popup_acuan')).replace(':pos', point.dari).replace(':jarak', point.jarak) + '</span>' : '');
                     }
                     marker = L.marker([point.lat, point.lng], { icon: banjirIcon(banjirColors[type], isSiaga) })
-                        .bindPopup('<b>' + point.name + '</b><br>Rawan Banjir ' + labelP + ket + statusLine);
+                        .bindPopup('<b>' + point.name + '</b><br>' + @json(__('bencana.popup_rawan')) + ' ' + labelP + ket + statusLine);
                 }
                 marker.addTo(map);
                 if (marker._areaLayer) marker._areaLayer.addTo(map);
@@ -487,17 +494,17 @@
         function cntKind(kind) { return (markerData['banjir-air'] || []).filter(function (p) { return p.kind === kind; }).length; }
 
         function updateLegend(filter) {
-            var html = '<div class="legend-title">Keterangan :</div>';
+            var html = '<div class="legend-title">' + @json(__('bencana.legend_title')) + '</div>';
             if (filter === 'banjir') {
                 html += legendRow(pin('#ff6b6b'), 'Lokasi Banjir Prioritas 1', cnt('banjir-p1'));
                 html += legendRow(pin('#ffa500'), 'Lokasi Banjir Prioritas 2', cnt('banjir-p2'));
                 html += legendRow(pin('#ffeb3b'), 'Lokasi Banjir Prioritas 3', cnt('banjir-p3'));
-                if (cntKind('pintu-air'))   html += legendRow(pintuAirMini, 'Pintu Air', cntKind('pintu-air'));
-                if (cntKind('rumah-pompa')) html += legendRow(pompaMini, 'Rumah Pompa', cntKind('rumah-pompa'));
-                if (cntKind('posko'))       html += legendRow(poskoMini, 'Posko SDA', cntKind('posko'));
-                html += '<div style="font-size:10px;color:#999;margin-top:4px;">🔴 badge/titik merah = status siaga · real-time DSDA</div>';
+                if (cntKind('pintu-air'))   html += legendRow(pintuAirMini, @json(__('bencana.titik_pintu_air')), cntKind('pintu-air'));
+                if (cntKind('rumah-pompa')) html += legendRow(pompaMini, @json(__('bencana.titik_rumah_pompa')), cntKind('rumah-pompa'));
+                if (cntKind('posko'))       html += legendRow(poskoMini, @json(__('bencana.titik_posko')), cntKind('posko'));
+                html += '<div style="font-size:10px;color:#999;margin-top:4px;">' + @json(__('bencana.legend_siaga')) + '</div>';
             } else if (filter === 'pos-damkar') {
-                html += legendRow(damkarMini, 'Pos Damkar', cnt('pos-damkar'));
+                html += legendRow(damkarMini, @json(__('bencana.titik_damkar')), cnt('pos-damkar'));
             } else if (filter === 'zona-aman') {
                 html += legendRow(zonaMini, 'Zona Aman / Evakuasi', cnt('zona-aman'));
             }
@@ -570,7 +577,8 @@
             emptyEl.style.display = filtered.length ? 'none' : '';
 
             if (filtered.length) {
-                infoEl.textContent = 'Menampilkan ' + (start + 1) + '–' + (start + pageRows.length) + ' dari ' + filtered.length + ' laporan';
+                infoEl.textContent = @json(__('bencana.pager_info'))
+                    .replace(':from', start + 1).replace(':to', start + pageRows.length).replace(':total', filtered.length);
             } else {
                 infoEl.textContent = '';
             }
@@ -648,10 +656,10 @@
         var jenisLbl = document.getElementById('sc-jenis-label');
         var jenisVal = document.getElementById('sc-jenis');
         if (jenis) {
-            jenisLbl.textContent = 'Jenis Dipilih';
+            jenisLbl.textContent = @json(__('bencana.card_jenis_dipilih'));
             jenisVal.textContent = jenis;
         } else {
-            jenisLbl.textContent = 'Jenis Terbanyak';
+            jenisLbl.textContent = @json(__('bencana.card_jenis'));
             jenisVal.textContent = @json($ringkasan['jenis_terbanyak']);
         }
     }
@@ -686,7 +694,7 @@
                             show: true,
                             total: {
                                 show: true,
-                                label: 'Total',
+                                label: @json(__('bencana.chart_donut_total')),
                                 formatter: function (w) { return w.globals.seriesTotals.reduce(function(a, b){ return a + b; }, 0); }
                             }
                         }
@@ -694,7 +702,7 @@
                 }
             },
             dataLabels: { enabled: true, formatter: function (val) { return Math.round(val) + '%'; } },
-            tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
+            tooltip: { y: { formatter: function (v) { return v + ' ' + @json(__('overview.tooltip_kejadian')); } } }
         });
         donutChart.render();
 
@@ -712,7 +720,7 @@
         });
     } else {
         document.querySelector("#chart-bencana").innerHTML =
-            '<p style="text-align:center;color:#999;padding:40px 0;">Belum ada data.</p>';
+            '<p style="text-align:center;color:#999;padding:40px 0;">' + @json(__('bencana.chart_kosong')) + '</p>';
     }
 
     // Tren kejadian seluruh periode (lintas tahun)
@@ -721,11 +729,11 @@
         colors: ['#2a78d6'],
         stroke: { curve: 'smooth', width: 3 },
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.72, opacityTo: 0.18, stops: [0, 90, 100] } },
-        series: [{ name: 'Kejadian', data: trenData }],
+        series: [{ name: @json(__('bencana.series_kejadian')), data: trenData }],
         xaxis: { categories: trenLabels, labels: { rotate: -45, style: { fontSize: '10px' } } },
         yaxis: { labels: { formatter: function(val) { return val.toFixed(0); } } },
         markers: { size: 4 },
-        tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
+        tooltip: { y: { formatter: function (v) { return v + ' ' + @json(__('overview.tooltip_kejadian')); } } }
     }).render();
 
     // Bar: jenis bencana per triwulan (tahun terpilih)
@@ -739,11 +747,11 @@
             dataLabels: { enabled: false },
             legend: { position: 'bottom' },
             colors: triwulanSeries.map(function (s) { return warnaJenis[s.name] || '#9e9e9e'; }),
-            tooltip: { y: { formatter: function (v) { return v + ' kejadian'; } } }
+            tooltip: { y: { formatter: function (v) { return v + ' ' + @json(__('overview.tooltip_kejadian')); } } }
         }).render();
     } else {
         document.querySelector("#chart-triwulan").innerHTML =
-            '<p style="text-align:center;color:#999;padding:40px 0;">Belum ada data.</p>';
+            '<p style="text-align:center;color:#999;padding:40px 0;">' + @json(__('bencana.chart_kosong')) + '</p>';
     }
 
 </script>

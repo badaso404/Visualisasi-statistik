@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('pendidikan.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -190,7 +191,7 @@
     <div class="statistik-content">
 
         <div class="stat-header-wrap">
-            <div class="stat-header">PENDIDIKAN JAKARTA BARAT {{ $tahun }}</div>
+            <div class="stat-header">{{ __('pendidikan.header', ['tahun' => $tahun]) }}</div>
             <div class="dropdown-tahun">
                 <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                     <i class="fa fa-calendar"></i>
@@ -211,13 +212,13 @@
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Angka Partisipasi Murni (APM)</div>
+                    <div class="chart-title">{{ __('pendidikan.apm_title') }}</div>
 
                     <div class="row g-2">
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
-                                <div class="education-label">SD</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_sd') }}</div>
                                 <div class="education-value">{{ $summary->apm_sd_mi }}</div>
                             </div>
                         </div>
@@ -225,7 +226,7 @@
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
-                                <div class="education-label">SMP</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_smp') }}</div>
                                 <div class="education-value">{{ $summary->apm_smp_mts }}</div>
                             </div>
                         </div>
@@ -233,7 +234,7 @@
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
-                                <div class="education-label">SMA</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_sma') }}</div>
                                 <div class="education-value">{{ $summary->apm_sma_smk_man }}</div>
                             </div>
                         </div>
@@ -244,13 +245,13 @@
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Angka Partisipasi Kasar (APK)</div>
+                    <div class="chart-title">{{ __('pendidikan.apk_title') }}</div>
 
                     <div class="row g-2">
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
-                                <div class="education-label">SD</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_sd') }}</div>
                                 <div class="education-value">{{ $summary->apk_sd_mi }}</div>
                             </div>
                         </div>
@@ -258,7 +259,7 @@
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
-                                <div class="education-label">SMP</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_smp') }}</div>
                                 <div class="education-value">{{ $summary->apk_smp_mts }}</div>
                             </div>
                         </div>
@@ -266,7 +267,7 @@
                         <div class="col-4">
                             <div class="education-card">
                                 <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
-                                <div class="education-label">SMA</div>
+                                <div class="education-label">{{ __('pendidikan.lvl_sma') }}</div>
                                 <div class="education-value">{{ $summary->apk_sma_smk_man }}</div>
                             </div>
                         </div>
@@ -283,16 +284,16 @@
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Pelajar</div>
-                    <div class="chart-hint">Klik salah satu batang untuk menyorot kecamatan</div>
+                    <div class="chart-title">{{ __('pendidikan.chart_pelajar_title') }}</div>
+                    <div class="chart-hint">{{ __('pendidikan.chart_hint_klik') }}</div>
                     <div id="chart-pelajar" class="chart-box"></div>
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Pendidik</div>
-                    <div class="chart-hint">Klik salah satu batang untuk menyorot kecamatan</div>
+                    <div class="chart-title">{{ __('pendidikan.chart_pendidik_title') }}</div>
+                    <div class="chart-hint">{{ __('pendidikan.chart_hint_klik') }}</div>
                     <div id="chart-pendidik" class="chart-box"></div>
                 </div>
             </div>
@@ -305,15 +306,15 @@
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Negeri vs Swasta</div>
+                    <div class="chart-title">{{ __('pendidikan.chart_sekolah_title') }}</div>
                     <div id="chart-sekolah" class="chart-box"></div>
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Total Sekolah</div>
-                    <div class="chart-hint">Klik salah satu batang untuk menyorot kecamatan</div>
+                    <div class="chart-title">{{ __('pendidikan.chart_total_title') }}</div>
+                    <div class="chart-hint">{{ __('pendidikan.chart_hint_klik') }}</div>
                     <div id="chart-total-sekolah" class="chart-box"></div>
                 </div>
             </div>
@@ -324,10 +325,10 @@
         {{-- DATA KECAMATAN --}}
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">Data Per Kecamatan</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('pendidikan.table_title') }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-pendidikan-kecamatan',
-                    'nama'   => 'pendidikan-per-kecamatan-' . $tahun,
+                    'nama'   => __('pendidikan.table_file', ['tahun' => $tahun]),
                 ])
             </div>
 
@@ -335,12 +336,12 @@
                 <table class="table table-sm" id="tabel-pendidikan-kecamatan" data-unduh-angka="en">
                     <thead>
                         <tr>
-                            <th>Kecamatan</th>
-                            <th>Pelajar</th>
-                            <th>Pendidik</th>
-                            <th>Negeri</th>
-                            <th>Swasta</th>
-                            <th>Total</th>
+                            <th>{{ __('pendidikan.col_kecamatan') }}</th>
+                            <th>{{ __('pendidikan.col_pelajar') }}</th>
+                            <th>{{ __('pendidikan.col_pendidik') }}</th>
+                            <th>{{ __('pendidikan.col_negeri') }}</th>
+                            <th>{{ __('pendidikan.col_swasta') }}</th>
+                            <th>{{ __('pendidikan.col_total') }}</th>
                         </tr>
                     </thead>
 
@@ -365,7 +366,7 @@
         </div>
 
         <div class="sumber">
-            Sumber: {{ $summary->sumber }}
+            {{ __('pendidikan.source', ['sumber' => $summary->sumber]) }}
         </div>
 
     </div>
@@ -493,9 +494,9 @@ function distributedBar(sel, data, label, hue) {
     return chart;
 }
 
-distributedBar('#chart-pelajar',       pelajar, 'Pelajar',       'biru');
-distributedBar('#chart-pendidik',      pendidik, 'Pendidik',      'hijau');
-distributedBar('#chart-total-sekolah', total,    'Total Sekolah', 'oranye');
+distributedBar('#chart-pelajar',       pelajar,  @json(__('pendidikan.series_pelajar')),  'biru');
+distributedBar('#chart-pendidik',      pendidik, @json(__('pendidikan.series_pendidik')), 'hijau');
+distributedBar('#chart-total-sekolah', total,    @json(__('pendidikan.series_total')),    'oranye');
 
 // ── Negeri vs Swasta (AREA tumpang-tindih — tipe yang dianimasikan ApexCharts saat update) ──
 // Tidak stacked: tiap area diukur dari nol, jadi nilai lebih besar tampak lebih tinggi.
@@ -516,8 +517,8 @@ const chartSekolah = new ApexCharts(document.querySelector("#chart-sekolah"), {
             legendClick: function (ctx, seriesIndex) {
                 sekolahOff[seriesIndex] = !sekolahOff[seriesIndex];
                 chartSekolah.updateSeries([
-                    { name: 'Negeri', data: sekolahOff[0] ? negeri.map(function(){return 0;}) : negeri },
-                    { name: 'Swasta', data: sekolahOff[1] ? swasta.map(function(){return 0;}) : swasta }
+                    { name: @json(__('pendidikan.series_negeri')), data: sekolahOff[0] ? negeri.map(function(){return 0;}) : negeri },
+                    { name: @json(__('pendidikan.series_swasta')), data: sekolahOff[1] ? swasta.map(function(){return 0;}) : swasta }
                 ]);   // tanpa arg kedua = animate:true → dynamicAnimation aktif
                 const items = document.querySelectorAll('#chart-sekolah .apexcharts-legend-series');
                 if (items[seriesIndex]) items[seriesIndex].style.opacity = sekolahOff[seriesIndex] ? 0.4 : 1;
@@ -525,8 +526,8 @@ const chartSekolah = new ApexCharts(document.querySelector("#chart-sekolah"), {
         }
     },
     series: [
-        { name: 'Negeri', data: negeri },
-        { name: 'Swasta', data: swasta }
+        { name: @json(__('pendidikan.series_negeri')), data: negeri },
+        { name: @json(__('pendidikan.series_swasta')), data: swasta }
     ],
     xaxis: {
         categories: nama,

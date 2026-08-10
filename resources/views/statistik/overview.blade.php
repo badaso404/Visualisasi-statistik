@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('overview.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -81,15 +82,15 @@
     {{-- CONTENT --}}
     <div class="statistik-content">
 
-        <div class="stat-header">OVERVIEW STATISTIK JAKARTA BARAT</div>
+        <div class="stat-header">{{ __('overview.header') }}</div>
 
         @if (empty($kartu))
             {{-- Database masih kosong: jangan tampilkan grafik & tabel hampa. --}}
             <div class="chart-card text-center text-muted py-5">
                 <div style="font-size:32px; color:#ddd;"><i class="fa fa-chart-simple"></i></div>
-                <div class="fw-bold mt-2">Data belum tersedia</div>
+                <div class="fw-bold mt-2">{{ __('overview.empty_title') }}</div>
                 <div class="chart-hint" style="margin-top:4px;">
-                    Ringkasan akan muncul setelah data modul diisi dari portal admin.
+                    {{ __('overview.empty_hint') }}
                 </div>
             </div>
         @else
@@ -99,7 +100,7 @@
             {{-- Tanpa chart-title di atasnya, margin negatif bawaan .chart-hint
                  harus dinolkan agar teksnya tidak menempel ke tepi kartu. --}}
             <div class="chart-hint" style="margin-top:0;">
-                Ringkasan data tiap modul Jakarta Barat <strong>klik untuk data lengkap</strong>
+                {!! __('overview.cards_hint') !!}
             </div>
             <div class="row g-2">
                 @foreach ($kartu as $k)
@@ -139,20 +140,19 @@
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Penduduk per Kecamatan</div>
-                    <div class="chart-hint">Warna kecamatan konsisten dengan modul lain.</div>
+                    <div class="chart-title">{{ __('overview.chart_penduduk_title') }}</div>
+                    <div class="chart-hint">{{ __('overview.chart_penduduk_hint') }}</div>
                     <div id="chart-ov-penduduk" class="chart-box"></div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="chart-card">
                     <div class="chart-title">
-                        Partisipasi Sekolah per Jenjang
+                        {{ __('overview.chart_pendidikan_title') }}
                         @if ($pendidikanIndikator) <span class="ov-tahun">{{ $pendidikanIndikator['tahun'] }}</span> @endif
                     </div>
                     <div class="chart-hint">
-                        APM menghitung siswa yang usianya sesuai jenjang, APK seluruh siswa —
-                        selisihnya menunjukkan siswa di luar usia jenjangnya.
+                        {{ __('overview.chart_pendidikan_hint') }}
                     </div>
                     <div id="chart-ov-pendidikan" class="chart-box"></div>
                 </div>
@@ -163,22 +163,22 @@
         <div class="row g-2">
             <div class="col-md-4">
                 <div class="chart-card">
-                    <div class="chart-title">Fasilitas Kesehatan</div>
-                    <div class="chart-hint">Komposisi menurut jenis fasilitas.</div>
+                    <div class="chart-title">{{ __('overview.chart_faskes_title') }}</div>
+                    <div class="chart-hint">{{ __('overview.chart_faskes_hint') }}</div>
                     <div id="chart-ov-faskes" class="chart-box"></div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="chart-card">
-                    <div class="chart-title">Tenaga Kesehatan</div>
-                    <div class="chart-hint">Komposisi menurut profesi.</div>
+                    <div class="chart-title">{{ __('overview.chart_nakes_title') }}</div>
+                    <div class="chart-hint">{{ __('overview.chart_nakes_hint') }}</div>
                     <div id="chart-ov-nakes" class="chart-box"></div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="chart-card">
-                    <div class="chart-title">Kejadian Bencana menurut Jenis</div>
-                    <div class="chart-hint">Rekap triwulanan tahun terakhir.</div>
+                    <div class="chart-title">{{ __('overview.chart_bencana_title') }}</div>
+                    <div class="chart-hint">{{ __('overview.chart_bencana_hint') }}</div>
                     <div id="chart-ov-bencana" class="chart-box"></div>
                 </div>
             </div>
@@ -188,14 +188,13 @@
         @if (count($trenGabungan['labels']))
         <div class="chart-card">
             <div class="chart-title">
-                Ekonomi &amp; Kemiskinan Antar-Tahun
+                {!! __('overview.chart_tren_title') !!}
                 <span class="ov-tahun">
                     {{ $trenGabungan['labels']->first() }}&ndash;{{ $trenGabungan['labels']->last() }}
                 </span>
             </div>
             <div class="chart-hint">
-                PDRB harga konstan (triliun rupiah) dibanding persentase penduduk miskin.
-                Rentang dibatasi pada tahun yang datanya dimiliki kedua modul.
+                {{ __('overview.chart_tren_hint') }}
             </div>
             <div id="chart-ov-tren" class="chart-box"></div>
         </div>
@@ -205,28 +204,27 @@
         @if ($perKecamatan->isNotEmpty())
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-                <div class="chart-title">Ringkasan per Kecamatan</div>
+                <div class="chart-title">{{ __('overview.table_title') }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-overview-kecamatan',
-                    'nama'   => 'ringkasan-per-kecamatan',
+                    'nama'   => __('overview.table_file'),
                 ])
             </div>
             <div class="chart-hint">
-                Setiap kolom berasal dari modul berbeda pada tahun terbarunya masing-masing,
-                sehingga angkanya tidak selalu setahun. Tanda &mdash; berarti data belum diisi.
+                {!! __('overview.table_hint') !!}
             </div>
             <div class="table-responsive">
                 <table class="table table-sm" id="tabel-overview-kecamatan" data-unduh-angka="id">
                     <thead>
                         <tr>
-                            <th>Kecamatan</th>
-                            <th class="text-end">Luas (km²)</th>
-                            <th class="text-end">Penduduk</th>
-                            <th class="text-end">Kepadatan (jiwa/km²)</th>
-                            <th class="text-end">Pelajar</th>
-                            <th class="text-end">Faskes</th>
-                            <th class="text-end">Penduduk Miskin</th>
-                            <th class="text-end">WiFi + CCTV</th>
+                            <th>{{ __('overview.col_kecamatan') }}</th>
+                            <th class="text-end">{{ __('overview.col_luas') }}</th>
+                            <th class="text-end">{{ __('overview.col_penduduk') }}</th>
+                            <th class="text-end">{{ __('overview.col_kepadatan') }}</th>
+                            <th class="text-end">{{ __('overview.col_pelajar') }}</th>
+                            <th class="text-end">{{ __('overview.col_faskes') }}</th>
+                            <th class="text-end">{{ __('overview.col_miskin') }}</th>
+                            <th class="text-end">{{ __('overview.col_digital') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -249,7 +247,7 @@
         @endif
 
         <div class="sumber">
-            Sumber: BPS Kota Jakarta Barat &amp; Satu Data Jakarta
+            {!! __('overview.source') !!}
         </div>
 
         @endif
@@ -279,7 +277,8 @@ const ovTahun     = {!! json_encode($trenGabungan['labels']) !!};
 const ovPdrb      = {!! json_encode($trenGabungan['pdrb']) !!};
 const ovMiskin    = {!! json_encode($trenGabungan['miskin']) !!};
 
-const idID   = 'id-ID';
+// Pemisah ribuan/desimal ikut bahasa aktif: 1.234,5 di Indonesia, 1,234.5 di Inggris.
+const idID   = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
 const fmt0   = v => v === null ? '—' : Number(v).toLocaleString(idID, { maximumFractionDigits: 0 });
 const fmt2   = v => v === null ? '—' : Number(v).toLocaleString(idID, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -308,7 +307,7 @@ if (ovKecNama.length) {
             type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'inherit',
             animations: { enabled: true, easing: 'easeinout', speed: 550 }
         },
-        series: [{ name: 'Penduduk', data: ovKecJiwa }],
+        series: [{ name: @json(__('overview.series_penduduk')), data: ovKecJiwa }],
         // Satu warna per kecamatan (bukan per seri) agar konsisten lintas modul.
         colors: ovKecNama.map(window.warnaKecamatan),
         plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '68%', distributed: true } },
@@ -321,7 +320,7 @@ if (ovKecNama.length) {
         yaxis: { labels: { style: { fontSize: '10px', colors: '#888' } } },
         legend: { show: false },
         grid: { borderColor: '#f5f5f5', strokeDashArray: 4 },
-        tooltip: { y: { formatter: v => fmt0(v) + ' jiwa' } }
+        tooltip: { y: { formatter: v => fmt0(v) + ' ' + @json(__('overview.tooltip_jiwa')) } }
     }).render();
 }
 
@@ -358,9 +357,9 @@ if (ovJenjang.length) {
 }
 
 // ── Kesehatan & kebencanaan: komposisi ────────────────────────
-donutKomposisi('#chart-ov-faskes',  ovFaskesL,  ovFaskesV,  'unit');
-donutKomposisi('#chart-ov-nakes',   ovNakesL,   ovNakesV,   'orang');
-donutKomposisi('#chart-ov-bencana', ovBencanaL, ovBencanaV, 'kejadian');
+donutKomposisi('#chart-ov-faskes',  ovFaskesL,  ovFaskesV,  @json(__('overview.tooltip_unit')));
+donutKomposisi('#chart-ov-nakes',   ovNakesL,   ovNakesV,   @json(__('overview.tooltip_orang')));
+donutKomposisi('#chart-ov-bencana', ovBencanaL, ovBencanaV, @json(__('overview.tooltip_kejadian')));
 
 // ── Tren ekonomi vs kemiskinan: dua satuan → dua sumbu ────────
 if (ovTahun.length) {
@@ -370,8 +369,8 @@ if (ovTahun.length) {
             animations: { enabled: true, easing: 'easeinout', speed: 550 }
         },
         series: [
-            { name: 'PDRB Harga Konstan', data: ovPdrb },
-            { name: 'Penduduk Miskin (%)', data: ovMiskin }
+            { name: @json(__('overview.series_pdrb')), data: ovPdrb },
+            { name: @json(__('overview.series_miskin')), data: ovMiskin }
         ],
         colors: [BIRU, MERAH],
         stroke: { curve: 'smooth', width: 2 },
@@ -384,14 +383,14 @@ if (ovTahun.length) {
         },
         yaxis: [
             {
-                seriesName: 'PDRB Harga Konstan',
+                seriesName: @json(__('overview.series_pdrb')),
                 labels: { formatter: fmt2, style: { fontSize: '10px', colors: '#aaa' } },
-                title: { text: 'Rp Triliun', style: { fontSize: '10px', color: '#aaa', fontWeight: 600 } }
+                title: { text: @json(__('overview.axis_pdrb')), style: { fontSize: '10px', color: '#aaa', fontWeight: 600 } }
             },
             {
-                seriesName: 'Penduduk Miskin (%)', opposite: true,
+                seriesName: @json(__('overview.series_miskin')), opposite: true,
                 labels: { formatter: fmt2, style: { fontSize: '10px', colors: '#aaa' } },
-                title: { text: '% penduduk miskin', style: { fontSize: '10px', color: '#aaa', fontWeight: 600 } }
+                title: { text: @json(__('overview.axis_miskin')), style: { fontSize: '10px', color: '#aaa', fontWeight: 600 } }
             }
         ],
         legend: { position: 'bottom', fontSize: '11px', markers: { width: 11, height: 11, radius: 3 } },

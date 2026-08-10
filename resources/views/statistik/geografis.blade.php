@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('geografis.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -158,7 +159,7 @@
 
         {{-- Header --}}
         <div class="stat-header-wrap">
-            <div class="stat-header">GEOGRAFIS JAKARTA BARAT {{ $geo->tahun }}</div>
+            <div class="stat-header">{{ __('geografis.header', ['tahun' => $geo->tahun]) }}</div>
         </div>
 
         {{-- Summary Cards --}}
@@ -173,7 +174,7 @@
             <div class="col-md-3">
                 <div class="stat-summary-card" id="card-luas">
                     <div class="card-text">
-                        <div class="label" id="lbl-luas">LUAS WILAYAH</div>
+                        <div class="label" id="lbl-luas">{{ __('geografis.card_luas') }}</div>
                         <div class="value"><span id="val-luas">{{ number_format($geo->luas_kota_km2, 2) }}</span><small>km²</small></div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
@@ -184,7 +185,7 @@
             <div class="col-md-3">
                 <div class="stat-summary-card" id="card-kec">
                     <div class="card-text">
-                        <div class="label" id="lbl-kec">JUMLAH KECAMATAN</div>
+                        <div class="label" id="lbl-kec">{{ __('geografis.card_kec') }}</div>
                         <div class="value"><span id="val-kec">{{ $jumlahKecamatan }}</span><small id="unit-kec"></small></div>
                     </div>
                     <div class="card-icon" style="background:#008300; margin-left:auto;">
@@ -195,7 +196,7 @@
             <div class="col-md-3">
                 <div class="stat-summary-card" id="card-kel">
                     <div class="card-text">
-                        <div class="label" id="lbl-kel">JUMLAH KELURAHAN</div>
+                        <div class="label" id="lbl-kel">{{ __('geografis.card_kel') }}</div>
                         <div class="value"><span id="val-kel">{{ $totalKelurahan }}</span></div>
                     </div>
                     <div class="card-icon" style="background:#eb6834; margin-left:auto;">
@@ -206,7 +207,7 @@
             <div class="col-md-3">
                 <div class="stat-summary-card" id="card-padat">
                     <div class="card-text">
-                        <div class="label" id="lbl-padat">KEPADATAN WILAYAH</div>
+                        <div class="label" id="lbl-padat">{{ __('geografis.card_padat') }}</div>
                         <div class="value"><span id="val-padat">{{ number_format($totalKepadatan, 0, ',', '.') }}</span><small>/km²</small></div>
                     </div>
                     <div class="card-icon" style="background:#4a3aa7; margin-left:auto;">
@@ -222,13 +223,13 @@
             {{-- LEFT: Bar + Donut --}}
             <div class="chart-card-left">
                 <div class="chart-card">
-                    <div class="chart-title">LUAS WILAYAH PER KECAMATAN</div>
+                    <div class="chart-title">{{ __('geografis.chart_bar_title') }}</div>
                     <div id="chart-bar-luas"></div>
                 </div>
                 <div class="chart-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="chart-title" style="margin-bottom:0;">PERSENTASE LUAS WILAYAH</div>
-                        <div style="font-size:11px;color:#aaa;">Total {{ number_format($geo->luas_kota_km2, 1) }} km²</div>
+                        <div class="chart-title" style="margin-bottom:0;">{{ __('geografis.chart_donut_title') }}</div>
+                        <div style="font-size:11px;color:#aaa;">{{ __('geografis.chart_donut_total', ['luas' => number_format($geo->luas_kota_km2, 1)]) }}</div>
                     </div>
                     <div id="chart-donut-persen"></div>
                 </div>
@@ -236,7 +237,7 @@
 
             {{-- RIGHT: Map --}}
             <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column; gap:10px;">
-                <div class="chart-title" style="margin-bottom:0;">PETA WILAYAH JAKARTA BARAT</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('geografis.map_title') }}</div>
                 <div id="geo-map"></div>
             </div>
         </div>
@@ -245,8 +246,8 @@
         <div class="chart-card">
             <div class="chart-title-row">
                 <div>
-                    <div class="chart-title" style="margin-bottom:2px;">PERBANDINGAN STATISTIK LANJUTAN</div>
-                    <div class="chart-sub">Komparasi antara luas wilayah dan kepadatan penduduk per kecamatan</div>
+                    <div class="chart-title" style="margin-bottom:2px;">{{ __('geografis.chart_compare_title') }}</div>
+                    <div class="chart-sub">{{ __('geografis.chart_compare_sub') }}</div>
                 </div>
             </div>
             <div id="chart-compare"></div>
@@ -263,25 +264,25 @@
             <div class="geo-hl-card">
                 <div class="hl-icon" style="background:#E5ECF5;"><i class="fa fa-expand-arrows-alt" style="color:#34527A;"></i></div>
                 <div>
-                    <div class="hl-tag" style="color:#34527A;">TERLUAS</div>
-                    <div class="hl-name">{{ $terluas ? 'Kecamatan ' . $terluas->kecamatan->nama_kecamatan : 'Data belum tersedia' }}</div>
-                    <div class="hl-sub">{{ $terluas ? number_format($terluas->luas_km2, 2) . ' km² (' . number_format($terluas->persentase, 1) . '% dari total)' : '—' }}</div>
+                    <div class="hl-tag" style="color:#34527A;">{{ __('geografis.hl_terluas') }}</div>
+                    <div class="hl-name">{{ $terluas ? __('geografis.hl_nama', ['nama' => $terluas->kecamatan->nama_kecamatan]) : __('geografis.hl_kosong') }}</div>
+                    <div class="hl-sub">{{ $terluas ? __('geografis.hl_sub', ['luas' => number_format($terluas->luas_km2, 2), 'persen' => number_format($terluas->persentase, 1)]) : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
                 <div class="hl-icon" style="background:#EDF1F8;"><i class="fa fa-compress-arrows-alt" style="color:#7B97C2;"></i></div>
                 <div>
-                    <div class="hl-tag" style="color:#5B7BB0;">TERKECIL</div>
-                    <div class="hl-name">{{ $terkecil ? 'Kecamatan ' . $terkecil->kecamatan->nama_kecamatan : 'Data belum tersedia' }}</div>
-                    <div class="hl-sub">{{ $terkecil ? number_format($terkecil->luas_km2, 2) . ' km² (' . number_format($terkecil->persentase, 1) . '% dari total)' : '—' }}</div>
+                    <div class="hl-tag" style="color:#5B7BB0;">{{ __('geografis.hl_terkecil') }}</div>
+                    <div class="hl-name">{{ $terkecil ? __('geografis.hl_nama', ['nama' => $terkecil->kecamatan->nama_kecamatan]) : __('geografis.hl_kosong') }}</div>
+                    <div class="hl-sub">{{ $terkecil ? __('geografis.hl_sub', ['luas' => number_format($terkecil->luas_km2, 2), 'persen' => number_format($terkecil->persentase, 1)]) : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
                 <div class="hl-icon" style="background:#E5ECF5;"><i class="fa fa-users" style="color:#4A6FA5;"></i></div>
                 <div>
-                    <div class="hl-tag" style="color:#4A6FA5;">TERPADAT</div>
-                    <div class="hl-name">Kecamatan Tambora</div>
-                    <div class="hl-sub">48.243 jiwa/km²</div>
+                    <div class="hl-tag" style="color:#4A6FA5;">{{ __('geografis.hl_terpadat') }}</div>
+                    <div class="hl-name">{{ __('geografis.hl_nama', ['nama' => 'Tambora']) }}</div>
+                    <div class="hl-sub">{{ __('geografis.hl_padat_val', ['nilai' => '48.243']) }}</div>
                 </div>
             </div>
         </div>
@@ -289,25 +290,25 @@
         {{-- Table --}}
         <div class="geo-table-wrap">
             <div class="geo-table-header">
-                <div class="tbl-title">Tabel Geografis Rinci</div>
+                <div class="tbl-title">{{ __('geografis.table_title') }}</div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <input class="geo-search-input" type="text" id="geo-search" placeholder="Cari kecamatan..." oninput="filterTable()">
+                    <input class="geo-search-input" type="text" id="geo-search" placeholder="{{ __('geografis.table_search') }}" oninput="filterTable()">
                     @include('statistik.partials.unduh-tabel', [
                         'target' => '#geo-table',
-                        'nama'   => 'geografis-jakarta-barat-' . $tahun,
+                        'nama'   => __('geografis.table_file', ['tahun' => $tahun]),
                     ])
                 </div>
             </div>
             <table class="geo-table" id="geo-table" data-unduh-angka="id">
                 <thead>
                     <tr>
-                        <th>Kecamatan</th>
-                        <th>Luas (km²)</th>
-                        <th>Kelurahan</th>
-                        <th>RW</th>
-                        <th>RT</th>
-                        <th>Populasi</th>
-                        <th>Kepadatan (/km²)</th>
+                        <th>{{ __('geografis.col_kecamatan') }}</th>
+                        <th>{{ __('geografis.col_luas') }}</th>
+                        <th>{{ __('geografis.col_kelurahan') }}</th>
+                        <th>{{ __('geografis.col_rw') }}</th>
+                        <th>{{ __('geografis.col_rt') }}</th>
+                        <th>{{ __('geografis.col_populasi') }}</th>
+                        <th>{{ __('geografis.col_kepadatan') }}</th>
                     </tr>
                 </thead>
                 <tbody id="geo-table-body">
@@ -332,7 +333,7 @@
             </div>
         </div>
 
-        <div class="sumber">Sumber: {{ $geo->sumber }}</div>
+        <div class="sumber">{{ __('geografis.source', ['sumber' => $geo->sumber]) }}</div>
 
     </div>{{-- end statistik-content --}}
 </div>{{-- end statistik-wrapper --}}
@@ -368,23 +369,27 @@ function animateCards() {
 
 // Simpan nilai default (tampilan total kota)
 var cardDefaults = {
-    luas:  { label: 'LUAS WILAYAH',     val: '{{ number_format($geo->luas_kota_km2, 2, ',', '.') }}' },
-    kec:   { label: 'JUMLAH KECAMATAN', val: '{{ $jumlahKecamatan }}', unit: '' },
-    kel:   { label: 'JUMLAH KELURAHAN', val: '{{ number_format($totalKelurahan, 0, ',', '.') }}' },
-    padat: { label: 'KEPADATAN WILAYAH',val: '{{ number_format($totalKepadatan, 0, ',', '.') }}' },
+    luas:  { label: @json(__('geografis.card_luas')),  val: '{{ number_format($geo->luas_kota_km2, 2, ',', '.') }}' },
+    kec:   { label: @json(__('geografis.card_kec')),   val: '{{ $jumlahKecamatan }}', unit: '' },
+    kel:   { label: @json(__('geografis.card_kel')),   val: '{{ number_format($totalKelurahan, 0, ',', '.') }}' },
+    padat: { label: @json(__('geografis.card_padat')), val: '{{ number_format($totalKepadatan, 0, ',', '.') }}' },
 };
+
+// Label kartu saat satu kecamatan dipilih. :nama diganti di sisi JS karena
+// nama kecamatannya baru diketahui setelah pengunjung mengklik.
+var cardLabelLuasKec = @json(__('geografis.card_luas_kec'));
 
 function updateCards(namaUp) {
     var s = kecStatsData[namaUp];
     if (!s) return;
-    setText('lbl-luas', 'LUAS KEC. ' + s.nama.toUpperCase());
+    setText('lbl-luas', cardLabelLuasKec.replace(':nama', s.nama.toUpperCase()));
     setText('val-luas', fmtNum(s.luas, 2));
-    setText('lbl-kec', '% LUAS WILAYAH');
+    setText('lbl-kec', @json(__('geografis.card_persen')));
     setText('val-kec', fmtNum(s.persentase, 2));
     setText('unit-kec', '%');
-    setText('lbl-kel', 'JUMLAH KELURAHAN');
+    setText('lbl-kel', @json(__('geografis.card_kel')));
     setText('val-kel', s.kelurahan ? fmtNum(s.kelurahan) : '-');
-    setText('lbl-padat', 'KEPADATAN KEC.');
+    setText('lbl-padat', @json(__('geografis.card_padat_kec')));
     setText('val-padat', s.kepadatan ? fmtNum(s.kepadatan) : '-');
     animateCards();
 }
@@ -443,7 +448,7 @@ function chartClickFocus(index) {
 new ApexCharts(document.querySelector('#chart-bar-luas'), {
     chart: { type: 'bar', height: 240, toolbar: { show: false },
         events: { dataPointSelection: function(e, ctx, cfg) { chartClickFocus(cfg.dataPointIndex); } } },
-    series: [{ name: 'Luas (km²)', data: luasData }],
+    series: [{ name: @json(__('geografis.series_luas')), data: luasData }],
     xaxis: { categories: namaKec, labels: { style: { fontSize: '10px' } } },
     colors: warnaArr,
     plotOptions: { bar: { borderRadius: 3, distributed: true, horizontal: true } },
@@ -465,7 +470,7 @@ new ApexCharts(document.querySelector('#chart-donut-persen'), {
     legend: { position: 'bottom', fontSize: '11px' },
     plotOptions: { pie: { donut: { labels: {
         show: true,
-        total: { show: true, label: 'Total', fontSize: '12px',
+        total: { show: true, label: @json(__('geografis.chart_donut_center')), fontSize: '12px',
                  formatter: function() { return '{!! number_format($geo->luas_kota_km2, 1) !!} km²'; } }
     }}}},
 }).render();
@@ -479,8 +484,8 @@ var kepadatanData = namaKec.map(function(n){
 new ApexCharts(document.querySelector('#chart-compare'), {
     chart: { type: 'bar', height: 300, toolbar: { show: false } },
     series: [
-        { name: 'Luas Wilayah (km²)', data: luasData },
-        { name: 'Kepadatan (/km²)',   data: kepadatanData },
+        { name: @json(__('geografis.series_luas_full')), data: luasData },
+        { name: @json(__('geografis.series_padat')),     data: kepadatanData },
     ],
     xaxis: {
         categories: namaKec,
@@ -488,12 +493,12 @@ new ApexCharts(document.querySelector('#chart-compare'), {
     },
     // Dua sumbu terpisah → skala luas & kepadatan mandiri, bar luas tak lagi kekecilan
     yaxis: [
-        { seriesName: 'Luas Wilayah (km²)',
-          title: { text: 'Luas (km²)', style: { fontSize: '9px', color: '#4A6FA5' } },
+        { seriesName: @json(__('geografis.series_luas_full')),
+          title: { text: @json(__('geografis.series_luas')), style: { fontSize: '9px', color: '#4A6FA5' } },
           labels: { style: { fontSize: '9px', colors: '#4A6FA5' }, formatter: function(v){ return v.toFixed(0); } } },
-        { seriesName: 'Kepadatan (/km²)', opposite: true,
-          title: { text: 'Kepadatan', style: { fontSize: '9px', color: '#F5A623' } },
-          labels: { style: { fontSize: '9px', colors: '#F5A623' }, formatter: function(v){ return (v/1000).toFixed(0) + 'rb'; } } },
+        { seriesName: @json(__('geografis.series_padat')), opposite: true,
+          title: { text: @json(__('geografis.axis_padat')), style: { fontSize: '9px', color: '#F5A623' } },
+          labels: { style: { fontSize: '9px', colors: '#F5A623' }, formatter: function(v){ return (v/1000).toFixed(0) + @json(__('geografis.ribuan_singkat')); } } },
     ],
     colors: ['#4A6FA5', '#F5A623'],
     dataLabels: { enabled: false },
@@ -637,7 +642,7 @@ fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
             var fitZoom = map.getBoundsZoom(bounds, false, L.point(30, 30));
             var targetZoom = Math.max(13, Math.min(14, fitZoom));
             map.flyTo(bounds.getCenter(), targetZoom);
-            layer.bindPopup('<b>Kec. ' + namaUp + '</b><br>📐 ' + luas).openPopup();
+            layer.bindPopup('<b>' + @json(__('geografis.map_popup')).replace(':nama', namaUp) + '</b><br>📐 ' + luas).openPopup();
 
             // Highlight baris legend aktif
             document.querySelectorAll('.legend-kec-item').forEach(function(el) {
@@ -658,7 +663,7 @@ fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
         kecLegend.onAdd = function() {
             var div = L.DomUtil.create('div', 'kec-legend');
             div.style.cssText = 'background:rgba(255,255,255,0.95);padding:6px 8px;border-radius:6px;font-size:10px;line-height:1.4;box-shadow:0 1px 4px rgba(0,0,0,0.18);backdrop-filter:blur(2px);';
-            div.innerHTML = '<b style="font-size:10px;letter-spacing:.3px;color:#555;">KECAMATAN</b>';
+            div.innerHTML = '<b style="font-size:10px;letter-spacing:.3px;color:#555;">' + @json(__('geografis.legend_title')) + '</b>';
             // Cegah peta ikut zoom/geser saat berinteraksi dengan legend
             L.DomEvent.disableClickPropagation(div);
             L.DomEvent.disableScrollPropagation(div);
@@ -710,7 +715,8 @@ function renderTable() {
     getAllRows().forEach(function(r) { r.style.display = 'none'; });
     rows.slice(start, end).forEach(function(r) { r.style.display = ''; });
 
-    document.getElementById('pager-info').textContent = 'Showing ' + (start+1) + '–' + end + ' of ' + total + ' Kecamatan';
+    document.getElementById('pager-info').textContent = @json(__('geografis.pager_info'))
+        .replace(':from', start + 1).replace(':to', end).replace(':total', total);
 
     var pages = Math.ceil(total / PAGE_SIZE);
     var pager = document.getElementById('geo-pager');

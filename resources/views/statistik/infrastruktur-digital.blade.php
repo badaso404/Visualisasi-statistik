@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('infrastruktur.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -184,7 +185,7 @@
 
             {{-- Header --}}
             <div class="stat-header-wrap">
-                <div class="stat-header">INFRASTRUKTUR DIGITAL JAKARTA BARAT {{ $tahun }}</div>
+                <div class="stat-header">{{ __('infrastruktur.header', ['tahun' => $tahun]) }}</div>
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                         <i class="fa fa-calendar"></i>
@@ -208,13 +209,13 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label">Total JakWiFi</div>
+                            <div class="sc-label">{{ __('infrastruktur.card_wifi') }}</div>
                             <div class="sc-value">{{ number_format($ringkasan['total_titik_wifi']) }}</div>
                             <div class="sc-desc">
                                 @if(!is_null($ringkasan['tren_wifi']))
                                     <span class="sc-trend up"><i class="fa fa-arrow-up"></i> {{ $ringkasan['tren_wifi'] }}%</span>
                                 @endif
-                                Aktif: {{ number_format($ringkasan['wifi_aktif']) }} titik
+                                {{ __('infrastruktur.card_wifi_desc', ['jumlah' => number_format($ringkasan['wifi_aktif'])]) }}
                             </div>
                         </div>
                         <div class="sc-icon ic-blue"><i class="fa fa-wifi"></i></div>
@@ -224,11 +225,11 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label">Total Unit CCTV</div>
+                            <div class="sc-label">{{ __('infrastruktur.card_cctv') }}</div>
                             <div class="sc-value">{{ number_format($ringkasan['total_cctv']) }}</div>
                             <div class="sc-desc">
                                 <span class="sc-trend up"><i class="fa fa-check"></i> {{ $ringkasan['cctv_online_pct'] }}%</span>
-                                Online: {{ number_format($ringkasan['cctv_aktif']) }} unit
+                                {{ __('infrastruktur.card_cctv_desc', ['jumlah' => number_format($ringkasan['cctv_aktif'])]) }}
                             </div>
                         </div>
                         <div class="sc-icon ic-orange"><i class="fa fa-video"></i></div>
@@ -238,9 +239,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label">Perangkat Aktif</div>
+                            <div class="sc-label">{{ __('infrastruktur.card_aktif') }}</div>
                             <div class="sc-value">{{ $ringkasan['perangkat_aktif_pct'] }}%</div>
-                            <div class="sc-desc">WiFi {{ $ringkasan['wifi_online_pct'] }}% &middot; CCTV {{ $ringkasan['cctv_online_pct'] }}% online</div>
+                            <div class="sc-desc">{!! __('infrastruktur.card_aktif_desc', ['wifi' => $ringkasan['wifi_online_pct'], 'cctv' => $ringkasan['cctv_online_pct']]) !!}</div>
                         </div>
                         <div class="sc-icon ic-green"><i class="fa fa-gauge-high"></i></div>
                     </div>
@@ -249,9 +250,9 @@
                 <div class="stat-card">
                     <div class="sc-card-body">
                         <div class="sc-card-left">
-                            <div class="sc-label">Pengguna JakWiFi</div>
+                            <div class="sc-label">{{ __('infrastruktur.card_pengguna') }}</div>
                             <div class="sc-value">{{ number_format($ringkasan['total_pengguna']) }}</div>
-                            <div class="sc-desc"><span class="sc-strong">Terbanyak:</span> {{ $topWifi?->kecamatan->nama_kecamatan ?? '-' }}</div>
+                            <div class="sc-desc"><span class="sc-strong">{{ __('infrastruktur.card_pengguna_desc') }}</span> {{ $topWifi?->kecamatan->nama_kecamatan ?? '-' }}</div>
                         </div>
                         <div class="sc-icon ic-violet"><i class="fa fa-users"></i></div>
                     </div>
@@ -263,7 +264,7 @@
                 {{-- Distribusi per kecamatan --}}
                 <div class="panel-card">
                     <div class="pc-header">
-                        <div class="pc-title"><i class="fa fa-compass"></i> Distribusi Infrastruktur Regional</div>
+                        <div class="pc-title"><i class="fa fa-compass"></i> {{ __('infrastruktur.panel_distribusi') }}</div>
                         <div class="pc-legend">
                             <span><span class="dot" style="background:#ffbf00;"></span>JakWiFi</span>
                             <span><span class="dot" style="background:#5B82C0;"></span>CCTV</span>
@@ -275,16 +276,16 @@
                 {{-- Notifikasi terkini --}}
                 <div class="panel-card">
                     <div class="pc-header">
-                        <div class="pc-title"><i class="fa fa-triangle-exclamation"></i> Notifikasi Terkini</div>
-                        <a href="#" class="pc-link">Lihat Semua</a>
+                        <div class="pc-title"><i class="fa fa-triangle-exclamation"></i> {{ __('infrastruktur.panel_notifikasi') }}</div>
+                        <a href="#" class="pc-link">{{ __('infrastruktur.lihat_semua') }}</a>
                     </div>
                     <div class="alert-list">
                         @if($offWifi && $offWifi['off'] > 0)
                         <div class="alert-item red">
                             <div class="alert-ic red"><i class="fa fa-wifi"></i></div>
                             <div>
-                                <div class="alert-title">Titik JakWiFi Offline</div>
-                                <div class="alert-meta">Kecamatan {{ $offWifi['nama'] }} &bull; {{ number_format($offWifi['off']) }} titik</div>
+                                <div class="alert-title">{{ __('infrastruktur.alert_wifi_off') }}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_wifi_meta', ['nama' => $offWifi['nama'], 'jumlah' => number_format($offWifi['off'])]) !!}</div>
                             </div>
                         </div>
                         @endif
@@ -292,8 +293,8 @@
                         <div class="alert-item warn">
                             <div class="alert-ic warn"><i class="fa fa-screwdriver-wrench"></i></div>
                             <div>
-                                <div class="alert-title">Pemeliharaan Terjadwal</div>
-                                <div class="alert-meta">Cengkareng Sektor B &bull; 1 jam lalu</div>
+                                <div class="alert-title">{{ __('infrastruktur.alert_maintenance') }}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_maintenance_meta') !!}</div>
                             </div>
                         </div>
 
@@ -301,8 +302,8 @@
                         <div class="alert-item blue">
                             <div class="alert-ic blue"><i class="fa fa-video-slash"></i></div>
                             <div>
-                                <div class="alert-title">CCTV Kehilangan Koneksi</div>
-                                <div class="alert-meta">Kecamatan {{ $offCctv['nama'] }} &bull; {{ number_format($offCctv['off']) }} unit</div>
+                                <div class="alert-title">{{ __('infrastruktur.alert_cctv_off') }}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_cctv_meta', ['nama' => $offCctv['nama'], 'jumlah' => number_format($offCctv['off'])]) !!}</div>
                             </div>
                         </div>
                         @endif
@@ -310,8 +311,8 @@
                         <div class="alert-item info">
                             <div class="alert-ic info"><i class="fa fa-circle-info"></i></div>
                             <div>
-                                <div class="alert-title">Pembaruan Firmware Berhasil</div>
-                                <div class="alert-meta">Seluruh node region &bull; 5 jam lalu</div>
+                                <div class="alert-title">{{ __('infrastruktur.alert_firmware') }}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_firmware_meta') !!}</div>
                             </div>
                         </div>
                     </div>
@@ -321,7 +322,7 @@
             {{-- ── Peta Sebaran ─────────────────────────── --}}
             <div class="panel-card" style="margin-bottom:16px;">
                 <div class="pc-header">
-                    <div class="pc-title"><i class="fa fa-map-location-dot"></i> Peta Sebaran Infrastruktur Digital</div>
+                    <div class="pc-title"><i class="fa fa-map-location-dot"></i> {{ __('infrastruktur.map_title') }}</div>
                     <div class="pc-legend">
                         <span><span class="dot" style="background:#ffbf00;"></span>JakWiFi</span>
                         <span><span class="dot" style="background:#5B82C0;"></span>CCTV</span>
@@ -329,16 +330,16 @@
                 </div>
                 <div class="map-grid">
                     <div>
-                        <div class="map-cap">Heat Map Sebaran</div>
+                        <div class="map-cap">{{ __('infrastruktur.map_heat') }}</div>
                         <div id="map-heat" class="infra-map"></div>
                     </div>
                     <div>
-                        <div class="map-cap">Titik Sebaran</div>
+                        <div class="map-cap">{{ __('infrastruktur.map_titik') }}</div>
                         <div id="map-titik" class="infra-map"></div>
                     </div>
                 </div>
                 <div class="sc-desc" style="margin-top:10px;">
-                    Kepadatan titik mengikuti data asli per kecamatan; posisi tiap titik bersifat ilustratif.
+                    {{ __('infrastruktur.map_catatan') }}
                 </div>
             </div>
 
@@ -346,26 +347,26 @@
             <div class="table-card">
                 <div class="table-header">
                     <div>
-                        <p class="table-title">Rincian Unit Infrastruktur</p>
-                        <p class="table-sub">Rekap JakWiFi &amp; CCTV per kecamatan — {{ $tahun }}</p>
+                        <p class="table-title">{{ __('infrastruktur.table_title') }}</p>
+                        <p class="table-sub">{!! __('infrastruktur.table_sub', ['tahun' => $tahun]) !!}</p>
                     </div>
                     <div class="tbl-tools">
                         <select class="tbl-btn" id="filterType">
-                            <option value="ALL">Semua Jenis</option>
+                            <option value="ALL">{{ __('infrastruktur.filter_semua') }}</option>
                             <option value="JAKWIFI">JakWiFi</option>
                             <option value="CCTV">CCTV</option>
                         </select>
-                        <button class="tbl-btn" id="exportCsv"><i class="fa fa-download"></i> Export CSV</button>
+                        <button class="tbl-btn" id="exportCsv"><i class="fa fa-download"></i> {{ __('infrastruktur.export_csv') }}</button>
                     </div>
                 </div>
                 <table class="kes-table" id="unitTable">
                     <thead>
                         <tr>
-                            <th>Kecamatan</th>
-                            <th>Jenis</th>
-                            <th>Total Unit</th>
-                            <th>Aktif</th>
-                            <th>Status</th>
+                            <th>{{ __('infrastruktur.col_kecamatan') }}</th>
+                            <th>{{ __('infrastruktur.col_jenis') }}</th>
+                            <th>{{ __('infrastruktur.col_total') }}</th>
+                            <th>{{ __('infrastruktur.col_aktif') }}</th>
+                            <th>{{ __('infrastruktur.col_status') }}</th>
                         </tr>
                     </thead>
                     <tbody id="unit-tbody">
@@ -384,14 +385,14 @@
                             <td class="td-num">{{ number_format($row['aktif']) }}</td>
                             <td>
                                 @if($offline <= 0)
-                                    <span class="status on"><span class="dot"></span> Aktif</span>
+                                    <span class="status on"><span class="dot"></span> {{ __('infrastruktur.status_aktif') }}</span>
                                 @else
-                                    <span class="status off"><span class="dot"></span> {{ number_format($offline) }} offline</span>
+                                    <span class="status off"><span class="dot"></span> {{ __('infrastruktur.status_offline', ['jumlah' => number_format($offline)]) }}</span>
                                 @endif
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center" style="color:#bbb;padding:20px;">Belum ada data untuk tahun {{ $tahun }}.</td></tr>
+                        <tr><td colspan="5" class="text-center" style="color:#bbb;padding:20px;">{{ __('infrastruktur.empty', ['tahun' => $tahun]) }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -404,7 +405,7 @@
 
             {{-- Footer --}}
             <div class="kes-footer">
-                Sumber: Diskominfotik Jakarta Barat &bull; Data Tahun {{ $tahun }}
+                {!! __('infrastruktur.source', ['tahun' => $tahun]) !!}
             </div>
 
         </div>{{-- /.kes-content --}}
@@ -564,7 +565,7 @@
             chart: { type: 'bar', height: 340, toolbar: { show: false }, fontFamily: 'inherit',
                      animations: { enabled: true, speed: 500 } },
             series: [
-                { name: 'JakWiFi', data: distWifi },
+                { name: 'JakWiFi', data: distWifi },   {{-- nama produk, tidak diterjemahkan --}}
                 { name: 'CCTV',    data: distCctv },
             ],
             colors: ['#ffbf00', '#5B82C0'],   // JakWiFi kuning, CCTV biru
@@ -605,8 +606,9 @@
 
         var info = document.getElementById('pagerInfo');
         info.textContent = fr.length
-            ? 'Menampilkan ' + (start + 1) + '–' + Math.min(start + pageSize, fr.length) + ' dari ' + fr.length + ' unit'
-            : 'Tidak ada data';
+            ? @json(__('infrastruktur.pager_info'))
+                .replace(':from', start + 1).replace(':to', Math.min(start + pageSize, fr.length)).replace(':total', fr.length)
+            : @json(__('infrastruktur.pager_empty'));
 
         buildPager(totalPages);
     }
@@ -633,7 +635,11 @@
     });
 
     document.getElementById('exportCsv').addEventListener('click', function () {
-        var header = ['Kecamatan', 'Jenis', 'Total Unit', 'Aktif', 'Offline'];
+        var header = [
+            @json(__('infrastruktur.col_kecamatan')), @json(__('infrastruktur.col_jenis')),
+            @json(__('infrastruktur.col_total')),     @json(__('infrastruktur.col_aktif')),
+            @json(__('infrastruktur.col_offline')),
+        ];
         var lines = [header.join(',')];
         filtered().forEach(function (r) {
             var c = r.querySelectorAll('td');

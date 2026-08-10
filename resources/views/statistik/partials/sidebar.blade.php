@@ -27,17 +27,17 @@
 
 @php
     $menu = [
-        ['route' => 'statistik.overview',             'icon' => 'fa-table-columns',    'label' => __('iklim.nav_overview')],
-        ['route' => 'statistik.geografis',            'icon' => 'fa-map',              'label' => __('iklim.nav_geografis')],
-        ['route' => 'statistik.iklim',                'icon' => 'fa-cloud',            'label' => __('iklim.nav_iklim')],
-        ['route' => 'statistik.kependudukan',         'icon' => 'fa-users',            'label' => __('iklim.nav_kependudukan')],
-        ['route' => 'statistik.pendidikan',           'icon' => 'fa-graduation-cap',   'label' => __('iklim.nav_pendidikan')],
-        ['route' => 'statistik.kesehatan',            'icon' => 'fa-plus-circle',      'label' => __('iklim.nav_kesehatan')],
-        ['route' => 'statistik.bencana',              'icon' => 'fa-house-flood-water','label' => __('iklim.nav_bencana')],
-        ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => __('iklim.nav_kemiskinan')],
-        ['route' => 'statistik.perekonomian',         'icon' => 'fa-chart-line',       'label' => __('iklim.nav_perekonomian')],
-        ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => __('iklim.nav_infrastruktur')],
-        ['route' => 'statistik.potensi-kelurahan',    'icon' => 'fa-city',             'label' => __('podes.nav')],
+        ['route' => 'statistik.overview',             'icon' => 'fa-table-columns',    'label' => __('common.nav_overview')],
+        ['route' => 'statistik.geografis',            'icon' => 'fa-map',              'label' => __('common.nav_geografis')],
+        ['route' => 'statistik.iklim',                'icon' => 'fa-cloud',            'label' => __('common.nav_iklim')],
+        ['route' => 'statistik.kependudukan',         'icon' => 'fa-users',            'label' => __('common.nav_kependudukan')],
+        ['route' => 'statistik.pendidikan',           'icon' => 'fa-graduation-cap',   'label' => __('common.nav_pendidikan')],
+        ['route' => 'statistik.kesehatan',            'icon' => 'fa-plus-circle',      'label' => __('common.nav_kesehatan')],
+        ['route' => 'statistik.bencana',              'icon' => 'fa-house-flood-water','label' => __('common.nav_bencana')],
+        ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => __('common.nav_kemiskinan')],
+        ['route' => 'statistik.perekonomian',         'icon' => 'fa-chart-line',       'label' => __('common.nav_perekonomian')],
+        ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => __('common.nav_infrastruktur')],
+        ['route' => 'statistik.potensi-kelurahan',    'icon' => 'fa-city',             'label' => __('common.nav_podes')],
     ];
 @endphp
 

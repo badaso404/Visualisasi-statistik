@@ -97,23 +97,8 @@ return [
         12 => 'Desember',
     ],
 
-    // ── Sidebar navigasi ──────────────────────────────────────────
-    'nav_overview'    => 'Overview',
-    'nav_geografis'   => 'Geografis',
-    'nav_iklim'       => 'Iklim',
-    'nav_kependudukan'=> 'Kependudukan',
-    'nav_pendidikan'  => 'Pendidikan',
-    'nav_kesehatan'   => 'Kesehatan',
-    'nav_bencana'     => 'Kebencanaan',
-    'nav_kemiskinan'  => 'Kemiskinan',
-    'nav_perekonomian'=> 'Perekonomian',
-    'nav_infrastruktur' => 'Infrastruktur Digital',
-    // Label menu modul Potensi Kelurahan ada di lang/*/podes.php bersama string
-    // modulnya, bukan di sini.
-
-    // ── Language switcher ─────────────────────────────────────────
-    'lang_id' => 'Indonesia',
-    'lang_en' => 'English',
+    // Label navigasi dan pemilih bahasa pindah ke common.php: keduanya milik
+    // seluruh portal, bukan modul iklim.
 
     // ── Chart JS strings ──────────────────────────────────────────
     'chart_bar_series'      => 'Hari Hujan (hari)',
@@ -125,6 +110,4 @@ return [
     // ── Pagination ────────────────────────────────────────────────
     'pager_showing' => 'Menampilkan :from–:to dari :total bulan',
 
-    // ── Download button ───────────────────────────────────────────
-    'unduh_csv' => 'Unduh CSV',
 ];

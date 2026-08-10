@@ -1,4 +1,5 @@
 @extends('landing-page.layout.app')
+@section('page_title', __('perekonomian.page_title') . ' - Jakarta Barat')
 
 @push('styles')
 <style>
@@ -93,7 +94,7 @@
     <div class="statistik-content">
 
         <div class="stat-header-wrap">
-            <div class="stat-header">PEREKONOMIAN JAKARTA BARAT {{ $tahun }}</div>
+            <div class="stat-header">{{ __('perekonomian.header', ['tahun' => $tahun]) }}</div>
             <div class="dropdown-tahun">
                 <div class="dropdown-tahun-btn" id="dropdownTahunBtn">
                     <i class="fa fa-calendar"></i>
@@ -115,18 +116,18 @@
                 <div class="col-6 col-md-3">
                     <div class="ekon-card">
                         <div class="ekon-icon ic-blue"><i class="fa fa-sack-dollar"></i></div>
-                        <div class="ekon-label">PDRB Harga Berlaku</div>
+                        <div class="ekon-label">{{ __('perekonomian.card_adhb') }}</div>
                         <div class="ekon-value">Rp {{ number_format($summary->pdrb_adhb / 1000000, 2, ',', '.') }} T</div>
-                        <div class="ekon-sub">nilai ekonomi tahun berjalan</div>
+                        <div class="ekon-sub">{{ __('perekonomian.card_adhb_sub') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="ekon-card">
                         <div class="ekon-icon ic-orange"><i class="fa fa-scale-balanced"></i></div>
-                        <div class="ekon-label">PDRB Harga Konstan</div>
+                        <div class="ekon-label">{{ __('perekonomian.card_adhk') }}</div>
                         <div class="ekon-value">Rp {{ number_format($summary->pdrb_adhk / 1000000, 2, ',', '.') }} T</div>
                         <div class="ekon-sub">
-                            tahun dasar 2010
+                            {{ __('perekonomian.card_adhk_sub') }}
                             @if($tren !== null)
                                 &middot;
                                 <span class="{{ $tren >= 0 ? 'tren-up' : 'tren-down' }}">
@@ -140,19 +141,19 @@
                 <div class="col-6 col-md-3">
                     <div class="ekon-card">
                         <div class="ekon-icon ic-green"><i class="fa fa-chart-line"></i></div>
-                        <div class="ekon-label">Pertumbuhan Ekonomi</div>
+                        <div class="ekon-label">{{ __('perekonomian.card_tumbuh') }}</div>
                         <div class="ekon-value {{ $summary->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
                             {{ number_format($summary->laju_pertumbuhan, 2, ',', '.') }}%
                         </div>
-                        <div class="ekon-sub">atas dasar harga konstan</div>
+                        <div class="ekon-sub">{{ __('perekonomian.card_tumbuh_sub') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="ekon-card">
                         <div class="ekon-icon ic-violet"><i class="fa fa-tags"></i></div>
-                        <div class="ekon-label">Indeks Implisit</div>
+                        <div class="ekon-label">{{ __('perekonomian.card_deflator') }}</div>
                         <div class="ekon-value">{{ $deflator !== null ? number_format($deflator, 2, ',', '.') : '-' }}</div>
-                        <div class="ekon-sub">tingkat harga terhadap 2010</div>
+                        <div class="ekon-sub">{{ __('perekonomian.card_deflator_sub') }}</div>
                     </div>
                 </div>
             </div>
@@ -162,18 +163,17 @@
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Tren PDRB (Triliun Rupiah)</div>
+                    <div class="chart-title">{{ __('perekonomian.chart_tren_title') }}</div>
                     <div class="chart-hint">
-                        Rentang penuh {{ $riwayat->first()->tahun }}–{{ $riwayat->last()->tahun }};
-                        harga konstan menunjukkan pertumbuhan riil.
+                        {{ __('perekonomian.chart_tren_hint', ['dari' => $riwayat->first()->tahun, 'sampai' => $riwayat->last()->tahun]) }}
                     </div>
                     <div id="chart-tren-pdrb" class="chart-box-duo"></div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="chart-card">
-                    <div class="chart-title">Struktur Ekonomi menurut Lapangan Usaha {{ $tahun }}</div>
-                    <div class="chart-hint">Kontribusi tiap kategori terhadap PDRB atas dasar harga berlaku.</div>
+                    <div class="chart-title">{{ __('perekonomian.chart_sektor_title', ['tahun' => $tahun]) }}</div>
+                    <div class="chart-hint">{{ __('perekonomian.chart_sektor_hint') }}</div>
                     <div id="chart-sektor-distribusi" class="chart-box-duo"></div>
                 </div>
             </div>
@@ -182,21 +182,21 @@
         {{-- TABEL SEKTOR --}}
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">Lapangan Usaha Terbesar {{ $tahun }}</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('perekonomian.table_sektor_title', ['tahun' => $tahun]) }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-lapangan-usaha',
-                    'nama'   => 'lapangan-usaha-' . $tahun,
+                    'nama'   => __('perekonomian.table_sektor_file', ['tahun' => $tahun]),
                 ])
             </div>
             <div class="table-responsive">
                 <table class="table table-sm" id="tabel-lapangan-usaha" data-unduh-angka="id">
                     <thead>
                         <tr>
-                            <th>Kategori</th>
-                            <th>Lapangan Usaha</th>
-                            <th class="text-end">ADHB (Rp Miliar)</th>
-                            <th class="text-end">Distribusi</th>
-                            <th class="text-end">Pertumbuhan</th>
+                            <th>{{ __('perekonomian.col_kategori') }}</th>
+                            <th>{{ __('perekonomian.col_sektor') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_adhb') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_distribusi') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_tumbuh') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -215,7 +215,7 @@
                         @if($sektorLainnya)
                         <tr class="text-muted">
                             <td></td>
-                            <td>Lainnya ({{ $sektorLainnya['jumlah_sektor'] }} lapangan usaha)</td>
+                            <td>{{ __('perekonomian.row_lainnya', ['jumlah' => $sektorLainnya['jumlah_sektor']]) }}</td>
                             <td class="text-end">{{ number_format($sektorLainnya['adhb'] / 1000, 0, ',', '.') }}</td>
                             <td class="text-end">{{ number_format($sektorLainnya['distribusi'], 2, ',', '.') }}%</td>
                             <td class="text-end {{ ($sektorLainnya['laju_pertumbuhan'] ?? 0) < 0 ? 'tren-down' : '' }}">
@@ -228,7 +228,7 @@
 
                         <tr class="fw-bold" style="background:#fff8e1;">
                             <td></td>
-                            <td>PDRB Jakarta Barat</td>
+                            <td>{{ __('perekonomian.row_total') }}</td>
                             <td class="text-end">{{ number_format($summary->pdrb_adhb / 1000, 0, ',', '.') }}</td>
                             <td class="text-end">100,00%</td>
                             <td class="text-end">{{ number_format($summary->laju_pertumbuhan, 2, ',', '.') }}%</td>
@@ -238,8 +238,7 @@
             </div>
             @if($sektorLainnya && $sektorLainnya['laju_pertumbuhan'] !== null)
             <div class="chart-hint" style="margin:4px 0 0;">
-                *Pertumbuhan baris Lainnya adalah rata-rata tertimbang menurut ADHB, bukan angka resmi BPS.
-                Rincian tiap lapangan usaha tersedia pada grafik di atas.
+                {{ __('perekonomian.catatan_lainnya') }}
             </div>
             @endif
         </div>
@@ -247,20 +246,20 @@
         {{-- RINGKASAN ANTAR-TAHUN --}}
         <div class="chart-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">Ringkasan Antar-Tahun</div>
+                <div class="chart-title" style="margin-bottom:0;">{{ __('perekonomian.table_tahun_title') }}</div>
                 @include('statistik.partials.unduh-tabel', [
                     'target' => '#tabel-perekonomian-tahun',
-                    'nama'   => 'perekonomian-antar-tahun',
+                    'nama'   => __('perekonomian.table_tahun_file'),
                 ])
             </div>
             <div class="table-responsive">
                 <table class="table table-sm" id="tabel-perekonomian-tahun" data-unduh-angka="id">
                     <thead>
                         <tr>
-                            <th>Tahun</th>
-                            <th class="text-end">PDRB ADHB (Rp Triliun)</th>
-                            <th class="text-end">PDRB ADHK (Rp Triliun)</th>
-                            <th class="text-end">Pertumbuhan</th>
+                            <th>{{ __('perekonomian.col_tahun') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_adhb_t') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_adhk_t') }}</th>
+                            <th class="text-end">{{ __('perekonomian.col_tumbuh') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -280,7 +279,7 @@
         </div>
 
         <div class="sumber">
-            Sumber: {{ $summary->sumber }}
+            {{ __('perekonomian.source', ['sumber' => $summary->sumber]) }}
         </div>
 
     </div>
@@ -338,8 +337,8 @@ new ApexCharts(document.querySelector('#chart-tren-pdrb'), {
         animations: { enabled: true, easing: 'easeinout', speed: 550 }
     },
     series: [
-        { name: 'Harga Berlaku', data: trAdhb },
-        { name: 'Harga Konstan 2010', data: trAdhk }
+        { name: @json(__('perekonomian.series_adhb')), data: trAdhb },
+        { name: @json(__('perekonomian.series_adhk')), data: trAdhk }
     ],
     colors: [BIRU, ORANYE],
     stroke: { curve: 'smooth', width: 2 },
@@ -363,7 +362,7 @@ new ApexCharts(document.querySelector('#chart-sektor-distribusi'), {
         type: 'bar', height: 520, toolbar: { show: false }, fontFamily: 'inherit',
         animations: { enabled: true, easing: 'easeinout', speed: 550 }
     },
-    series: [{ name: 'Distribusi', data: sekDistrib }],
+    series: [{ name: @json(__('perekonomian.series_distribusi')), data: sekDistrib }],
     colors: [BIRU],
     plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '68%', dataLabels: { position: 'top' } } },
     dataLabels: {
