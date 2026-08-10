@@ -117,7 +117,7 @@
                     <div class="ekon-card">
                         <div class="ekon-icon ic-blue"><i class="fa fa-sack-dollar"></i></div>
                         <div class="ekon-label">{{ __('perekonomian.card_adhb') }}</div>
-                        <div class="ekon-value">Rp {{ number_format($summary->pdrb_adhb / 1000000, 2, ',', '.') }} T</div>
+                        <div class="ekon-value">Rp {{ nf($summary->pdrb_adhb / 1000000, 2) }} T</div>
                         <div class="ekon-sub">{{ __('perekonomian.card_adhb_sub') }}</div>
                     </div>
                 </div>
@@ -125,14 +125,14 @@
                     <div class="ekon-card">
                         <div class="ekon-icon ic-orange"><i class="fa fa-scale-balanced"></i></div>
                         <div class="ekon-label">{{ __('perekonomian.card_adhk') }}</div>
-                        <div class="ekon-value">Rp {{ number_format($summary->pdrb_adhk / 1000000, 2, ',', '.') }} T</div>
+                        <div class="ekon-value">Rp {{ nf($summary->pdrb_adhk / 1000000, 2) }} T</div>
                         <div class="ekon-sub">
                             {{ __('perekonomian.card_adhk_sub') }}
                             @if($tren !== null)
                                 &middot;
                                 <span class="{{ $tren >= 0 ? 'tren-up' : 'tren-down' }}">
                                     <i class="fa fa-arrow-{{ $tren >= 0 ? 'up' : 'down' }}"></i>
-                                    {{ number_format(abs($tren), 2, ',', '.') }}%
+                                    {{ nf(abs($tren), 2) }}%
                                 </span>
                             @endif
                         </div>
@@ -143,7 +143,7 @@
                         <div class="ekon-icon ic-green"><i class="fa fa-chart-line"></i></div>
                         <div class="ekon-label">{{ __('perekonomian.card_tumbuh') }}</div>
                         <div class="ekon-value {{ $summary->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
-                            {{ number_format($summary->laju_pertumbuhan, 2, ',', '.') }}%
+                            {{ nf($summary->laju_pertumbuhan, 2) }}%
                         </div>
                         <div class="ekon-sub">{{ __('perekonomian.card_tumbuh_sub') }}</div>
                     </div>
@@ -152,7 +152,7 @@
                     <div class="ekon-card">
                         <div class="ekon-icon ic-violet"><i class="fa fa-tags"></i></div>
                         <div class="ekon-label">{{ __('perekonomian.card_deflator') }}</div>
-                        <div class="ekon-value">{{ $deflator !== null ? number_format($deflator, 2, ',', '.') : '-' }}</div>
+                        <div class="ekon-value">{{ $deflator !== null ? nf($deflator, 2) : '-' }}</div>
                         <div class="ekon-sub">{{ __('perekonomian.card_deflator_sub') }}</div>
                     </div>
                 </div>
@@ -189,7 +189,7 @@
                 ])
             </div>
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-lapangan-usaha" data-unduh-angka="id">
+                <table class="table table-sm" id="tabel-lapangan-usaha" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('perekonomian.col_kategori') }}</th>
@@ -204,10 +204,10 @@
                         <tr>
                             <td>{{ $row->kategori }}</td>
                             <td>{{ $row->nama_sektor }}</td>
-                            <td class="text-end">{{ number_format($row->adhb / 1000, 0, ',', '.') }}</td>
-                            <td class="text-end">{{ number_format($row->distribusi, 2, ',', '.') }}%</td>
+                            <td class="text-end">{{ nf($row->adhb / 1000, 0) }}</td>
+                            <td class="text-end">{{ nf($row->distribusi, 2) }}%</td>
                             <td class="text-end {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
-                                {{ number_format($row->laju_pertumbuhan, 2, ',', '.') }}%
+                                {{ nf($row->laju_pertumbuhan, 2) }}%
                             </td>
                         </tr>
                         @endforeach
@@ -216,11 +216,11 @@
                         <tr class="text-muted">
                             <td></td>
                             <td>{{ __('perekonomian.row_lainnya', ['jumlah' => $sektorLainnya['jumlah_sektor']]) }}</td>
-                            <td class="text-end">{{ number_format($sektorLainnya['adhb'] / 1000, 0, ',', '.') }}</td>
-                            <td class="text-end">{{ number_format($sektorLainnya['distribusi'], 2, ',', '.') }}%</td>
+                            <td class="text-end">{{ nf($sektorLainnya['adhb'] / 1000, 0) }}</td>
+                            <td class="text-end">{{ nf($sektorLainnya['distribusi'], 2) }}%</td>
                             <td class="text-end {{ ($sektorLainnya['laju_pertumbuhan'] ?? 0) < 0 ? 'tren-down' : '' }}">
                                 {{ $sektorLainnya['laju_pertumbuhan'] !== null
-                                    ? number_format($sektorLainnya['laju_pertumbuhan'], 2, ',', '.') . '%*'
+                                    ? nf($sektorLainnya['laju_pertumbuhan'], 2) . '%*'
                                     : '—' }}
                             </td>
                         </tr>
@@ -229,9 +229,10 @@
                         <tr class="fw-bold" style="background:#fff8e1;">
                             <td></td>
                             <td>{{ __('perekonomian.row_total') }}</td>
-                            <td class="text-end">{{ number_format($summary->pdrb_adhb / 1000, 0, ',', '.') }}</td>
-                            <td class="text-end">100,00%</td>
-                            <td class="text-end">{{ number_format($summary->laju_pertumbuhan, 2, ',', '.') }}%</td>
+                            <td class="text-end">{{ nf($summary->pdrb_adhb / 1000, 0) }}</td>
+                            {{-- Baris total selalu 100%; lewat nf() supaya pemisah desimalnya ikut bahasa. --}}
+                            <td class="text-end">{{ nf(100, 2) }}%</td>
+                            <td class="text-end">{{ nf($summary->laju_pertumbuhan, 2) }}%</td>
                         </tr>
                     </tbody>
                 </table>
@@ -253,7 +254,7 @@
                 ])
             </div>
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-perekonomian-tahun" data-unduh-angka="id">
+                <table class="table table-sm" id="tabel-perekonomian-tahun" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('perekonomian.col_tahun') }}</th>
@@ -266,10 +267,10 @@
                         @foreach($riwayatTabel as $row)
                         <tr @if((int)$row->tahun === (int)$tahun) class="fw-bold" style="background:#fff8e1;" @endif>
                             <td>{{ $row->tahun }}</td>
-                            <td class="text-end">{{ number_format($row->pdrb_adhb / 1000000, 2, ',', '.') }}</td>
-                            <td class="text-end">{{ number_format($row->pdrb_adhk / 1000000, 2, ',', '.') }}</td>
+                            <td class="text-end">{{ nf($row->pdrb_adhb / 1000000, 2) }}</td>
+                            <td class="text-end">{{ nf($row->pdrb_adhk / 1000000, 2) }}</td>
                             <td class="text-end {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
-                                {{ number_format($row->laju_pertumbuhan, 2, ',', '.') }}%
+                                {{ nf($row->laju_pertumbuhan, 2) }}%
                             </td>
                         </tr>
                         @endforeach
@@ -318,7 +319,8 @@ const sekDistrib  = {!! json_encode($sektor->pluck('distribusi')->map(fn($v)=>(f
 const sekAdhb     = {!! json_encode($sektor->pluck('adhb')->map(fn($v)=>round($v/1000000, 2))) !!};
 
 // ── Util angka (format Indonesia) ─────────────────────────────
-const idID      = 'id-ID';
+// Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+const idID      = '{{ locale_angka_js() }}';
 const fmt2      = v => Number(v).toLocaleString(idID, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtRpT    = v => 'Rp ' + fmt2(v) + ' T';
 const fmtPersen = v => fmt2(v) + '%';

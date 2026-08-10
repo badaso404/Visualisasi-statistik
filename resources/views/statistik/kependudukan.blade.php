@@ -123,7 +123,7 @@
                     <div class="stat-summary-card">
                         <div class="card-text">
                             <div class="label" id="sum-label-1">{{ __('kependudukan.card_laki') }}</div>
-                            <div class="value" id="sum-value-1">{{ number_format($summary->jumlah_laki_laki) }}</div>
+                            <div class="value" id="sum-value-1">{{ nf($summary->jumlah_laki_laki) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-1" style="background:#2a78d6; margin-left:auto;">
                             <i class="fa fa-male" id="sum-i-1" style="color:#fff;"></i>
@@ -134,7 +134,7 @@
                     <div class="stat-summary-card">
                         <div class="card-text">
                             <div class="label" id="sum-label-2">{{ __('kependudukan.card_perempuan') }}</div>
-                            <div class="value" id="sum-value-2">{{ number_format($summary->jumlah_perempuan) }}</div>
+                            <div class="value" id="sum-value-2">{{ nf($summary->jumlah_perempuan) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-2" style="background:#e87ba4; margin-left:auto;">
                             <i class="fa fa-female" id="sum-i-2" style="color:#fff;"></i>
@@ -145,7 +145,7 @@
                     <div class="stat-summary-card">
                         <div class="card-text">
                             <div class="label" id="sum-label-3">{{ __('kependudukan.card_total') }}</div>
-                            <div class="value" id="sum-value-3">{{ number_format($summary->jumlah_total) }}</div>
+                            <div class="value" id="sum-value-3">{{ nf($summary->jumlah_total) }}</div>
                         </div>
                         <div class="card-icon" id="sum-icon-3" style="background:#008300; margin-left:auto;">
                             <i class="fa fa-users" id="sum-i-3" style="color:#fff;"></i>
@@ -210,7 +210,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // Pemisah ribuan ikut bahasa aktif: 1.234 di Indonesia, 1,234 di Inggris.
-    var localeAngka = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
+    var localeAngka = '{{ locale_angka_js() }}';
 
     // Data dari Laravel
     var namaKecamatan = {!! json_encode($perKecamatan->pluck('kecamatan.nama_kecamatan')) !!};

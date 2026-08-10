@@ -68,11 +68,11 @@ class StatistikController extends Controller
                 'modul' => 'Geografis', 'route' => 'statistik.geografis', 'tahun' => $tahunGeo,
                 'icon' => 'fa-map', 'warna' => 'ic-teal',
                 'label' => __('overview.card_geografis'),
-                'nilai' => number_format($geo->luas_kota_km2, 2, ',', '.'),
+                'nilai' => nf($geo->luas_kota_km2, 2),
                 'satuan' => __('overview.unit_km2'),
                 'sub' => __('overview.sub_geografis', [
                     'kecamatan' => $luasKec->count(),
-                    'kelurahan' => number_format((int) $luasKec->sum('jumlah_kelurahan'), 0, ',', '.'),
+                    'kelurahan' => nf((int) $luasKec->sum('jumlah_kelurahan'), 0),
                 ]),
             ];
         }
@@ -85,11 +85,11 @@ class StatistikController extends Controller
                 'modul' => 'Kependudukan', 'route' => 'statistik.kependudukan', 'tahun' => $tahunPenduduk,
                 'icon' => 'fa-users', 'warna' => 'ic-blue',
                 'label' => __('overview.card_kependudukan'),
-                'nilai' => number_format($penduduk->jumlah_total, 0, ',', '.'),
+                'nilai' => nf($penduduk->jumlah_total, 0),
                 'satuan' => __('overview.unit_jiwa'),
                 'sub' => __('overview.sub_kependudukan', [
-                    'laki'      => number_format($penduduk->jumlah_laki_laki, 0, ',', '.'),
-                    'perempuan' => number_format($penduduk->jumlah_perempuan, 0, ',', '.'),
+                    'laki'      => nf($penduduk->jumlah_laki_laki, 0),
+                    'perempuan' => nf($penduduk->jumlah_perempuan, 0),
                 ]),
             ];
         }
@@ -103,10 +103,10 @@ class StatistikController extends Controller
                 'modul' => 'Pendidikan', 'route' => 'statistik.pendidikan', 'tahun' => $tahunDidik,
                 'icon' => 'fa-graduation-cap', 'warna' => 'ic-amber',
                 'label' => __('overview.card_pendidikan'),
-                'nilai' => number_format((int) $didikKec->sum('jumlah_pelajar'), 0, ',', '.'),
+                'nilai' => nf((int) $didikKec->sum('jumlah_pelajar'), 0),
                 'satuan' => __('overview.unit_siswa'),
                 'sub' => __('overview.sub_pendidikan', [
-                    'jumlah' => number_format((int) $didikKec->sum('jumlah_pendidik'), 0, ',', '.'),
+                    'jumlah' => nf((int) $didikKec->sum('jumlah_pendidik'), 0),
                 ]),
             ];
         }
@@ -131,10 +131,10 @@ class StatistikController extends Controller
                 'modul' => 'Kesehatan', 'route' => 'statistik.kesehatan', 'tahun' => $tahunSehat,
                 'icon' => 'fa-plus-circle', 'warna' => 'ic-violet',
                 'label' => __('overview.card_kesehatan'),
-                'nilai' => number_format((int) $faskes->sum('jumlah_total'), 0, ',', '.'),
+                'nilai' => nf((int) $faskes->sum('jumlah_total'), 0),
                 'satuan' => __('overview.unit_unit'),
                 'sub' => __('overview.sub_kesehatan', [
-                    'jumlah' => number_format((int) $nakes->sum('jumlah_total'), 0, ',', '.'),
+                    'jumlah' => nf((int) $nakes->sum('jumlah_total'), 0),
                 ]),
             ];
         }
@@ -174,7 +174,7 @@ class StatistikController extends Controller
                 'modul' => 'Kebencanaan', 'route' => 'statistik.bencana', 'tahun' => $tahunBencana,
                 'icon' => 'fa-house-flood-water', 'warna' => 'ic-orange',
                 'label' => __('overview.card_bencana'),
-                'nilai' => number_format((int) $bencanaItems->sum('jumlah_kejadian'), 0, ',', '.'),
+                'nilai' => nf((int) $bencanaItems->sum('jumlah_kejadian'), 0),
                 'satuan' => __('overview.unit_kejadian'),
                 'sub' => __('overview.sub_bencana', ['jenis' => $bencanaJenis->keys()->first() ?? '-']),
             ];
@@ -189,10 +189,10 @@ class StatistikController extends Controller
                 'modul' => 'Kemiskinan', 'route' => 'statistik.kemiskinan', 'tahun' => $tahunMiskin,
                 'icon' => 'fa-hand-holding-heart', 'warna' => 'ic-red',
                 'label' => __('overview.card_kemiskinan'),
-                'nilai' => number_format($miskin->persentase_penduduk_miskin, 2, ',', '.') . '%',
+                'nilai' => nf($miskin->persentase_penduduk_miskin, 2) . '%',
                 'satuan' => '',
                 'sub' => __('overview.sub_kemiskinan', [
-                    'jumlah' => number_format($miskin->jumlah_penduduk_miskin, 0, ',', '.'),
+                    'jumlah' => nf($miskin->jumlah_penduduk_miskin, 0),
                 ]),
                 // Kemiskinan turun = kabar baik, jadi arah trennya dibalik saat
                 // diwarnai di view (lihat 'tren_baik').
@@ -211,10 +211,10 @@ class StatistikController extends Controller
                 'modul' => 'Perekonomian', 'route' => 'statistik.perekonomian', 'tahun' => $tahunEkon,
                 'icon' => 'fa-sack-dollar', 'warna' => 'ic-green',
                 'label' => __('overview.card_perekonomian'),
-                'nilai' => 'Rp ' . number_format($ekon->pdrb_adhb / 1000000, 2, ',', '.'),
+                'nilai' => 'Rp ' . nf($ekon->pdrb_adhb / 1000000, 2),
                 'satuan' => __('overview.unit_triliun'),
                 'sub' => __('overview.sub_perekonomian', [
-                    'persen' => number_format($ekon->laju_pertumbuhan, 2, ',', '.'),
+                    'persen' => nf($ekon->laju_pertumbuhan, 2),
                 ]),
                 'tren' => (float) $ekon->laju_pertumbuhan,
             ];
@@ -231,11 +231,11 @@ class StatistikController extends Controller
                 'tahun' => max($tahunWifi, $tahunCctv),
                 'icon' => 'fa-wifi', 'warna' => 'ic-pink',
                 'label' => __('overview.card_digital'),
-                'nilai' => number_format((int) $wifi->sum('jumlah_titik') + (int) $cctv->sum('jumlah_unit'), 0, ',', '.'),
+                'nilai' => nf((int) $wifi->sum('jumlah_titik') + (int) $cctv->sum('jumlah_unit'), 0),
                 'satuan' => __('overview.unit_unit'),
                 'sub' => __('overview.sub_digital', [
-                    'wifi' => number_format((int) $wifi->sum('jumlah_titik'), 0, ',', '.'),
-                    'cctv' => number_format((int) $cctv->sum('jumlah_unit'), 0, ',', '.'),
+                    'wifi' => nf((int) $wifi->sum('jumlah_titik'), 0),
+                    'cctv' => nf((int) $cctv->sum('jumlah_unit'), 0),
                 ]),
             ];
         }

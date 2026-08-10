@@ -219,7 +219,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_sd') }}</div>
-                                <div class="education-value">{{ $summary->apm_sd_mi }}</div>
+                                <div class="education-value">{{ nf($summary->apm_sd_mi, 2) }}</div>
                             </div>
                         </div>
 
@@ -227,7 +227,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_smp') }}</div>
-                                <div class="education-value">{{ $summary->apm_smp_mts }}</div>
+                                <div class="education-value">{{ nf($summary->apm_smp_mts, 2) }}</div>
                             </div>
                         </div>
 
@@ -235,7 +235,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_sma') }}</div>
-                                <div class="education-value">{{ $summary->apm_sma_smk_man }}</div>
+                                <div class="education-value">{{ nf($summary->apm_sma_smk_man, 2) }}</div>
                             </div>
                         </div>
                     </div>
@@ -252,7 +252,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-blue"><i class="fa fa-book"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_sd') }}</div>
-                                <div class="education-value">{{ $summary->apk_sd_mi }}</div>
+                                <div class="education-value">{{ nf($summary->apk_sd_mi, 2) }}</div>
                             </div>
                         </div>
 
@@ -260,7 +260,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-green"><i class="fa fa-book-open"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_smp') }}</div>
-                                <div class="education-value">{{ $summary->apk_smp_mts }}</div>
+                                <div class="education-value">{{ nf($summary->apk_smp_mts, 2) }}</div>
                             </div>
                         </div>
 
@@ -268,7 +268,7 @@
                             <div class="education-card">
                                 <div class="education-icon ic-violet"><i class="fa fa-graduation-cap"></i></div>
                                 <div class="education-label">{{ __('pendidikan.lvl_sma') }}</div>
-                                <div class="education-value">{{ $summary->apk_sma_smk_man }}</div>
+                                <div class="education-value">{{ nf($summary->apk_sma_smk_man, 2) }}</div>
                             </div>
                         </div>
                     </div>
@@ -333,7 +333,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-pendidikan-kecamatan" data-unduh-angka="en">
+                <table class="table table-sm" id="tabel-pendidikan-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('pendidikan.col_kecamatan') }}</th>
@@ -349,13 +349,13 @@
                         @foreach($perKecamatan as $row)
                         <tr>
                             <td>{{ $row->kecamatan->nama_kecamatan }}</td>
-                            <td>{{ number_format($row->jumlah_pelajar) }}</td>
-                            <td>{{ number_format($row->jumlah_pendidik) }}</td>
-                            <td>{{ $row->jumlah_sekolah_negeri }}</td>
-                            <td>{{ $row->jumlah_sekolah_swasta }}</td>
+                            <td>{{ nf($row->jumlah_pelajar) }}</td>
+                            <td>{{ nf($row->jumlah_pendidik) }}</td>
+                            <td>{{ nf($row->jumlah_sekolah_negeri) }}</td>
+                            <td>{{ nf($row->jumlah_sekolah_swasta) }}</td>
                             <td>
                                 <span class="total-badge">
-                                    {{ $row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta }}
+                                    {{ nf($row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta) }}
                                 </span>
                             </td>
                         </tr>
@@ -405,7 +405,8 @@ const swasta = {!! json_encode($perKecamatan->pluck('jumlah_sekolah_swasta')->ma
 const total = negeri.map((n,i)=>n+swasta[i]);
 
 // ── Util angka & warna ────────────────────────────────────────
-const idID = 'id-ID';
+// Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+const idID = '{{ locale_angka_js() }}';
 const fmt  = v => Number(v).toLocaleString(idID);
 
 // ── Palet kategorikal warna-warni (colorblind-safe, tervalidasi) ──

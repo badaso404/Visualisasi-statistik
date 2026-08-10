@@ -269,7 +269,7 @@
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
                         <div class="label" id="lbl-suhu">{{ __('iklim.card_suhu_label') }}</div>
-                        <div class="value" id="val-suhu">{{ number_format($avgSuhu, 2) }}</div>
+                        <div class="value" id="val-suhu">{{ nf($avgSuhu, 2) }}</div>
                         <div class="sub">{{ __('iklim.card_suhu_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
@@ -281,7 +281,7 @@
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
                         <div class="label" id="lbl-hujan">{{ __('iklim.card_hujan_label') }}</div>
-                        <div class="value" id="val-hujan">{{ number_format($avgHariHujan, 1) }}</div>
+                        <div class="value" id="val-hujan">{{ nf($avgHariHujan, 1) }}</div>
                         <div class="sub">{{ __('iklim.card_hujan_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
@@ -293,7 +293,7 @@
                 <div class="stat-summary-card w-100">
                     <div class="card-text">
                         <div class="label" id="lbl-lembab">{{ __('iklim.card_lembab_label') }}</div>
-                        <div class="value" id="val-lembab">{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
+                        <div class="value" id="val-lembab">{{ nf($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small></div>
                         <div class="sub">{{ __('iklim.card_lembab_sub') }}</div>
                     </div>
                     <div class="card-icon" style="background:#1baf7a; margin-left:auto;">
@@ -357,7 +357,7 @@
                         <div class="chart-title">{{ __('iklim.chart_bar_title') }}</div>
                         <div style="font-size:11px; color:#aaa; margin-top:2px;">{{ __('iklim.chart_bar_hint') }}</div>
                     </div>
-                    <span class="chart-total-badge">{{ __('iklim.chart_bar_avg', ['avg' => number_format($avgHariHujan, 1)]) }}</span>
+                    <span class="chart-total-badge">{{ __('iklim.chart_bar_avg', ['avg' => nf($avgHariHujan, 1)]) }}</span>
                 </div>
                 <div id="chart-bar-hujan"></div>
             </div>
@@ -374,7 +374,7 @@
             </div>
 
             <div class="iklim-table-scroll">
-            <table class="iklim-table" id="iklim-table" data-unduh-angka="en">
+            <table class="iklim-table" id="iklim-table" data-unduh-angka="{{ app()->getLocale() }}">
                 <colgroup>
                     <col style="width:13%"> <col style="width:11%"> <col style="width:10%"> <col style="width:13%">
                     <col style="width:11%"> <col style="width:12%"> <col style="width:14%"> <col style="width:16%">
@@ -400,20 +400,20 @@
                         @endphp
                         <tr>
                             <td>{{ $bulanLabel[$row->bulan] ?? $row->bulan }}</td>
-                            <td>{{ number_format($row->hari_hujan, 1) }}</td>
+                            <td>{{ nf($row->hari_hujan, 1) }}</td>
                             <td>
                                 <span class="cell-val" title="{{ $suhuLbl }}">
-                                    <span class="dot" style="background:{{ $catDot[$suhuClass] }};"></span>{{ number_format($row->suhu_udara, 1) }}
+                                    <span class="dot" style="background:{{ $catDot[$suhuClass] }};"></span>{{ nf($row->suhu_udara, 1) }}
                                 </span>
                             </td>
                             <td>
                                 <span class="cell-val" title="{{ $kelLbl }}">
-                                    <span class="dot" style="background:{{ $catDot[$kelClass] }};"></span>{{ number_format($row->kelembaban_udara, 1) }}%
+                                    <span class="dot" style="background:{{ $catDot[$kelClass] }};"></span>{{ nf($row->kelembaban_udara, 1) }}%
                                 </span>
                             </td>
-                            <td>{{ number_format($row->kecepatan_angin, 1) }}</td>
-                            <td>{{ number_format($row->tekanan_udara, 1) }}</td>
-                            <td>{{ number_format($row->penyinaran_matahari, 1) }}%</td>
+                            <td>{{ nf($row->kecepatan_angin, 1) }}</td>
+                            <td>{{ nf($row->tekanan_udara, 1) }}</td>
+                            <td>{{ nf($row->penyinaran_matahari, 1) }}%</td>
                             <td><span class="cat-badge {{ $statusClass }}"><span class="dot"></span>{{ $status }}</span></td>
                         </tr>
                     @endforeach
@@ -529,7 +529,7 @@
     var CAT_HEX = { 'cat-green': '#43a047', 'cat-yellow': '#f9a825', 'cat-orange': '#fb8c00', 'cat-red': '#e53935' };
     var barColors = iklimData.map(function(d) { return CAT_HEX[d.statusClass] || CAT_HEX['cat-green']; });
 
-    var idID = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
+    var idID = '{{ locale_angka_js() }}';
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     function setHTML(id, h) { var el = document.getElementById(id); if (el) el.innerHTML = h; }
     function fmt1(v) { return Number(v).toLocaleString(idID, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
@@ -544,9 +544,9 @@
     }
 
     var cardDefaults = {
-        suhuLbl:   '{{ __('iklim.card_suhu_label') }}',      suhuVal:   '{{ number_format($avgSuhu, 2) }}',
-        hujanLbl:  '{{ __('iklim.card_hujan_label') }}',     hujanVal:  '{{ number_format($avgHariHujan, 1) }}',
-        lembabLbl: '{{ __('iklim.card_lembab_label') }}',    lembabVal: '{{ number_format($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small>',
+        suhuLbl:   '{{ __('iklim.card_suhu_label') }}',      suhuVal:   '{{ nf($avgSuhu, 2) }}',
+        hujanLbl:  '{{ __('iklim.card_hujan_label') }}',     hujanVal:  '{{ nf($avgHariHujan, 1) }}',
+        lembabLbl: '{{ __('iklim.card_lembab_label') }}',    lembabVal: '{{ nf($avgKelembaban, 0) }}<small style="font-size:13px; font-weight:500; color:#888;">%</small>',
         statusLbl: '{{ __('iklim.card_status_label') }}',    statusVal: '<span class="cat-badge {{ $statusWilayahColor }}" style="font-size:16px; padding:5px 12px;"><span class="dot"></span>{{ $statusWilayah }}</span>',
     };
 

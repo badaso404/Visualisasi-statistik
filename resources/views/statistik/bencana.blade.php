@@ -162,7 +162,7 @@
                 <div class="stat-summary-card">
                     <div class="card-text">
                         <div class="label">{{ __('bencana.card_kejadian') }}</div>
-                        <div class="value" id="sc-kejadian">{{ number_format($ringkasan['total_kejadian']) }}</div>
+                        <div class="value" id="sc-kejadian">{{ nf($ringkasan['total_kejadian']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-house-flood-water" style="color:#fff;"></i>
@@ -171,7 +171,7 @@
                 <div class="stat-summary-card">
                     <div class="card-text">
                         <div class="label">{{ __('bencana.card_meninggal') }}</div>
-                        <div class="value" id="sc-meninggal">{{ number_format($ringkasan['total_meninggal']) }}</div>
+                        <div class="value" id="sc-meninggal">{{ nf($ringkasan['total_meninggal']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#e34948; margin-left:auto;">
                         <i class="fa fa-heart-crack" style="color:#fff;"></i>
@@ -180,7 +180,7 @@
                 <div class="stat-summary-card">
                     <div class="card-text">
                         <div class="label">{{ __('bencana.card_luka') }}</div>
-                        <div class="value" id="sc-luka">{{ number_format($ringkasan['total_luka']) }}</div>
+                        <div class="value" id="sc-luka">{{ nf($ringkasan['total_luka']) }}</div>
                     </div>
                     <div class="card-icon" style="background:#008300; margin-left:auto;">
                         <i class="fa fa-user-injured" style="color:#fff;"></i>
@@ -259,7 +259,7 @@
             </div>
         </div>
         <div style="overflow-x:auto;">
-            <table class="bencana-table" id="tabel-bencana-rekap" data-unduh-angka="en">
+            <table class="bencana-table" id="tabel-bencana-rekap" data-unduh-angka="{{ app()->getLocale() }}">
                 <thead>
                     <tr>
                         <th>{{ __('bencana.col_periode') }}</th><th>{{ __('bencana.col_triwulan') }}</th><th>{{ __('bencana.col_jenis') }}</th>
@@ -272,9 +272,9 @@
                         <td>{{ $b->periode_label }}</td>
                         <td>{{ $b->triwulan ? 'TW' . $b->triwulan : '-' }}</td>
                         <td><span class="badge-jenis" style="background: {{ $warnaJenis[$labelJenis($b->jenis_bencana)] ?? '#9e9e9e' }};">{{ $labelJenis($b->jenis_bencana) }}</span></td>
-                        <td>{{ number_format($b->jumlah_kejadian) }}</td>
-                        <td>{{ number_format($b->jumlah_korban_meninggal) }}</td>
-                        <td>{{ number_format($b->jumlah_korban_luka) }}</td>
+                        <td>{{ nf($b->jumlah_kejadian) }}</td>
+                        <td>{{ nf($b->jumlah_korban_meninggal) }}</td>
+                        <td>{{ nf($b->jumlah_korban_luka) }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="6" style="text-align:center; color:#999; padding:24px;">{{ __('bencana.empty_rekap') }}</td></tr>
@@ -647,7 +647,8 @@
         grandTotals.luka      += totalsByJenis[j].luka;
     });
 
-    function fmt(n) { return Number(n).toLocaleString('en-US'); }
+    // Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+    function fmt(n) { return Number(n).toLocaleString('{{ locale_angka_js() }}'); }
     function setSummary(jenis) {
         var t = jenis ? totalsByJenis[jenis] : grandTotals;
         document.getElementById('sc-kejadian').textContent  = fmt(t.kejadian);

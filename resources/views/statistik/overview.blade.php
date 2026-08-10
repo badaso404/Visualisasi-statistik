@@ -123,7 +123,7 @@
                                 &middot;
                                 <span class="{{ $baik ? 'tren-up' : 'tren-down' }}">
                                     <i class="fa fa-arrow-{{ $naik ? 'up' : 'down' }}"></i>
-                                    {{ number_format(abs($k['tren']), 2, ',', '.') }}
+                                    {{ nf(abs($k['tren']), 2) }}
                                 </span>
                             @endif
                         </div>
@@ -214,7 +214,7 @@
                 {!! __('overview.table_hint') !!}
             </div>
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-overview-kecamatan" data-unduh-angka="id">
+                <table class="table table-sm" id="tabel-overview-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('overview.col_kecamatan') }}</th>
@@ -231,13 +231,13 @@
                         @foreach ($perKecamatan as $r)
                         <tr>
                             <td>{{ $r['nama'] }}</td>
-                            <td class="text-end">{{ $r['luas'] ? number_format($r['luas'], 2, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['penduduk'] ? number_format($r['penduduk'], 0, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['kepadatan'] ? number_format($r['kepadatan'], 0, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['pelajar'] ? number_format($r['pelajar'], 0, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['faskes'] ? number_format($r['faskes'], 0, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['miskin'] ? number_format($r['miskin'], 0, ',', '.') : '—' }}</td>
-                            <td class="text-end">{{ $r['digital'] ? number_format($r['digital'], 0, ',', '.') : '—' }}</td>
+                            <td class="text-end">{{ $r['luas'] ? nf($r['luas'], 2) : '—' }}</td>
+                            <td class="text-end">{{ $r['penduduk'] ? nf($r['penduduk'], 0) : '—' }}</td>
+                            <td class="text-end">{{ $r['kepadatan'] ? nf($r['kepadatan'], 0) : '—' }}</td>
+                            <td class="text-end">{{ $r['pelajar'] ? nf($r['pelajar'], 0) : '—' }}</td>
+                            <td class="text-end">{{ $r['faskes'] ? nf($r['faskes'], 0) : '—' }}</td>
+                            <td class="text-end">{{ $r['miskin'] ? nf($r['miskin'], 0) : '—' }}</td>
+                            <td class="text-end">{{ $r['digital'] ? nf($r['digital'], 0) : '—' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -278,7 +278,7 @@ const ovPdrb      = {!! json_encode($trenGabungan['pdrb']) !!};
 const ovMiskin    = {!! json_encode($trenGabungan['miskin']) !!};
 
 // Pemisah ribuan/desimal ikut bahasa aktif: 1.234,5 di Indonesia, 1,234.5 di Inggris.
-const idID   = '{{ app()->getLocale() === 'id' ? 'id-ID' : 'en-US' }}';
+const idID   = '{{ locale_angka_js() }}';
 const fmt0   = v => v === null ? '—' : Number(v).toLocaleString(idID, { maximumFractionDigits: 0 });
 const fmt2   = v => v === null ? '—' : Number(v).toLocaleString(idID, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

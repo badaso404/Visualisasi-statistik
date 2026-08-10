@@ -115,7 +115,7 @@
                     <div class="poverty-card">
                         <div class="poverty-icon ic-red"><i class="fa fa-people-group"></i></div>
                         <div class="poverty-label">{{ __('kemiskinan.card_jumlah') }}</div>
-                        <div class="poverty-value">{{ number_format($summary->jumlah_penduduk_miskin, 0, ',', '.') }}</div>
+                        <div class="poverty-value">{{ nf($summary->jumlah_penduduk_miskin, 0) }}</div>
                         <div class="poverty-sub">
                             {{ __('kemiskinan.card_jumlah_sub') }}
                             @if($tren !== null)
@@ -132,7 +132,7 @@
                     <div class="poverty-card">
                         <div class="poverty-icon ic-orange"><i class="fa fa-percent"></i></div>
                         <div class="poverty-label">{{ __('kemiskinan.card_persen') }}</div>
-                        <div class="poverty-value">{{ $summary->persentase_penduduk_miskin }}%</div>
+                        <div class="poverty-value">{{ nf($summary->persentase_penduduk_miskin, 2) }}%</div>
                         <div class="poverty-sub">{{ __('kemiskinan.card_persen_sub') }}</div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
                     <div class="poverty-card">
                         <div class="poverty-icon ic-amber"><i class="fa fa-money-bill-wave"></i></div>
                         <div class="poverty-label">{{ __('kemiskinan.card_garis') }}</div>
-                        <div class="poverty-value" style="font-size:16px;">Rp {{ number_format($summary->garis_kemiskinan, 0, ',', '.') }}</div>
+                        <div class="poverty-value" style="font-size:16px;">Rp {{ nf($summary->garis_kemiskinan, 0) }}</div>
                         <div class="poverty-sub">{{ __('kemiskinan.card_garis_sub') }}</div>
                     </div>
                 </div>
@@ -148,7 +148,7 @@
                     <div class="poverty-card">
                         <div class="poverty-icon ic-violet"><i class="fa fa-arrow-down-wide-short"></i></div>
                         <div class="poverty-label">{{ __('kemiskinan.card_p1') }}</div>
-                        <div class="poverty-value">{{ $summary->indeks_kedalaman }}</div>
+                        <div class="poverty-value">{{ nf($summary->indeks_kedalaman, 2) }}</div>
                         <div class="poverty-sub">{{ __('kemiskinan.card_p1_sub') }}</div>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
                     <div class="poverty-card">
                         <div class="poverty-icon ic-blue"><i class="fa fa-chart-simple"></i></div>
                         <div class="poverty-label">{{ __('kemiskinan.card_p2') }}</div>
-                        <div class="poverty-value">{{ $summary->indeks_keparahan }}</div>
+                        <div class="poverty-value">{{ nf($summary->indeks_keparahan, 2) }}</div>
                         <div class="poverty-sub">{{ __('kemiskinan.card_p2_sub') }}</div>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
                 ])
             </div>
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-kemiskinan-tahun" data-unduh-angka="id">
+                <table class="table table-sm" id="tabel-kemiskinan-tahun" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('kemiskinan.col_tahun') }}</th>
@@ -219,11 +219,11 @@
                         @foreach($riwayat as $row)
                         <tr @if((int)$row->tahun === (int)$tahun) class="fw-bold" style="background:#fff8e1;" @endif>
                             <td>{{ $row->tahun }}</td>
-                            <td>{{ number_format($row->jumlah_penduduk_miskin, 0, ',', '.') }}</td>
-                            <td>{{ $row->persentase_penduduk_miskin }}%</td>
-                            <td>Rp {{ number_format($row->garis_kemiskinan, 0, ',', '.') }}</td>
-                            <td>{{ $row->indeks_kedalaman }}</td>
-                            <td>{{ $row->indeks_keparahan }}</td>
+                            <td>{{ nf($row->jumlah_penduduk_miskin, 0) }}</td>
+                            <td>{{ nf($row->persentase_penduduk_miskin, 2) }}%</td>
+                            <td>Rp {{ nf($row->garis_kemiskinan, 0) }}</td>
+                            <td>{{ nf($row->indeks_kedalaman, 2) }}</td>
+                            <td>{{ nf($row->indeks_keparahan, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -283,7 +283,7 @@
                 ])
             </div>
             <div class="table-responsive">
-                <table class="table table-sm" id="tabel-kemiskinan-kecamatan" data-unduh-angka="id">
+                <table class="table table-sm" id="tabel-kemiskinan-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>Kecamatan</th>
@@ -297,10 +297,10 @@
                         @foreach(($perKecamatan ?? []) as $row)
                         <tr>
                             <td>{{ $row->kecamatan->nama_kecamatan }}</td>
-                            <td>{{ number_format($row->jumlah_penduduk_miskin, 0, ',', '.') }}</td>
-                            <td>{{ number_format($row->jumlah_keluarga_miskin, 0, ',', '.') }}</td>
-                            <td>{{ number_format($row->penerima_bantuan, 0, ',', '.') }}</td>
-                            <td>{{ $row->persentase }}%</td>
+                            <td>{{ nf($row->jumlah_penduduk_miskin, 0) }}</td>
+                            <td>{{ nf($row->jumlah_keluarga_miskin, 0) }}</td>
+                            <td>{{ nf($row->penerima_bantuan, 0) }}</td>
+                            <td>{{ nf($row->persentase, 2) }}%</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -350,7 +350,8 @@ const trP1        = {!! json_encode($riwayat->pluck('indeks_kedalaman')->map(fn(
 const trP2        = {!! json_encode($riwayat->pluck('indeks_keparahan')->map(fn($v)=>(float)$v)) !!};
 
 // ── Util angka ────────────────────────────────────────────────
-const idID = 'id-ID';
+// Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+const idID = '{{ locale_angka_js() }}';
 const fmt  = v => Number(v).toLocaleString(idID);
 const fmtPersen = v => fmt(v) + '%';
 const fmtRp     = v => 'Rp ' + fmt(Math.round(v));

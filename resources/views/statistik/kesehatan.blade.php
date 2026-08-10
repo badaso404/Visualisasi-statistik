@@ -247,7 +247,7 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label" id="kc-lbl-1">{{ __('kesehatan.card_tt_label') }}</div>
-                            <div class="sc-value" id="kc-val-1">{{ number_format($summary->jumlah_tempat_tidur_rs) }}</div>
+                            <div class="sc-value" id="kc-val-1">{{ nf($summary->jumlah_tempat_tidur_rs) }}</div>
                             <div class="sc-desc" id="kc-desc-1">{{ __('kesehatan.card_tt_desc') }}</div>
                         </div>
                         <div class="sc-icon yellow"><i class="fa fa-bed-pulse"></i></div>
@@ -260,7 +260,7 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label" id="kc-lbl-2">{{ __('kesehatan.card_rs_label') }}</div>
-                            <div class="sc-value" id="kc-val-2">{{ number_format($totalRumahSakit) }}</div>
+                            <div class="sc-value" id="kc-val-2">{{ nf($totalRumahSakit) }}</div>
                             <div class="sc-desc" id="kc-desc-2">{{ __('kesehatan.card_rs_desc') }}</div>
                         </div>
                         <div class="sc-icon green"><i class="fa fa-hospital"></i></div>
@@ -271,7 +271,7 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label" id="kc-lbl-3">{{ __('kesehatan.card_nakes_label') }}</div>
-                            <div class="sc-value" id="kc-val-3">{{ number_format($totalTenaga) }}</div>
+                            <div class="sc-value" id="kc-val-3">{{ nf($totalTenaga) }}</div>
                             <div class="sc-desc" id="kc-desc-3">{{ __('kesehatan.card_nakes_desc', ['nama' => $topTenaga?->kecamatan->nama_kecamatan ?? '-']) }}</div>
                         </div>
                         <div class="sc-icon blue"><i class="fa fa-stethoscope"></i></div>
@@ -282,7 +282,7 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label" id="kc-lbl-4">{{ __('kesehatan.card_fas_label') }}</div>
-                            <div class="sc-value" id="kc-val-4">{{ number_format($totalFasilitas) }}</div>
+                            <div class="sc-value" id="kc-val-4">{{ nf($totalFasilitas) }}</div>
                             <div class="sc-desc" id="kc-desc-4">{{ __('kesehatan.card_fas_desc') }}</div>
                         </div>
                         <div class="sc-icon teal"><i class="fa fa-hospital"></i></div>
@@ -342,7 +342,7 @@
                         'nama'   => __('kesehatan.table_file', ['tahun' => $tahun]),
                     ])
                 </div>
-                <table class="kes-table" id="tabel-faskes-kecamatan" data-unduh-angka="en">
+                <table class="kes-table" id="tabel-faskes-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
                     <thead>
                         <tr>
                             <th>{{ __('kesehatan.col_kecamatan') }}</th>
@@ -357,7 +357,7 @@
                         @foreach($fasilitas->sortByDesc('jumlah_total') as $f)
                         <tr>
                             <td><strong>{{ $f->kecamatan->nama_kecamatan }}</strong></td>
-                            <td class="td-num">{{ number_format($f->jumlah_total) }}</td>
+                            <td class="td-num">{{ nf($f->jumlah_total) }}</td>
                             <td class="{{ $f->rumah_sakit ? 'td-num' : 'td-zero' }}">{{ $f->rumah_sakit ?: '-' }}</td>
                             <td class="{{ $f->puskesmas ? 'td-num' : 'td-zero' }}">{{ $f->puskesmas ?: '-' }}</td>
                             <td class="{{ $f->klinik_kesehatan ? 'td-num' : 'td-zero' }}">{{ $f->klinik_kesehatan ?: '-' }}</td>
@@ -399,7 +399,8 @@
 </script>
 <script>
 (function () {
-    var idID = 'id-ID';
+    // Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+    var idID = '{{ locale_angka_js() }}';
     var fmt  = function (v) { return Number(v).toLocaleString(idID); };
 
     // ── Palet kategorikal warna-warni (colorblind-safe, tervalidasi) ──
@@ -444,10 +445,10 @@
     var kesStats = {!! json_encode($kesStatsData) !!};
     function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
     var cardDefaults = {
-        l1: @json(__('kesehatan.card_tt_label')),    v1: '{{ number_format($summary->jumlah_tempat_tidur_rs) }}', d1: @json(__('kesehatan.card_tt_desc')),
-        l2: @json(__('kesehatan.card_rs_label')),    v2: '{{ number_format($totalRumahSakit) }}',                 d2: @json(__('kesehatan.card_rs_desc')),
-        l3: @json(__('kesehatan.card_nakes_label')), v3: '{{ number_format($totalTenaga) }}',                     d3: @json(__('kesehatan.card_nakes_desc', ['nama' => $topTenaga?->kecamatan->nama_kecamatan ?? '-'])),
-        l4: @json(__('kesehatan.card_fas_label')),   v4: '{{ number_format($totalFasilitas) }}',                  d4: @json(__('kesehatan.card_fas_desc')),
+        l1: @json(__('kesehatan.card_tt_label')),    v1: '{{ nf($summary->jumlah_tempat_tidur_rs) }}', d1: @json(__('kesehatan.card_tt_desc')),
+        l2: @json(__('kesehatan.card_rs_label')),    v2: '{{ nf($totalRumahSakit) }}',                 d2: @json(__('kesehatan.card_rs_desc')),
+        l3: @json(__('kesehatan.card_nakes_label')), v3: '{{ nf($totalTenaga) }}',                     d3: @json(__('kesehatan.card_nakes_desc', ['nama' => $topTenaga?->kecamatan->nama_kecamatan ?? '-'])),
+        l4: @json(__('kesehatan.card_fas_label')),   v4: '{{ nf($totalFasilitas) }}',                  d4: @json(__('kesehatan.card_fas_desc')),
     };
 
     // Label kartu per kecamatan. :nama diganti di sisi JS karena kecamatannya
@@ -615,8 +616,8 @@
             theme: 'light',
             shared: true, intersect: false,
             y: [
-                { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' orang'; } },
-                { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' unit'; } },
+                { formatter: function (v) { return Number(v).toLocaleString(idID) + ' ' + @json(__('overview.tooltip_orang')); } },
+                { formatter: function (v) { return Number(v).toLocaleString(idID) + ' ' + @json(__('overview.tooltip_unit')); } },
             ],
         },
     }).render();

@@ -175,7 +175,7 @@
                 <div class="stat-summary-card" id="card-luas">
                     <div class="card-text">
                         <div class="label" id="lbl-luas">{{ __('geografis.card_luas') }}</div>
-                        <div class="value"><span id="val-luas">{{ number_format($geo->luas_kota_km2, 2) }}</span><small>km²</small></div>
+                        <div class="value"><span id="val-luas">{{ nf($geo->luas_kota_km2, 2) }}</span><small>km²</small></div>
                     </div>
                     <div class="card-icon" style="background:#2a78d6; margin-left:auto;">
                         <i class="fa fa-map" style="color:#fff;"></i>
@@ -208,7 +208,7 @@
                 <div class="stat-summary-card" id="card-padat">
                     <div class="card-text">
                         <div class="label" id="lbl-padat">{{ __('geografis.card_padat') }}</div>
-                        <div class="value"><span id="val-padat">{{ number_format($totalKepadatan, 0, ',', '.') }}</span><small>/km²</small></div>
+                        <div class="value"><span id="val-padat">{{ nf($totalKepadatan, 0) }}</span><small>/km²</small></div>
                     </div>
                     <div class="card-icon" style="background:#4a3aa7; margin-left:auto;">
                         <i class="fa fa-users" style="color:#fff;"></i>
@@ -229,7 +229,7 @@
                 <div class="chart-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="chart-title" style="margin-bottom:0;">{{ __('geografis.chart_donut_title') }}</div>
-                        <div style="font-size:11px;color:#aaa;">{{ __('geografis.chart_donut_total', ['luas' => number_format($geo->luas_kota_km2, 1)]) }}</div>
+                        <div style="font-size:11px;color:#aaa;">{{ __('geografis.chart_donut_total', ['luas' => nf($geo->luas_kota_km2, 1)]) }}</div>
                     </div>
                     <div id="chart-donut-persen"></div>
                 </div>
@@ -266,7 +266,7 @@
                 <div>
                     <div class="hl-tag" style="color:#34527A;">{{ __('geografis.hl_terluas') }}</div>
                     <div class="hl-name">{{ $terluas ? __('geografis.hl_nama', ['nama' => $terluas->kecamatan->nama_kecamatan]) : __('geografis.hl_kosong') }}</div>
-                    <div class="hl-sub">{{ $terluas ? __('geografis.hl_sub', ['luas' => number_format($terluas->luas_km2, 2), 'persen' => number_format($terluas->persentase, 1)]) : '—' }}</div>
+                    <div class="hl-sub">{{ $terluas ? __('geografis.hl_sub', ['luas' => nf($terluas->luas_km2, 2), 'persen' => nf($terluas->persentase, 1)]) : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
@@ -274,7 +274,7 @@
                 <div>
                     <div class="hl-tag" style="color:#5B7BB0;">{{ __('geografis.hl_terkecil') }}</div>
                     <div class="hl-name">{{ $terkecil ? __('geografis.hl_nama', ['nama' => $terkecil->kecamatan->nama_kecamatan]) : __('geografis.hl_kosong') }}</div>
-                    <div class="hl-sub">{{ $terkecil ? __('geografis.hl_sub', ['luas' => number_format($terkecil->luas_km2, 2), 'persen' => number_format($terkecil->persentase, 1)]) : '—' }}</div>
+                    <div class="hl-sub">{{ $terkecil ? __('geografis.hl_sub', ['luas' => nf($terkecil->luas_km2, 2), 'persen' => nf($terkecil->persentase, 1)]) : '—' }}</div>
                 </div>
             </div>
             <div class="geo-hl-card">
@@ -282,7 +282,7 @@
                 <div>
                     <div class="hl-tag" style="color:#4A6FA5;">{{ __('geografis.hl_terpadat') }}</div>
                     <div class="hl-name">{{ __('geografis.hl_nama', ['nama' => 'Tambora']) }}</div>
-                    <div class="hl-sub">{{ __('geografis.hl_padat_val', ['nilai' => '48.243']) }}</div>
+                    <div class="hl-sub">{{ __('geografis.hl_padat_val', ['nilai' => nf(48243)]) }}</div>
                 </div>
             </div>
         </div>
@@ -299,7 +299,7 @@
                     ])
                 </div>
             </div>
-            <table class="geo-table" id="geo-table" data-unduh-angka="id">
+            <table class="geo-table" id="geo-table" data-unduh-angka="{{ app()->getLocale() }}">
                 <thead>
                     <tr>
                         <th>{{ __('geografis.col_kecamatan') }}</th>
@@ -317,12 +317,12 @@
                     @php $s = $kecStats[strtoupper($row->kecamatan->nama_kecamatan)] ?? null; @endphp
                     <tr data-name="{{ strtolower($row->kecamatan->nama_kecamatan) }}">
                         <td>{{ $row->kecamatan->nama_kecamatan }}</td>
-                        <td>{{ number_format($row->luas_km2, 2) }}</td>
+                        <td>{{ nf($row->luas_km2, 2) }}</td>
                         <td>{{ $s && $s['kelurahan'] ? $s['kelurahan'] : '—' }}</td>
-                        <td>{{ $s && $s['rw'] ? number_format($s['rw'], 0, ',', '.') : '—' }}</td>
-                        <td>{{ $s && $s['rt'] ? number_format($s['rt'], 0, ',', '.') : '—' }}</td>
-                        <td>{{ $s && $s['penduduk'] ? number_format($s['penduduk'], 0, ',', '.') : '—' }}</td>
-                        <td>{{ $s && $s['kepadatan'] ? number_format($s['kepadatan'], 0, ',', '.') : '—' }}</td>
+                        <td>{{ $s && $s['rw'] ? nf($s['rw'], 0) : '—' }}</td>
+                        <td>{{ $s && $s['rt'] ? nf($s['rt'], 0) : '—' }}</td>
+                        <td>{{ $s && $s['penduduk'] ? nf($s['penduduk'], 0) : '—' }}</td>
+                        <td>{{ $s && $s['kepadatan'] ? nf($s['kepadatan'], 0) : '—' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -354,7 +354,8 @@ var persen   = {!! json_encode($luas->sortByDesc('luas_km2')->pluck('persentase'
 var kecStatsData = {!! json_encode($kecStats) !!};
 
 // ── Card ringkasan dinamis ────────────────────────────────────
-var idID = 'id-ID';
+// Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+var idID = '{{ locale_angka_js() }}';
 function fmtNum(v, dec) { return Number(v).toLocaleString(idID, { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 }); }
 function setText(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
 
@@ -369,10 +370,10 @@ function animateCards() {
 
 // Simpan nilai default (tampilan total kota)
 var cardDefaults = {
-    luas:  { label: @json(__('geografis.card_luas')),  val: '{{ number_format($geo->luas_kota_km2, 2, ',', '.') }}' },
+    luas:  { label: @json(__('geografis.card_luas')),  val: '{{ nf($geo->luas_kota_km2, 2) }}' },
     kec:   { label: @json(__('geografis.card_kec')),   val: '{{ $jumlahKecamatan }}', unit: '' },
-    kel:   { label: @json(__('geografis.card_kel')),   val: '{{ number_format($totalKelurahan, 0, ',', '.') }}' },
-    padat: { label: @json(__('geografis.card_padat')), val: '{{ number_format($totalKepadatan, 0, ',', '.') }}' },
+    kel:   { label: @json(__('geografis.card_kel')),   val: '{{ nf($totalKelurahan, 0) }}' },
+    padat: { label: @json(__('geografis.card_padat')), val: '{{ nf($totalKepadatan, 0) }}' },
 };
 
 // Label kartu saat satu kecamatan dipilih. :nama diganti di sisi JS karena
@@ -471,7 +472,7 @@ new ApexCharts(document.querySelector('#chart-donut-persen'), {
     plotOptions: { pie: { donut: { labels: {
         show: true,
         total: { show: true, label: @json(__('geografis.chart_donut_center')), fontSize: '12px',
-                 formatter: function() { return '{!! number_format($geo->luas_kota_km2, 1) !!} km²'; } }
+                 formatter: function() { return '{!! nf($geo->luas_kota_km2, 1) !!} km²'; } }
     }}}},
 }).render();
 
@@ -510,7 +511,7 @@ new ApexCharts(document.querySelector('#chart-compare'), {
         shared: true, intersect: false,
         y: [
             { formatter: function(v){ return v.toFixed(2) + ' km²'; } },
-            { formatter: function(v){ return Number(v).toLocaleString('id-ID') + ' jiwa/km²'; } },
+            { formatter: function(v){ return Number(v).toLocaleString(idID) + ' ' + @json(__('geografis.col_kepadatan')); } },
         ],
     },
 }).render();

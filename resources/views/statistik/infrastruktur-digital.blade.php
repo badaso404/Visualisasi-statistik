@@ -210,12 +210,12 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label">{{ __('infrastruktur.card_wifi') }}</div>
-                            <div class="sc-value">{{ number_format($ringkasan['total_titik_wifi']) }}</div>
+                            <div class="sc-value">{{ nf($ringkasan['total_titik_wifi']) }}</div>
                             <div class="sc-desc">
                                 @if(!is_null($ringkasan['tren_wifi']))
-                                    <span class="sc-trend up"><i class="fa fa-arrow-up"></i> {{ $ringkasan['tren_wifi'] }}%</span>
+                                    <span class="sc-trend up"><i class="fa fa-arrow-up"></i> {{ nf($ringkasan['tren_wifi'], 1) }}%</span>
                                 @endif
-                                {{ __('infrastruktur.card_wifi_desc', ['jumlah' => number_format($ringkasan['wifi_aktif'])]) }}
+                                {{ __('infrastruktur.card_wifi_desc', ['jumlah' => nf($ringkasan['wifi_aktif'])]) }}
                             </div>
                         </div>
                         <div class="sc-icon ic-blue"><i class="fa fa-wifi"></i></div>
@@ -226,10 +226,10 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label">{{ __('infrastruktur.card_cctv') }}</div>
-                            <div class="sc-value">{{ number_format($ringkasan['total_cctv']) }}</div>
+                            <div class="sc-value">{{ nf($ringkasan['total_cctv']) }}</div>
                             <div class="sc-desc">
-                                <span class="sc-trend up"><i class="fa fa-check"></i> {{ $ringkasan['cctv_online_pct'] }}%</span>
-                                {{ __('infrastruktur.card_cctv_desc', ['jumlah' => number_format($ringkasan['cctv_aktif'])]) }}
+                                <span class="sc-trend up"><i class="fa fa-check"></i> {{ nf($ringkasan['cctv_online_pct']) }}%</span>
+                                {{ __('infrastruktur.card_cctv_desc', ['jumlah' => nf($ringkasan['cctv_aktif'])]) }}
                             </div>
                         </div>
                         <div class="sc-icon ic-orange"><i class="fa fa-video"></i></div>
@@ -240,8 +240,8 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label">{{ __('infrastruktur.card_aktif') }}</div>
-                            <div class="sc-value">{{ $ringkasan['perangkat_aktif_pct'] }}%</div>
-                            <div class="sc-desc">{!! __('infrastruktur.card_aktif_desc', ['wifi' => $ringkasan['wifi_online_pct'], 'cctv' => $ringkasan['cctv_online_pct']]) !!}</div>
+                            <div class="sc-value">{{ nf($ringkasan['perangkat_aktif_pct'], 1) }}%</div>
+                            <div class="sc-desc">{!! __('infrastruktur.card_aktif_desc', ['wifi' => nf($ringkasan['wifi_online_pct']), 'cctv' => nf($ringkasan['cctv_online_pct'])]) !!}</div>
                         </div>
                         <div class="sc-icon ic-green"><i class="fa fa-gauge-high"></i></div>
                     </div>
@@ -251,7 +251,7 @@
                     <div class="sc-card-body">
                         <div class="sc-card-left">
                             <div class="sc-label">{{ __('infrastruktur.card_pengguna') }}</div>
-                            <div class="sc-value">{{ number_format($ringkasan['total_pengguna']) }}</div>
+                            <div class="sc-value">{{ nf($ringkasan['total_pengguna']) }}</div>
                             <div class="sc-desc"><span class="sc-strong">{{ __('infrastruktur.card_pengguna_desc') }}</span> {{ $topWifi?->kecamatan->nama_kecamatan ?? '-' }}</div>
                         </div>
                         <div class="sc-icon ic-violet"><i class="fa fa-users"></i></div>
@@ -285,7 +285,7 @@
                             <div class="alert-ic red"><i class="fa fa-wifi"></i></div>
                             <div>
                                 <div class="alert-title">{{ __('infrastruktur.alert_wifi_off') }}</div>
-                                <div class="alert-meta">{!! __('infrastruktur.alert_wifi_meta', ['nama' => $offWifi['nama'], 'jumlah' => number_format($offWifi['off'])]) !!}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_wifi_meta', ['nama' => $offWifi['nama'], 'jumlah' => nf($offWifi['off'])]) !!}</div>
                             </div>
                         </div>
                         @endif
@@ -303,7 +303,7 @@
                             <div class="alert-ic blue"><i class="fa fa-video-slash"></i></div>
                             <div>
                                 <div class="alert-title">{{ __('infrastruktur.alert_cctv_off') }}</div>
-                                <div class="alert-meta">{!! __('infrastruktur.alert_cctv_meta', ['nama' => $offCctv['nama'], 'jumlah' => number_format($offCctv['off'])]) !!}</div>
+                                <div class="alert-meta">{!! __('infrastruktur.alert_cctv_meta', ['nama' => $offCctv['nama'], 'jumlah' => nf($offCctv['off'])]) !!}</div>
                             </div>
                         </div>
                         @endif
@@ -381,13 +381,13 @@
                                     <span class="badge-type cctv"><i class="fa fa-video"></i> CCTV</span>
                                 @endif
                             </td>
-                            <td class="td-num">{{ number_format($row['total']) }}</td>
-                            <td class="td-num">{{ number_format($row['aktif']) }}</td>
+                            <td class="td-num">{{ nf($row['total']) }}</td>
+                            <td class="td-num">{{ nf($row['aktif']) }}</td>
                             <td>
                                 @if($offline <= 0)
                                     <span class="status on"><span class="dot"></span> {{ __('infrastruktur.status_aktif') }}</span>
                                 @else
-                                    <span class="status off"><span class="dot"></span> {{ __('infrastruktur.status_offline', ['jumlah' => number_format($offline)]) }}</span>
+                                    <span class="status off"><span class="dot"></span> {{ __('infrastruktur.status_offline', ['jumlah' => nf($offline)]) }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -553,7 +553,8 @@
 </script>
 <script>
 (function () {
-    var fmt = function (v) { return Number(v).toLocaleString('id-ID'); };
+    // Pemisah ribuan/desimal ikut bahasa aktif (lihat helper nf()).
+    var fmt = function (v) { return Number(v).toLocaleString('{{ locale_angka_js() }}'); };
 
     // ── Chart distribusi (JakWiFi vs CCTV per kecamatan) ──────────
     var distNama = {!! json_encode($distribusi->pluck('nama')->values()) !!};

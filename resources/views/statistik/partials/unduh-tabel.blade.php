@@ -22,6 +22,11 @@
       data-unduh-angka="id"  -> layar memakai format Indonesia  "1.234,5" -> 1234.5
       data-unduh-angka="en"  -> layar memakai format Inggris    "1,234.5" -> 1234.5
 
+    Sejak angka di layar mengikuti bahasa aktif (lihat helper nf()), nilainya
+    ditulis data-unduh-angka="{{ app()->getLocale() }}" — bukan dipatok. Kalau
+    dipatok, mengganti bahasa akan membuat pembersih ini memakai pola yang
+    salah dan "1,234.5" terbaca sebagai 12345.
+
     Keduanya hanya berlaku mulai kolom kedua; kolom pertama dianggap label
     (nama kecamatan, bulan) yang titik/komanya justru harus dipertahankan.
 --}}
