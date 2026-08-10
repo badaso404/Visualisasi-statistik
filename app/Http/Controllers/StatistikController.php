@@ -818,4 +818,50 @@ class StatistikController extends Controller
             'jakWifi', 'cctv', 'ringkasan', 'distribusi', 'unitRows', 'sebaranKec', 'tahun', 'availableTahun'
         ));
     }
+
+    /**
+     * Dashboard Potensi Kelurahan (Podes) — satu-satunya modul yang datanya
+     * tidak kita simpan sendiri; halamannya disematkan langsung dari Satu Data
+     * Jakarta. Yang kita kerjakan cuma cangkangnya: header bertema, pemilih
+     * blok, dan jalan keluar kalau frame-nya gagal tampil.
+     *
+     * Menyematkannya hanya berhasil dari domain yang diizinkan pemiliknya lewat
+     * `frame-ancestors 'self' ... https://*.jakarta.go.id ...`. Di luar itu
+     * (termasuk saat pengembangan di localhost) browser menolak memuat frame,
+     * jadi tombol "buka di tab baru" selalu ditampilkan, bukan hanya saat gagal
+     * — kegagalan frame lintas-domain tidak bisa dideteksi dari sisi kita.
+     */
+    public function potensiKelurahan(Request $request)
+    {
+        // Slug ditulis apa adanya mengikuti URL sumber, termasuk salah ketik
+        // "pembanguanan" pada blok terakhir: mengoreksinya justru bikin 404.
+        $bloks = [
+            'keterangan-umum-kelurahan',
+            'kependudukan-dan-ketenagakerjaan',
+            'perumahan-dan-lingkungan-hidup',
+            'bencana-alam-dan-mitigasi-bencana-alam',
+            'pendidikan',
+            'kesehatan',
+            'sosial-budaya',
+            'olahraga-dan-hiburan',
+            'angkutan-komunikasi-dan-informasi',
+            'ekonomi',
+            'keamanan',
+            'perlindungan-sosial-pembanguanan-dan-pemberdayaan-masyarakat',
+        ];
+
+        // Blok dari query string tidak boleh masuk URL frame mentah-mentah;
+        // hanya nilai yang kita kenal yang diteruskan.
+        $blok = $request->get('blok');
+        if (!in_array($blok, $bloks, true)) {
+            $blok = $bloks[0];
+        }
+
+        // 31.73 = Kota Adm. Jakarta Barat. Dashboard membaca parameter ini saat
+        // dimuat, jadi frame langsung tersaring tanpa user memilih apa pun.
+        $embedUrl = 'https://satudata.jakarta.go.id/dashboard/dashboard-publik/dashboard-potensi-kelurahan?'
+            . http_build_query(['blok' => $blok, 'kotakab' => '31.73']);
+
+        return view('statistik.potensi-kelurahan', compact('bloks', 'blok', 'embedUrl'));
+    }
 }

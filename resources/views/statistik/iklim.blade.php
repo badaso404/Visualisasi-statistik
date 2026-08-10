@@ -23,19 +23,7 @@
     }
     .dropdown-tahun { position: relative; flex-shrink: 0; }
 
-    /* Pemilih bahasa (inline di header row) */
-    .lang-switcher-inline {
-        display: flex; gap: 4px; flex-shrink: 0;
-    }
-    .lang-switcher-inline form { margin: 0; }
-    .lang-switcher-inline button {
-        padding: 5px 10px; border-radius: 6px; font-size: 12px;
-        font-weight: 700; cursor: pointer; border: 1.5px solid #ddd;
-        background: #fff; color: #888; transition: all .15s; letter-spacing: .3px;
-        line-height: 1;
-    }
-    .lang-switcher-inline button:hover  { border-color: #ffbf00; color: #b8860b; background: #fff8e1; }
-    .lang-switcher-inline button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; }
+    /* Gaya pemilih bahasa ikut pindah ke partial-nya sendiri. */
     .dropdown-tahun-btn {
         display: flex; align-items: center; gap: 8px;
         border: 2px solid #ffbf00; border-radius: 6px; background: #fff;
@@ -259,19 +247,6 @@
         {{-- Header --}}
             <div class="stat-header-wrap">
                 <div class="stat-header">{{ __('iklim.header', ['tahun' => $tahun]) }}</div>
-
-                {{-- Pemilih bahasa (di sebelah dropdown tahun) --}}
-                <div class="lang-switcher-inline">
-                    @php $currentLocale = app()->getLocale(); @endphp
-                    <form method="POST" action="{{ route('locale.switch', 'id') }}">
-                        @csrf
-                        <button type="submit" class="{{ $currentLocale === 'id' ? 'active' : '' }}" title="{{ __('iklim.lang_id') }}">ID</button>
-                    </form>
-                    <form method="POST" action="{{ route('locale.switch', 'en') }}">
-                        @csrf
-                        <button type="submit" class="{{ $currentLocale === 'en' ? 'active' : '' }}" title="{{ __('iklim.lang_en') }}">EN</button>
-                    </form>
-                </div>
 
                 <div class="dropdown-tahun">
                     <div class="dropdown-tahun-btn" id="dropdownTahunBtn">

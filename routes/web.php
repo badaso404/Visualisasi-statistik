@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -33,32 +34,51 @@ use App\Http\Controllers\Admin\SinkronisasiController;
 |--------------------------------------------------------------------------
 */
 
-// Situs ini hanya punya satu wajah publik, yaitu portal statistik. Root
-// dialihkan ke sana supaya tautan "Lihat situs" di panel admin dan tautan yang
-// disebar ke luar sama-sama mendarat di halaman yang benar.
-Route::redirect('/', '/statistik')->name('home');
+/*
+|--------------------------------------------------------------------------
+| Publik (berprefix bahasa)
+|--------------------------------------------------------------------------
+|
+| Prefix diisi LaravelLocalization::setLocale() yang mengembalikan '' untuk
+| bahasa default, jadi URL Indonesia tidak berubah sedikit pun:
+|
+|     /statistik/iklim      → Indonesia
+|     /en/statistik/iklim   → Inggris
+|
+| Karena prefix-nya dihitung saat runtime, helper route() di seluruh view
+| otomatis ikut bahasa yang sedang aktif — tidak ada satu pun route() yang
+| perlu diubah. Konsekuensinya `php artisan route:cache` tidak boleh dipakai:
+| cache membekukan prefix bahasa yang kebetulan aktif saat perintah dijalankan.
+|
+*/
 
-// Ganti bahasa antarmuka dan kembali ke halaman sebelumnya.
-Route::post('locale/{locale}', function (string $locale) {
-    $supported = ['id', 'en'];
-    if (in_array($locale, $supported, true)) {
-        session(['locale' => $locale]);
-    }
-    return back();
-})->name('locale.switch');
+Route::group([
+    'prefix'     => LaravelLocalization::setLocale(),
+    'middleware' => ['localize', 'localizationRedirect'],
+], function () {
 
-Route::prefix('statistik')->name('statistik.')->group(function () {
-    // Ringkasan lintas modul; jadi halaman pembuka /statistik sekaligus.
-    Route::get('/',             [StatistikController::class, 'overview'])->name('overview');
-    Route::get('/geografis',    [StatistikController::class, 'geografis'])->name('geografis');
-    Route::get('/iklim',        [StatistikController::class, 'iklim'])->name('iklim');
-    Route::get('/kependudukan', [StatistikController::class, 'kependudukan'])->name('kependudukan');
-    Route::get('/pendidikan',   [StatistikController::class, 'pendidikan'])->name('pendidikan');
-    Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
-    Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
-    Route::get('/kemiskinan',   [StatistikController::class, 'kemiskinan'])->name('kemiskinan');
-    Route::get('/perekonomian', [StatistikController::class, 'perekonomian'])->name('perekonomian');
-    Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
+    // Situs ini hanya punya satu wajah publik, yaitu portal statistik. Root
+    // dialihkan ke sana supaya tautan "Lihat situs" di panel admin dan tautan
+    // yang disebar ke luar sama-sama mendarat di halaman yang benar. Memakai
+    // route() dan bukan path harfiah supaya /en ikut mendarat di /en/statistik.
+    Route::get('/', fn () => redirect()->route('statistik.overview'))->name('home');
+
+    Route::prefix('statistik')->name('statistik.')->group(function () {
+        // Ringkasan lintas modul; jadi halaman pembuka /statistik sekaligus.
+        Route::get('/',             [StatistikController::class, 'overview'])->name('overview');
+        Route::get('/geografis',    [StatistikController::class, 'geografis'])->name('geografis');
+        Route::get('/iklim',        [StatistikController::class, 'iklim'])->name('iklim');
+        Route::get('/kependudukan', [StatistikController::class, 'kependudukan'])->name('kependudukan');
+        Route::get('/pendidikan',   [StatistikController::class, 'pendidikan'])->name('pendidikan');
+        Route::get('/kesehatan',    [StatistikController::class, 'kesehatan'])->name('kesehatan');
+        Route::get('/bencana',      [StatistikController::class, 'bencana'])->name('bencana');
+        Route::get('/kemiskinan',   [StatistikController::class, 'kemiskinan'])->name('kemiskinan');
+        Route::get('/perekonomian', [StatistikController::class, 'perekonomian'])->name('perekonomian');
+        Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
+        // Satu-satunya modul tanpa data lokal: halamannya disematkan dari Satu
+        // Data Jakarta, jadi tidak ada pasangan CRUD-nya di panel admin.
+        Route::get('/potensi-kelurahan', [StatistikController::class, 'potensiKelurahan'])->name('potensi-kelurahan');
+    });
 });
 
 /*

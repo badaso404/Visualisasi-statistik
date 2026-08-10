@@ -108,6 +108,8 @@ return [
     'nav_kemiskinan'  => 'Kemiskinan',
     'nav_perekonomian'=> 'Perekonomian',
     'nav_infrastruktur' => 'Infrastruktur Digital',
+    // Label menu modul Potensi Kelurahan ada di lang/*/podes.php bersama string
+    // modulnya, bukan di sini.
 
     // ── Language switcher ─────────────────────────────────────────
     'lang_id' => 'Indonesia',

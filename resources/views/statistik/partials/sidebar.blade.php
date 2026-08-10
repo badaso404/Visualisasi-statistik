@@ -37,10 +37,15 @@
         ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => __('iklim.nav_kemiskinan')],
         ['route' => 'statistik.perekonomian',         'icon' => 'fa-chart-line',       'label' => __('iklim.nav_perekonomian')],
         ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => __('iklim.nav_infrastruktur')],
+        ['route' => 'statistik.potensi-kelurahan',    'icon' => 'fa-city',             'label' => __('podes.nav')],
     ];
 @endphp
 
 <div class="statistik-sidebar">
+    {{-- Pemilih bahasa untuk seluruh modul. Diletakkan di sini, bukan di
+         halaman masing-masing, supaya cukup ada satu di seluruh portal. --}}
+    @include('statistik.partials.language-switcher')
+
     <nav class="nav flex-column">
         @foreach ($menu as $m)
             <a class="nav-link {{ request()->routeIs($m['route']) ? 'active' : '' }}" href="{{ route($m['route']) }}">
