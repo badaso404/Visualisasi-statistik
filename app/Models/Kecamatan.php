@@ -40,8 +40,9 @@ class Kecamatan extends Model
      * @var array<string, class-string<Model>>
      */
     public const KEHILANGAN_KAITAN = [
-        'Data bencana'  => DataBencana::class,
-        'Titik bencana' => TitikBencana::class,
+        'Data bencana'   => DataBencana::class,
+        'Titik bencana'  => TitikBencana::class,
+        'Fasilitas umum' => FasilitasUmum::class,
     ];
 
     /** @return array<string, int> label => jumlah baris, hanya yang > 0 */
