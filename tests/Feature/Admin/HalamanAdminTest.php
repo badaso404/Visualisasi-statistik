@@ -35,6 +35,7 @@ class HalamanAdminTest extends TestCase
             'kemiskinan'            => ['admin.kemiskinan.index'],
             'perekonomian'          => ['admin.perekonomian.index'],
             'infrastruktur digital' => ['admin.infrastruktur-digital.index'],
+            'fasilitas umum'        => ['admin.fasilitas-umum.index'],
         ];
     }
 
