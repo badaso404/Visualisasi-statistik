@@ -32,6 +32,7 @@
         <a href="{{ route('admin.kemiskinan.index') }}" class="{{ request()->routeIs('admin.kemiskinan.*') ? 'active' : '' }}"><i class="bi bi-hand-thumbs-down"></i> Kemiskinan</a>
         <a href="{{ route('admin.perekonomian.index') }}" class="{{ request()->routeIs('admin.perekonomian.*') || request()->routeIs('admin.pdrb-sektor.*') ? 'active' : '' }}"><i class="bi bi-graph-up-arrow"></i> Perekonomian</a>
         <a href="{{ route('admin.infrastruktur-digital.index') }}" class="{{ request()->routeIs('admin.infrastruktur-digital.*') || request()->routeIs('admin.jak-wifi.*') || request()->routeIs('admin.cctv.*') ? 'active' : '' }}"><i class="bi bi-wifi"></i> Infrastruktur Digital</a>
+        <a href="{{ route('admin.fasilitas-umum.index') }}" class="{{ request()->routeIs('admin.fasilitas-umum.*') ? 'active' : '' }}"><i class="bi bi-buildings"></i> Fasilitas Umum</a>
     </nav>
 
     <div class="content">

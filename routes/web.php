@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\KemiskinanController;
 use App\Http\Controllers\Admin\KemiskinanKecamatanController;
 use App\Http\Controllers\Admin\PerekonomianController;
 use App\Http\Controllers\Admin\PdrbSektorController;
+use App\Http\Controllers\Admin\FasilitasUmumController;
 use App\Http\Controllers\Admin\SinkronisasiController;
 
 /*
@@ -75,6 +76,7 @@ Route::group([
         Route::get('/kemiskinan',   [StatistikController::class, 'kemiskinan'])->name('kemiskinan');
         Route::get('/perekonomian', [StatistikController::class, 'perekonomian'])->name('perekonomian');
         Route::get('/infrastruktur-digital', [StatistikController::class, 'infrastrukturDigital'])->name('infrastruktur-digital');
+        Route::get('/fasilitas-umum', [StatistikController::class, 'fasilitasUmum'])->name('fasilitas-umum');
         // Satu-satunya modul tanpa data lokal: halamannya disematkan dari Satu
         // Data Jakarta, jadi tidak ada pasangan CRUD-nya di panel admin.
         Route::get('/potensi-kelurahan', [StatistikController::class, 'potensiKelurahan'])->name('potensi-kelurahan');
@@ -244,5 +246,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('cctv/batch', [CctvController::class, 'batchStore'])->name('cctv.batch.store');
         Route::resource('cctv', CctvController::class)
             ->only(['store', 'update', 'destroy']);
+
+        // Fasilitas Umum (GOR, RPTRA, tempat ibadah, perpustakaan, transportasi,
+        // pemadam kebakaran). Sinkronisasinya terpisah dari route
+        // admin.sinkronisasi karena sumbernya bukan BPS melainkan API situs
+        // kecamatan Jakarta Barat, dan penarikannya per kategori. Throttle-nya
+        // ketat: sumber membatasi 60 permintaan/menit dan satu kategori besar
+        // sudah menghabiskan sebagian besar jatah itu.
+        Route::post('fasilitas-umum/sync', [FasilitasUmumController::class, 'sync'])
+            ->middleware('throttle:3,1')
+            ->name('fasilitas-umum.sync');
+        Route::get('fasilitas-umum/export', [FasilitasUmumController::class, 'export'])->name('fasilitas-umum.export');
+        Route::get('fasilitas-umum/template', [FasilitasUmumController::class, 'template'])->name('fasilitas-umum.template');
+        Route::post('fasilitas-umum/import', [FasilitasUmumController::class, 'import'])->name('fasilitas-umum.import');
+        Route::resource('fasilitas-umum', FasilitasUmumController::class)
+            ->parameters(['fasilitas-umum' => 'fasilitasUmum'])
+            ->only(['index', 'store', 'update', 'destroy']);
     });
 });
