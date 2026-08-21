@@ -19,6 +19,7 @@ return [
     'nav_kemiskinan'    => 'Poverty',
     'nav_perekonomian'  => 'Economy',
     'nav_infrastruktur' => 'Digital Infrastructure',
+    'nav_fasilitas'     => 'Public Facilities',
     'nav_podes'         => 'Village Potential',
 
     // ── Recurring controls ────────────────────────────────────────

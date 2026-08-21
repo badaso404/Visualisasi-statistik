@@ -37,6 +37,7 @@
         ['route' => 'statistik.kemiskinan',           'icon' => 'fa-hand-holding-heart','label' => __('common.nav_kemiskinan')],
         ['route' => 'statistik.perekonomian',         'icon' => 'fa-chart-line',       'label' => __('common.nav_perekonomian')],
         ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => __('common.nav_infrastruktur')],
+        ['route' => 'statistik.fasilitas-umum',       'icon' => 'fa-building-columns', 'label' => __('common.nav_fasilitas')],
         ['route' => 'statistik.potensi-kelurahan',    'icon' => 'fa-city',             'label' => __('common.nav_podes')],
     ];
 @endphp

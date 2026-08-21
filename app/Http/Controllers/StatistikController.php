@@ -23,6 +23,7 @@ use App\Models\DataKemiskinan;
 use App\Models\KemiskinanKecamatan;
 use App\Models\DataPerekonomian;
 use App\Models\PdrbSektor;
+use App\Models\FasilitasUmum;
 
 class StatistikController extends Controller
 {
@@ -857,6 +858,87 @@ class StatistikController extends Controller
 
         return view('statistik.infrastruktur-digital', compact(
             'jakWifi', 'cctv', 'ringkasan', 'distribusi', 'unitRows', 'sebaranKec', 'tahun', 'availableTahun'
+        ));
+    }
+
+    /**
+     * Fasilitas Umum — GOR, RPTRA, tempat ibadah, perpustakaan, transportasi,
+     * dan pos pemadam kebakaran.
+     *
+     * Satu-satunya modul yang tidak berdimensi tahun, jadi tidak ada dropdown
+     * tahun maupun panggilan dataKosong(). Sumbernya (API situs kecamatan
+     * Jakarta Barat) memberi inventaris apa adanya tanpa penanda periode;
+     * memaksakan kolom tahun hanya akan melahirkan angka yang seolah-olah
+     * berlaku untuk satu tahun tertentu padahal tidak.
+     *
+     * Daftar lengkapnya dikirim sekaligus ke view, bukan dipaginasi di server.
+     * Penyaringan, pencarian, dan halaman tabel dikerjakan di sisi klien
+     * seperti modul infrastruktur digital, supaya menyaring kategori tidak
+     * memuat ulang halaman beserta grafik-grafiknya.
+     */
+    public function fasilitasUmum(Request $request)
+    {
+        $semua = FasilitasUmum::with('kecamatan')
+            ->orderBy('kategori')
+            ->orderBy('nama')
+            ->get();
+
+        $perKategori = $semua->groupBy('kategori')->map->count();
+
+        // Kecamatan dibaca dari master, bukan dari data fasilitas, supaya
+        // kecamatan yang kebetulan belum punya fasilitas tetap muncul di grafik
+        // sebagai batang nol — ketiadaan data itu sendiri sebuah informasi.
+        $kecamatan = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get();
+        $perKecamatan = $kecamatan->map(fn ($kec) => [
+            'nama'     => $kec->nama_kecamatan,
+            'total'    => $semua->where('kecamatan_id', $kec->id)->count(),
+            'kategori' => collect(FasilitasUmum::KATEGORI)->keys()
+                ->mapWithKeys(fn ($slug) => [
+                    $slug => $semua->where('kecamatan_id', $kec->id)->where('kategori', $slug)->count(),
+                ])->all(),
+        ])->sortByDesc('total')->values();
+
+        // Rasio ketersediaan: jumlah fasilitas per 10.000 penduduk. Dipakai
+        // supaya kecamatan berpenduduk besar tidak otomatis terlihat "paling
+        // terlayani" hanya karena jumlah absolutnya tinggi.
+        $tahunPenduduk  = PendudukKecamatan::max('tahun');
+        $totalPenduduk  = $tahunPenduduk
+            ? (int) PendudukKecamatan::where('tahun', $tahunPenduduk)->sum('jumlah_penduduk')
+            : 0;
+
+        $terbanyakKategori = $perKategori->sortDesc()->keys()->first();
+        $terpadatKecamatan = $perKecamatan->first();
+
+        $ringkasan = [
+            'total'             => $semua->count(),
+            'kecamatan_terisi'  => $perKecamatan->where('total', '>', 0)->count(),
+            'tanpa_kecamatan'   => $semua->whereNull('kecamatan_id')->count(),
+            'kategori_top'      => $terbanyakKategori,
+            'kategori_top_n'    => $terbanyakKategori ? $perKategori[$terbanyakKategori] : 0,
+            'kecamatan_top'     => $terpadatKecamatan['nama'] ?? null,
+            'kecamatan_top_n'   => $terpadatKecamatan['total'] ?? 0,
+            'tahun_penduduk'    => $tahunPenduduk,
+            'rasio'             => $totalPenduduk > 0
+                ? round($semua->count() / $totalPenduduk * 10000, 2)
+                : null,
+        ];
+
+        // Peta hanya bisa menggambar yang berkoordinat. API sumber tidak
+        // mengirim lat/long sama sekali, jadi selama admin belum mengisinya
+        // koleksi ini kosong dan view menampilkan keterangannya, bukan peta
+        // kosong tanpa penjelasan.
+        $titik = $semua->filter(fn ($f) => $f->latitude !== null && $f->longitude !== null)
+            ->map(fn ($f) => [
+                'nama'      => $f->nama,
+                'kategori'  => $f->labelKategori(),
+                'warna'     => $f->warna(),
+                'kecamatan' => $f->kecamatan->nama_kecamatan ?? '-',
+                'lat'       => (float) $f->latitude,
+                'lng'       => (float) $f->longitude,
+            ])->values();
+
+        return view('statistik.fasilitas-umum', compact(
+            'semua', 'perKategori', 'perKecamatan', 'ringkasan', 'titik'
         ));
     }
 

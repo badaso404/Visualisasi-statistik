@@ -19,6 +19,7 @@ return [
     'nav_kemiskinan'    => 'Kemiskinan',
     'nav_perekonomian'  => 'Perekonomian',
     'nav_infrastruktur' => 'Infrastruktur Digital',
+    'nav_fasilitas'     => 'Fasilitas Umum',
     'nav_podes'         => 'Potensi Kelurahan',
 
     // ── Kontrol berulang ──────────────────────────────────────────
