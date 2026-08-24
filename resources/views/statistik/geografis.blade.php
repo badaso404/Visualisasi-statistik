@@ -77,25 +77,59 @@
     .geo-hl-card .hl-sub  { font-size: 11px; color: #888; }
 
     /* Table */
-    .geo-table-wrap { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-    .geo-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .geo-table-header .tbl-title { font-size: 14px; font-weight: 600; color: #333; }
-    .geo-search-input {
-        border: 1px solid #ddd; border-radius: 6px; padding: 6px 12px 6px 32px;
-        font-size: 13px; background: #f9f9f9; outline: none; width: 200px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: 10px center;
-    }
-    .geo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .geo-table th { padding: 8px 12px; text-align: left; color: #777; font-weight: 600; border-bottom: 2px solid #f0f0f0; }
-    .geo-table td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; color: #333; }
-    .geo-table tbody tr:hover { background: #fffbf0; }
-    .geo-pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 13px; color: #888; }
-    .geo-pager { display: flex; gap: 4px; }
-    .geo-pager button {
-        width: 30px; height: 30px; border-radius: 6px; border: 1px solid #ddd;
-        background: #fff; color: #555; cursor: pointer; font-size: 13px;
-    }
+    .geo-table-wrap {  background: #ffffff;   border: 1px solid #e8edf3; border-radius: 16px; padding: 24px; margin-top: 24px;  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); }
+    .geo-table-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+    .geo-table-header .tbl-title { font-size: 18px; font-weight: 700; color: #172033; margin-bottom: 4px; }
+    .geo-table-header .tbl-subtitle { font-size: 13px; color: #8a94a6; }
+
+    /* Tools */
+    .geo-table-tools {  display: flex;  align-items: center;  gap: 10px; }
+
+    /* Search */
+    .geo-search-box { position: relative; width: 260px; }
+
+    .geo-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #98a2b3; display: flex; align-items: center; pointer-events: none; }
+    .geo-search-input { width: 100%; height: 42px; padding: 0 16px 0 42px; border: 1px solid #dfe4ea; border-radius: 10px; background: #fafbfc; font-size: 14px; color: #344054; outline: none; transition: all 0.2s ease; }
+    .geo-search-input::placeholder { color: #98a2b3; }
+    .geo-search-input:hover { border-color: #cbd5e1; background: #ffffff; }
+    .geo-search-input:focus { background: #ffffff; border-color: #5278b7; box-shadow: 0 0 0 3px rgba(82, 120, 183, 0.10); }  
+   
+   /* RESPONSIVE TABLE */
+    .geo-table-responsive { width: 100%; overflow-x: auto; }
+
+    /* TABLE */
+    .geo-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; color: #344054; }
+    
+    /* TABLE HEADER */
+
+    .geo-table thead th { padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #667085; background: #f8fafc; border-top: 1px solid #eef1f5; border-bottom: 1px solid #e8edf3; }
+    .geo-table thead th:first-child { border-top-left-radius: 10px; }
+    .geo-table thead th:last-child { border-top-right-radius: 10px; }
+
+    /* TABLE BODY */
+    .geo-table tbody td { padding: 15px 16px; border-bottom: 1px solid #eef1f5; vertical-align: middle; }
+    .geo-table tbody tr { transition: background-color 0.18s ease; }
+    .geo-table tbody tr:hover { background: #f8fbff; }
+    .geo-table tbody tr:last-child td { border-bottom: none; }
+    
+    /* KECAMATAN */
+    .kecamatan-cell { display: flex; align-items: center; gap: 11px; }
+    .kecamatan-icon { width: 34px; height: 34px; min-width: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: #edf3fb; color: #426da9; font-size: 13px; font-weight: 700; }
+    .kecamatan-name { font-weight: 600; color: #263348; }
+
+    /* NUMBER */
+    .number-value { font-weight: 600; color: #344054; }
+    .population-value { font-weight: 600; color: #344054; }
+
+    /* BADGE */
+    .geo-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 600; }
+    
+    /* PAGINATION */
+    .geo-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; margin-top: 4px; border-top: 1px solid #f0f2f5; }
+    #pager-info { font-size: 13px; color: #8a94a6; }
+    .geo-pager { display: flex; align-items: center; gap: 6px; }
+    .geo-pager button { min-width: 38px; height: 38px; padding: 0 11px; border: 1px solid #e1e5eb; border-radius: 8px; background: #ffffff; color: #475467; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+    .geo-pager button:hover:not(:disabled):not(.active) { background: #f8fafc; border-color: #cfd6df; }
     .geo-pager button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; font-weight: 700; }
     .geo-pager button:disabled { opacity: 0.4; cursor: default; }
 
@@ -288,6 +322,7 @@
         </div>
 
         {{-- Table --}}
+<<< HEAD
         <div class="geo-table-wrap">
             <div class="geo-table-header">
                 <div class="tbl-title">{{ __('geografis.table_title') }}</div>
@@ -334,8 +369,169 @@
         </div>
 
         <div class="sumber">{{ __('geografis.source', ['sumber' => $geo->sumber]) }}</div>
+        
+        {{-- Table --}}
+<div class="geo-table-wrap">
 
-    </div>{{-- end statistik-content --}}
+    <div class="geo-table-header">
+        <div>
+            <div class="tbl-title">
+                {{ __('geografis.table_title') }}
+            </div>
+        </div>
+
+        <div class="geo-table-tools">
+
+            <div class="geo-search-box">
+                <span class="geo-search-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="7"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        />
+                        <path
+                            d="M20 20L16.5 16.5"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </span>
+
+                <input
+                    class="geo-search-input"
+                    type="text"
+                    id="geo-search"
+                    placeholder="{{ __('geografis.table_search') }}"
+                    oninput="filterTable()"
+                >
+            </div>
+
+            @include('statistik.partials.unduh-tabel', [
+                'target' => '#geo-table',
+                'nama'   => __('geografis.table_file', ['tahun' => $tahun]),
+            ])
+
+        </div>
+    </div>
+
+    <div class="geo-table-responsive">
+
+        <table
+            class="geo-table"
+            id="geo-table"
+            data-unduh-angka="{{ app()->getLocale() }}"
+        >
+
+            <thead>
+                <tr>
+                    <th>{{ __('geografis.col_kecamatan') }}</th>
+                    <th>{{ __('geografis.col_luas') }}</th>
+                    <th>{{ __('geografis.col_kelurahan') }}</th>
+                    <th>{{ __('geografis.col_rw') }}</th>
+                    <th>{{ __('geografis.col_rt') }}</th>
+                    <th>{{ __('geografis.col_populasi') }}</th>
+                    <th>{{ __('geografis.col_kepadatan') }}</th>
+                </tr>
+            </thead>
+
+            <tbody id="geo-table-body">
+
+                @foreach($luas->sortByDesc('luas_km2') as $row)
+
+                    @continue($row->kecamatan === null)
+
+                    @php
+                        $s = $kecStats[
+                            strtoupper($row->kecamatan->nama_kecamatan)
+                        ] ?? null;
+                    @endphp
+
+                    <tr data-name="{{ strtolower($row->kecamatan->nama_kecamatan) }}">
+
+                        {{-- Kecamatan --}}
+                        <td>
+                            <div class="kecamatan-cell">
+
+                                <div class="kecamatan-icon">
+                                    {{ strtoupper(substr($row->kecamatan->nama_kecamatan, 0, 1)) }}
+                                </div>
+
+                                <span class="kecamatan-name">
+                                    {{ $row->kecamatan->nama_kecamatan }}
+                                </span>
+
+                            </div>
+                        </td>
+
+                        {{-- Luas --}}
+                        <td>
+                            <span class="number-value">
+                                {{ nf($row->luas_km2, 2) }}
+                            </span>
+                        </td>
+
+                        {{-- Kelurahan --}}
+                        <td>
+                            @if($s && $s['kelurahan'])
+                                <span class="geo-badge">
+                                    {{ $s['kelurahan'] }}
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
+
+                        {{-- RW --}}
+                        <td>
+                            {{ $s && $s['rw'] ? nf($s['rw'], 0) : '—' }}
+                        </td>
+
+                        {{-- RT --}}
+                        <td>
+                            {{ $s && $s['rt'] ? nf($s['rt'], 0) : '—' }}
+                        </td>
+
+                        {{-- Populasi --}}
+                        <td>
+                            <span class="population-value">
+                                {{ $s && $s['penduduk'] ? nf($s['penduduk'], 0) : '—' }}
+                            </span>
+                        </td>
+
+                        {{-- Kepadatan --}}
+                        <td>
+                            <span class="number-value">
+                                {{ $s && $s['kepadatan'] ? nf($s['kepadatan'], 0) : '—' }}
+                            </span>
+                        </td>
+
+                    </tr>
+
+                @endforeach
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="geo-pagination">
+        <div id="pager-info"></div>
+        <div class="geo-pager" id="geo-pager"></div>
+    </div>
+
+</div>
+
+<div class="sumber">
+    {{ __('geografis.source', ['sumber' => $geo->sumber]) }}
+</div>
+
+</div>{{-- end statistik-content --}}
 </div>{{-- end statistik-wrapper --}}
 </div>
 @endsection
