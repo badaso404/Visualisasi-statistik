@@ -323,51 +323,41 @@
 
 
         {{-- DATA KECAMATAN --}}
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">{{ __('pendidikan.table_title') }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-pendidikan-kecamatan',
-                    'nama'   => __('pendidikan.table_file', ['tahun' => $tahun]),
-                ])
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-sm" id="tabel-pendidikan-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('pendidikan.col_kecamatan') }}</th>
-                            <th>{{ __('pendidikan.col_pelajar') }}</th>
-                            <th>{{ __('pendidikan.col_pendidik') }}</th>
-                            <th>{{ __('pendidikan.col_negeri') }}</th>
-                            <th>{{ __('pendidikan.col_swasta') }}</th>
-                            <th>{{ __('pendidikan.col_total') }}</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach($perKecamatan as $row)
-                        <tr>
-                            <td>{{ $row->kecamatan->nama_kecamatan }}</td>
-                            <td>{{ nf($row->jumlah_pelajar) }}</td>
-                            <td>{{ nf($row->jumlah_pendidik) }}</td>
-                            <td>{{ nf($row->jumlah_sekolah_negeri) }}</td>
-                            <td>{{ nf($row->jumlah_sekolah_swasta) }}</td>
-                            <td>
-                                <span class="total-badge">
-                                    {{ nf($row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta) }}
-                                </span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="sumber">
-            {{ __('pendidikan.source', ['sumber' => $summary->sumber]) }}
-        </div>
+        <x-statistik.tabel
+            id="tabel-pendidikan-kecamatan"
+            :judul="__('pendidikan.table_title')"
+            :kolom="[
+                __('pendidikan.col_kecamatan'),
+                __('pendidikan.col_pelajar'),
+                __('pendidikan.col_pendidik'),
+                __('pendidikan.col_negeri'),
+                __('pendidikan.col_swasta'),
+                __('pendidikan.col_total'),
+            ]"
+            :per-halaman="5"
+            :sumber="$summary->sumber"
+            :berkas="__('pendidikan.table_file', ['tahun' => $tahun])"
+        >
+            @foreach($perKecamatan as $row)
+                <tr data-cari="{{ strtolower($row->kecamatan->nama_kecamatan) }}">
+                    <td>
+                        <div class="stat-sel-label">
+                            <span class="stat-rank" data-unduh-abaikan>{{ $loop->iteration }}</span>
+                            <span class="stat-nama">{{ $row->kecamatan->nama_kecamatan }}</span>
+                        </div>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($row->jumlah_pelajar) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->jumlah_pendidik) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->jumlah_sekolah_negeri) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->jumlah_sekolah_swasta) }}</span></td>
+                    <td>
+                        <span class="stat-nilai">
+                            {{ nf($row->jumlah_sekolah_negeri + $row->jumlah_sekolah_swasta) }}
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
 
     </div>
 </div>

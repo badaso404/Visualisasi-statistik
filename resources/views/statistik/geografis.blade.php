@@ -146,311 +146,49 @@
             </div>
         </div>
 
-        {{-- =========================================================
-    TABLE GEOGRAFIS RINCI
-========================================================= --}}
-<div class="geo-table-wrap">
-
-    {{-- Header --}}
-    <div class="geo-table-top">
-
-        <div class="geo-table-header">
-
-            <div class="geo-table-heading">
-
-                <div class="tbl-title">
-                    {{ __('geografis.table_title') }}
-                </div>
-
-                <div class="tbl-subtitle">
-                    Data wilayah kecamatan di Jakarta Barat
-                </div>
-
-                <div class="geo-title-accent"></div>
-
-            </div>
-
-
-            {{-- Tools --}}
-            <div class="geo-table-tools">
-
-                {{-- Search --}}
-                <div class="geo-search-box">
-
-                    <span class="geo-search-icon">
-
-                        <svg
-                            width="21"
-                            height="21"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-
-                            <circle
-                                cx="11"
-                                cy="11"
-                                r="7"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            />
-
-                            <path
-                                d="M20 20L16.5 16.5"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                            />
-
-                        </svg>
-
-                    </span>
-
-                    <input
-                        class="geo-search-input"
-                        type="text"
-                        id="geo-search"
-                        placeholder="{{ __('geografis.table_search') }}"
-                        oninput="filterTable()"
-                    >
-
-                </div>
-
-
-                {{-- CSV --}}
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#geo-table',
-                    'nama'   => __('geografis.table_file', ['tahun' => $tahun]),
-                ])
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    {{-- Table Content --}}
-    <div class="geo-table-content">
-
-        <div class="geo-table-responsive">
-
-            <table
-                class="geo-table"
-                id="geo-table"
-                data-unduh-angka="{{ app()->getLocale() }}"
-            >
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            {{ __('geografis.col_kecamatan') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_luas') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_kelurahan') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_rw') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_rt') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_populasi') }}
-                        </th>
-
-                        <th>
-                            {{ __('geografis.col_kepadatan') }}
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody id="geo-table-body">
-
-                    @foreach($luas->sortByDesc('luas_km2') as $row)
-
-                        @continue($row->kecamatan === null)
-
-                        @php
-                            $s = $kecStats[
-                                strtoupper(
-                                    $row->kecamatan->nama_kecamatan
-                                )
-                            ] ?? null;
-                        @endphp
-
-
-                        <tr
-                            data-name="{{ strtolower($row->kecamatan->nama_kecamatan) }}"
-                        >
-
-                            {{-- Kecamatan --}}
-                            <td>
-
-                                <div class="kecamatan-cell">
-
-                                    <span class="geo-rank">
-                                        {{ $loop->iteration }}
-                                    </span>
-
-                                    <span class="kecamatan-name">
-                                        {{ $row->kecamatan->nama_kecamatan }}
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-
-                            {{-- Luas --}}
-                            <td>
-
-                                <span class="number-value">
-                                    {{ nf($row->luas_km2, 2) }}
-                                </span>
-
-                            </td>
-
-
-                            {{-- Kelurahan --}}
-                            <td>
-
-                                @if($s && $s['kelurahan'])
-
-                                    <span class="geo-badge">
-                                        {{ $s['kelurahan'] }}
-                                    </span>
-
-                                @else
-                                    —
-                                @endif
-
-                            </td>
-
-
-                            {{-- RW --}}
-                            <td>
-
-                                {{ $s && $s['rw']
-                                    ? nf($s['rw'], 0)
-                                    : '—'
-                                }}
-
-                            </td>
-
-
-                            {{-- RT --}}
-                            <td>
-
-                                {{ $s && $s['rt']
-                                    ? nf($s['rt'], 0)
-                                    : '—'
-                                }}
-
-                            </td>
-
-
-                            {{-- Populasi --}}
-                            <td>
-
-                                <span class="population-value">
-
-                                    {{ $s && $s['penduduk']
-                                        ? nf($s['penduduk'], 0)
-                                        : '—'
-                                    }}
-
-                                </span>
-
-                            </td>
-
-
-                            {{-- Kepadatan --}}
-                            <td>
-
-                                <span class="number-value">
-
-                                    {{ $s && $s['kepadatan']
-                                        ? nf($s['kepadatan'], 0)
-                                        : '—'
-                                    }}
-
-                                </span>
-
-                            </td>
-
-                        </tr>
-
+        {{-- ── TABEL GEOGRAFIS RINCI ───────────────────────────── --}}
+        <x-statistik.tabel
+            id="geo-table"
+            :judul="__('geografis.table_title')"
+            subjudul="Data wilayah kecamatan di Jakarta Barat"
+            :kolom="[
+                __('geografis.col_kecamatan'),
+                __('geografis.col_luas'),
+                __('geografis.col_kelurahan'),
+                __('geografis.col_rw'),
+                __('geografis.col_rt'),
+                __('geografis.col_populasi'),
+                __('geografis.col_kepadatan'),
+            ]"
+            :per-halaman="5"
+            :sumber="$geo->sumber"
+            :berkas="__('geografis.table_file', ['tahun' => $tahun])"
+        >
+            @foreach($luas->sortByDesc('luas_km2') as $row)
+                @continue($row->kecamatan === null)
+
+                @php
+                    $s = $kecStats[strtoupper($row->kecamatan->nama_kecamatan)] ?? null;
+                @endphp
+
+                <tr data-cari="{{ strtolower($row->kecamatan->nama_kecamatan) }}">
+                    <td>
+                        <div class="stat-sel-label">
+                            <span class="stat-rank" data-unduh-abaikan>{{ $loop->iteration }}</span>
+                            <span class="stat-nama">{{ $row->kecamatan->nama_kecamatan }}</span>
+                        </div>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($row->luas_km2, 2) }}</span></td>
+                    @foreach (['kelurahan', 'rw', 'rt', 'penduduk', 'kepadatan'] as $kunci)
+                        <td>
+                            <span class="stat-nilai {{ $s && $s[$kunci] ? '' : 'stat-nilai-kosong' }}">
+                                {{ $s && $s[$kunci] ? nf($s[$kunci], 0) : '—' }}
+                            </span>
+                        </td>
                     @endforeach
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    {{-- Pagination --}}
-    <div class="geo-pagination">
-
-        <div id="pager-info"></div>
-
-        <div
-            class="geo-pager"
-            id="geo-pager"
-        ></div>
-
-    </div>
-
-
-        {{-- Source --}}
-    <div class="geo-source-footer">
-        <span class="geo-source-icon">
-            <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <path
-                    d="M12 3L19 6V11C19 15.5 16.1 19.1 12 21C7.9 19.1 5 15.5 5 11V6L12 3Z"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linejoin="round"
-                />
-                <path
-                    d="M9.5 11.5L11.2 13.2L14.8 9.5"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
-            </svg>
-        </span>
-
-        <span>
-            <strong>Sumber:</strong>
-            {{ $geo->sumber }}
-        </span>
-    </div>
-
-</div> {{-- END geo-table-wrap --}}
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
 
 </div> {{-- END statistik-content --}}
 
@@ -815,148 +553,7 @@ fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
             kecLegend.addTo(map);
     });
 
-// ── Table Pagination & Search ─────────────────────────────────
-
-var PAGE_SIZE = 4;
-var currentPage = 1;
-var filteredRows = [];
-
-function getAllRows() {
-    return Array.from(
-        document.querySelectorAll('#geo-table-body tr')
-    );
-}
-
-function filterTable() {
-    var searchInput = document.getElementById('geo-search');
-
-    var q = searchInput
-        ? searchInput.value.toLowerCase().trim()
-        : '';
-
-    searchActive = q.length > 0;
-
-    if (searchActive) {
-        filteredRows = getAllRows().filter(function(row) {
-            return (row.dataset.name || '').includes(q);
-        });
-    } else {
-        filteredRows = [];
-    }
-
-    currentPage = 1;
-    renderTable();
-}
-
-function renderTable() {
-    var allRows = getAllRows();
-
-    var rows = searchActive
-        ? filteredRows
-        : allRows;
-
-    var total = rows.length;
-
-    var pages = Math.max(
-        1,
-        Math.ceil(total / PAGE_SIZE)
-    );
-
-    if (currentPage > pages) {
-        currentPage = pages;
-    }
-
-    var start = (currentPage - 1) * PAGE_SIZE;
-    var end = Math.min(start + PAGE_SIZE, total);
-
-    allRows.forEach(function(row) {
-        row.style.display = 'none';
-    });
-
-    rows.slice(start, end).forEach(function(row) {
-        row.style.display = '';
-    });
-
-    var info = document.getElementById('pager-info');
-
-    if (info) {
-        if (total === 0) {
-            info.textContent = 'Tidak ada kecamatan yang ditemukan';
-        } else {
-            info.textContent =
-                'Menampilkan ' +
-                (start + 1) +
-                '–' +
-                end +
-                ' dari ' +
-                total +
-                ' kecamatan';
-        }
-    }
-
-    var pager = document.getElementById('geo-pager');
-
-    if (!pager) return;
-
-    pager.innerHTML = '';
-
-    var prev = document.createElement('button');
-    prev.innerHTML = '&#8249;';
-    prev.setAttribute('aria-label', 'Halaman sebelumnya');
-    prev.disabled = currentPage === 1 || total === 0;
-
-    prev.onclick = function() {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
-        }
-    };
-
-    pager.appendChild(prev);
-
-    if (total > 0) {
-        for (var p = 1; p <= pages; p++) {
-            (function(pg) {
-                var btn = document.createElement('button');
-
-                btn.textContent = pg;
-
-                if (pg === currentPage) {
-                    btn.classList.add('active');
-                }
-
-                btn.onclick = function() {
-                    currentPage = pg;
-                    renderTable();
-                };
-
-                pager.appendChild(btn);
-            })(p);
-        }
-    }
-
-    var next = document.createElement('button');
-
-    next.innerHTML = '&#8250;';
-    next.setAttribute('aria-label', 'Halaman berikutnya');
-
-    next.disabled =
-        currentPage === pages ||
-        total === 0;
-
-    next.onclick = function() {
-        if (currentPage < pages) {
-            currentPage++;
-            renderTable();
-        }
-    };
-
-    pager.appendChild(next);
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
-});
+// Pencarian & paginasi tabel ditangani komponen statistik.tabel.
 
 </script>
 

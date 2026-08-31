@@ -331,42 +331,41 @@
             </div>
 
             {{-- ── Tabel Fasilitas per Kecamatan ──────── --}}
-            <div class="table-card">
-                <div class="table-header">
-                    <div>
-                        <p class="table-title">{{ __('kesehatan.table_title') }}</p>
-                        <p class="table-sub">{{ __('kesehatan.table_sub', ['tahun' => $tahun]) }}</p>
-                    </div>
-                    @include('statistik.partials.unduh-tabel', [
-                        'target' => '#tabel-faskes-kecamatan',
-                        'nama'   => __('kesehatan.table_file', ['tahun' => $tahun]),
-                    ])
-                </div>
-                <table class="kes-table" id="tabel-faskes-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('kesehatan.col_kecamatan') }}</th>
-                            <th>{{ __('kesehatan.col_total') }}</th>
-                            <th>{{ __('kesehatan.col_rs') }}</th>
-                            <th>{{ __('kesehatan.col_pkm') }}</th>
-                            <th>{{ __('kesehatan.col_klinik') }}</th>
-                            <th>{{ __('kesehatan.col_posyandu') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($fasilitas->sortByDesc('jumlah_total') as $f)
-                        <tr>
-                            <td><strong>{{ $f->kecamatan->nama_kecamatan }}</strong></td>
-                            <td class="td-num">{{ nf($f->jumlah_total) }}</td>
-                            <td class="{{ $f->rumah_sakit ? 'td-num' : 'td-zero' }}">{{ $f->rumah_sakit ?: '-' }}</td>
-                            <td class="{{ $f->puskesmas ? 'td-num' : 'td-zero' }}">{{ $f->puskesmas ?: '-' }}</td>
-                            <td class="{{ $f->klinik_kesehatan ? 'td-num' : 'td-zero' }}">{{ $f->klinik_kesehatan ?: '-' }}</td>
-                            <td class="{{ $f->posyandu ? 'td-num' : 'td-zero' }}">{{ $f->posyandu ?: '-' }}</td>
-                        </tr>
+            <x-statistik.tabel
+                id="tabel-faskes-kecamatan"
+                :judul="__('kesehatan.table_title')"
+                :subjudul="__('kesehatan.table_sub', ['tahun' => $tahun])"
+                :kolom="[
+                    __('kesehatan.col_kecamatan'),
+                    __('kesehatan.col_total'),
+                    __('kesehatan.col_rs'),
+                    __('kesehatan.col_pkm'),
+                    __('kesehatan.col_klinik'),
+                    __('kesehatan.col_posyandu'),
+                ]"
+                :per-halaman="5"
+                :sumber="$summary->sumber ?? __('kesehatan.sumber_default')"
+                :berkas="__('kesehatan.table_file', ['tahun' => $tahun])"
+            >
+                @foreach($fasilitas->sortByDesc('jumlah_total') as $f)
+                    <tr data-cari="{{ strtolower($f->kecamatan->nama_kecamatan) }}">
+                        <td>
+                            <div class="stat-sel-label">
+                                <span class="stat-rank" data-unduh-abaikan>{{ $loop->iteration }}</span>
+                                <span class="stat-nama">{{ $f->kecamatan->nama_kecamatan }}</span>
+                            </div>
+                        </td>
+                        <td><span class="stat-nilai">{{ nf($f->jumlah_total) }}</span></td>
+                        @foreach ([$f->rumah_sakit, $f->puskesmas, $f->klinik_kesehatan, $f->posyandu] as $nilai)
+                            <td>
+                                <span class="stat-nilai {{ $nilai ? '' : 'stat-nilai-kosong' }}">
+                                    {{ $nilai ? nf($nilai) : '—' }}
+                                </span>
+                            </td>
                         @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    </tr>
+                @endforeach
+            </x-statistik.tabel>
 
             {{-- Footer --}}
             <div class="kes-footer">

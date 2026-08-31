@@ -93,7 +93,19 @@
                 continue;
             }
 
-            var teks = c.innerText.trim();
+            // data-unduh-abaikan juga berlaku untuk elemen DI DALAM sel, bukan
+            // cuma sel utuh: nomor urut pada kolom nama hanya hiasan tampilan,
+            // dan tanpa ini ikut terbawa jadi "8 Taman Sari" di berkas CSV.
+            var teks;
+            if (c.querySelector('[data-unduh-abaikan]')) {
+                var salinan = c.cloneNode(true);
+                salinan.querySelectorAll('[data-unduh-abaikan]').forEach(function (el) {
+                    el.remove();
+                });
+                teks = salinan.textContent.trim();
+            } else {
+                teks = c.innerText.trim();
+            }
             // Kolom pertama adalah label (nama kecamatan, bulan) — titik dan
             // komanya bagian dari nama, bukan pemisah ribuan.
             out.push(selCsv(out.length === 0 ? teks : bersihkanAngka(teks, format)));

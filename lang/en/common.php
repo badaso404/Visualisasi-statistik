@@ -33,6 +33,17 @@ return [
     'persentase'   => 'Percentage',
     'tidak_ada_data' => 'No data yet',
 
+    // ── Table component (x-statistik.tabel) ───────────────────────
+    // Shared by every module with a table. These sentences used to be
+    // hard-coded in the geography module's JavaScript, so the /en pages
+    // still showed Indonesian.
+    'tabel_cari'        => 'Search…',
+    'tabel_info'        => 'Showing :dari–:sampai of :total rows',
+    'tabel_kosong'      => 'No rows match your search',
+    'tabel_sebelumnya'  => 'Previous page',
+    'tabel_berikutnya'  => 'Next page',
+    'tabel_sumber'      => 'Source:',
+
     // ── Domain terms used by more than one module ──────────────────
     // The overview reuses these groups for its composition charts, so the
     // labels live here rather than being written twice with two different

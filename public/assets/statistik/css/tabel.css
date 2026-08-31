@@ -1,0 +1,550 @@
+/* ============================================================
+   TABEL STATISTIK — gaya bersama semua modul
+   Dipakai lewat komponen <x-statistik.tabel>.
+
+   Berkas ini berisi KERANGKA tabel saja (kartu, header, pencarian,
+   paginasi, footer sumber). Warna per kolom TIDAK ada di sini: jumlah
+   kolom berbeda-beda tiap modul, jadi komponen memancarkan blok <style>
+   kecil berisi aturan nth-child yang diturunkan dari palet di
+   config/statistik.php.
+
+   Gayanya diangkat dari tabel modul geografis, dengan tiga perubahan yang
+   membuatnya bisa dipakai ulang:
+     1. tidak lagi di-scope ke #geo-table, jadi satu halaman boleh memuat
+        beberapa tabel;
+     2. tanpa !important — tak ada lagi aturan lain yang perlu dikalahkan
+        karena gaya per-modul yang lama sudah dibuang;
+     3. lebar minimum dibaca dari --stat-tabel-min, bukan dipatok 1220px
+        yang memaksa tabel berkolom sedikit ikut scroll horizontal.
+============================================================ */
+
+/* ── Kartu pembungkus ───────────────────────────────────── */
+
+.stat-tabel-wrap {
+    background: #ffffff;
+    border: 1px solid #e6ebf2;
+    border-radius: 20px;
+    margin-top: 24px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.07);
+}
+
+/* ── Kepala: judul + alat ───────────────────────────────── */
+
+.stat-tabel-top {
+    padding: 28px 30px 16px;
+}
+
+.stat-tabel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+}
+
+.stat-tabel-heading {
+    flex: 1;
+}
+
+.stat-tabel-header .tbl-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 700;
+    color: #344054;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.stat-tabel-header .tbl-subtitle {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #98a2b3;
+    line-height: 1.5;
+}
+
+.stat-title-accent {
+    display: block;
+    width: 52px;
+    height: 4px;
+    margin-top: 19px;
+    border-radius: 999px;
+    background: #ffb000;
+}
+
+.stat-tabel-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* ── Kotak pencarian ────────────────────────────────────── */
+
+.stat-cari-box {
+    position: relative;
+    width: 330px;
+}
+
+.stat-cari-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #536b92;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.stat-cari-input {
+    width: 100%;
+    height: 54px;
+    padding: 0 18px 0 52px;
+    background: #ffffff;
+    border: 1px solid #d5deea;
+    border-radius: 11px;
+    color: #25395d;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+}
+
+.stat-cari-input::placeholder {
+    color: #667a9a;
+}
+
+.stat-cari-input:focus {
+    border-color: #7994c2;
+    box-shadow: 0 0 0 3px rgba(73, 110, 173, 0.09);
+}
+
+/* Tombol unduh CSV berasal dari statistik/partials/unduh-tabel dan memakai
+   kelas .btn-unduh-tabel. Di dalam bilah alat ini ia disamakan tingginya
+   dengan kotak cari; gaya bawaannya yang mungil hanya cocok untuk tombol
+   yang berdiri sendiri. (Aturan lama menyasar .btn-export-csv — kelas yang
+   tidak pernah dipakai partial itu — sehingga tombolnya selama ini kerdil
+   di sebelah kotak cari setinggi 54px.) */
+.stat-tabel-tools .btn-unduh-tabel {
+    height: 54px;
+    padding: 0 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #d5deea;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #11264b;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stat-tabel-tools .btn-unduh-tabel:hover {
+    background: #f8fafc;
+    border-color: #d5deea;
+    color: #11264b;
+}
+
+/* ── Badan tabel ────────────────────────────────────────── */
+
+.stat-tabel-content {
+    padding: 0 25px;
+}
+
+.stat-tabel-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stat-tabel {
+    width: 100%;
+
+    /* Diisi komponen dari jumlah & jenis kolom. Nilai cadangan dipasang
+       rendah supaya tabel berkolom sedikit tidak dipaksa scroll. */
+    min-width: var(--stat-tabel-min, 0);
+
+    border-collapse: separate;
+
+    /* Jarak antar kolom — inilah yang membuat tiap kolom terbaca sebagai
+       kartu terpisah, bukan sel dalam kisi. */
+    border-spacing: 15px 0;
+
+    color: #152441;
+    font-size: 14px;
+}
+
+.stat-tabel thead th {
+    height: 60px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 16px 16px 0 0;
+    color: #ffffff;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 800;
+    text-transform: uppercase;
+    background-clip: padding-box;
+}
+
+.stat-tabel thead,
+.stat-tabel thead tr {
+    background: transparent;
+}
+
+.stat-tabel tbody td {
+    height: 58px;
+    padding: 0 20px;
+    line-height: 1;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Sudut bawah kolom. Tidak memakai tr:last-child karena tbody selalu diakhiri
+   baris "tidak ada data" yang tersembunyi — dan :last-child tetap memilihnya
+   walau hidden, sehingga sudutnya tak pernah membulat. Penandanya dipasang
+   JavaScript pada baris terakhir yang benar-benar tampak. */
+.stat-tabel tbody tr.stat-baris-akhir td {
+    border-radius: 0 0 17px 17px;
+}
+
+/* Kolom pertama adalah label (nama kecamatan, bulan, kategori) — rata kiri;
+   kolom angka sesudahnya tetap center. Dipilih lewat :first-child supaya
+   modul tidak perlu menandai tiap <td> satu per satu. */
+.stat-tabel th:first-child,
+.stat-tabel tbody td:first-child {
+    text-align: left;
+}
+
+.stat-tabel tbody td:first-child {
+    padding-left: 22px;
+}
+
+/* Baris kosong (hasil pencarian nihil) mengisi seluruh lebar, jadi tidak
+   boleh ikut mewarisi tint kolom. */
+.stat-tabel tbody td.stat-tabel-kosong {
+    background: #f8fafc;
+    border-radius: 0 0 17px 17px;
+    color: #8b98ad;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ── Isi sel ────────────────────────────────────────────── */
+
+.stat-sel-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Nomor urut — angka telanjang, tanpa lingkaran. */
+.stat-rank {
+    min-width: 20px;
+    display: inline-block;
+    text-align: right;
+    color: #7b8aa3;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.stat-nama {
+    color: #10234b;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stat-nilai {
+    color: #172238;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Angka nol / data belum ada — diredupkan supaya mata langsung menangkap
+   sel mana yang benar-benar berisi. */
+.stat-nilai-kosong {
+    color: #a3adbe;
+    font-weight: 400;
+}
+
+/* ── Paginasi ───────────────────────────────────────────── */
+
+.stat-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 30px 18px;
+}
+
+.stat-pager-info {
+    color: #627597;
+    font-size: 13px;
+}
+
+.stat-pager {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-pager button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d7e0ec;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #17335e;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.stat-pager button:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+.stat-pager button:hover:not(:disabled):not(.active) {
+    background: #f5f8fc;
+}
+
+.stat-pager button.active {
+    background: linear-gradient(180deg, #3970f4 0%, #2759e8 100%);
+    border-color: #2d61eb;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 5px 14px rgba(47, 99, 234, .22);
+}
+
+/* ── Footer sumber ──────────────────────────────────────── */
+
+.stat-source-footer {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 30px;
+    border-top: 1px solid #e9eef5;
+    background: #ffffff;
+    color: #667895;
+    font-size: 12px;
+}
+
+.stat-source-icon {
+    width: 31px;
+    height: 31px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #edf4ff;
+    color: #326af0;
+}
+
+.stat-source-footer strong {
+    color: #354b70;
+    font-weight: 700;
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1100px) {
+    .stat-tabel-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+
+    .stat-tabel-heading {
+        width: 100%;
+    }
+
+    .stat-tabel-tools {
+        width: 100%;
+    }
+
+    .stat-cari-box {
+        flex: 1;
+        width: auto;
+    }
+}
+
+@media (max-width: 992px) {
+    .stat-tabel-top {
+        padding: 24px 22px 14px;
+    }
+
+    .stat-title-accent {
+        margin-top: 16px;
+    }
+
+    .stat-tabel-content {
+        padding: 0 12px;
+    }
+
+    .stat-tabel {
+        border-spacing: 12px 0;
+    }
+
+    .stat-pagination,
+    .stat-source-footer {
+        padding-left: 22px;
+        padding-right: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-tabel-wrap {
+        border-radius: 14px;
+    }
+
+    .stat-tabel-top {
+        padding: 20px 18px 14px;
+    }
+
+    .stat-tabel-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 18px;
+    }
+
+    .stat-tabel-header .tbl-title {
+        font-size: 15px;
+        line-height: 1.2;
+    }
+
+    .stat-title-accent {
+        width: 46px;
+        margin-top: 14px;
+    }
+
+    /* Cari & unduh menumpuk, masing-masing selebar kartu. */
+    .stat-tabel-tools {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .stat-cari-box {
+        width: 100%;
+    }
+
+    .stat-cari-input,
+    .stat-tabel-tools .btn-unduh-tabel {
+        width: 100%;
+        height: 48px;
+        font-size: 14px;
+    }
+
+    .stat-tabel-content {
+        padding: 0 4px;
+    }
+
+    .stat-tabel {
+        border-spacing: 10px 0;
+    }
+
+    .stat-tabel thead th {
+        height: 55px;
+        padding: 0 13px;
+        font-size: 12px;
+    }
+
+    .stat-tabel tbody td {
+        height: 52px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .stat-tabel tbody td:first-child {
+        padding-left: 16px;
+    }
+
+    .stat-sel-label {
+        gap: 12px;
+    }
+
+    .stat-rank {
+        min-width: 18px;
+        font-size: 12px;
+    }
+
+    .stat-nama,
+    .stat-nilai {
+        font-size: 13px;
+    }
+
+    .stat-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 18px 18px;
+    }
+
+    .stat-pager-info {
+        font-size: 12px;
+    }
+
+    .stat-pager {
+        align-self: flex-end;
+    }
+
+    .stat-pager button {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 14px;
+    }
+
+    .stat-source-footer {
+        min-height: 56px;
+        padding: 12px 18px;
+        font-size: 11px;
+    }
+
+    .stat-source-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-tabel-top {
+        padding: 18px 14px 12px;
+    }
+
+    .stat-tabel-header .tbl-title {
+        font-size: 14px;
+    }
+
+    .stat-tabel-header .tbl-subtitle {
+        font-size: 12px;
+    }
+
+    .stat-cari-input,
+    .stat-tabel-tools .btn-unduh-tabel {
+        height: 46px;
+    }
+
+    .stat-tabel {
+        border-spacing: 8px 0;
+    }
+
+    .stat-pagination,
+    .stat-source-footer {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}

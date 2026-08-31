@@ -1,22 +1,21 @@
 {{-- Sumber warna tunggal per kecamatan — dipakai SEMUA modul statistik agar
-     konsisten (mis. Cengkareng selalu pink di setiap modul). Palet kategorikal
-     colorblind-safe & tervalidasi (dataviz). Ubah di sini → berubah di semua modul. --}}
+     konsisten (mis. Cengkareng selalu amber di setiap modul). Palet kategorikal
+     colorblind-safe & tervalidasi (dataviz).
+
+     Daftar warnanya sendiri sekarang tinggal di config/statistik.php, karena
+     komponen <x-statistik.tabel> mewarnai kolom di sisi PHP dan tidak bisa
+     membaca literal JavaScript. Berkas ini hanya memancarkannya ke browser —
+     ubah warnanya di config, bukan di sini. --}}
 <script>
     // Warna khas per kecamatan (key = NAMA UPPERCASE)
-    window.WARNA_KEC = {
-        'KALIDERES':          '#e87ba4',   // pink
-        'CENGKARENG':         '#eda100',   // amber
-        'KEBON JERUK':        '#e34948',   // merah
-        'KEMBANGAN':          '#4a3aa7',   // ungu
-        'GROGOL PETAMBURAN':  '#2a78d6',   // biru
-        'PALMERAH':           '#008300',   // hijau
-        'TAMBORA':            '#1baf7a',   // teal
-        'TAMAN SARI':         '#eb6834'    // oranye
-    };
+    window.WARNA_KEC = @json(config('statistik.warna.kecamatan'));
+
     // Ambil warna sebuah kecamatan (case-insensitive). Fallback abu netral.
     window.warnaKecamatan = function (n) {
-        return window.WARNA_KEC[String(n || '').toUpperCase().trim()] || '#9e9e9e';
+        return window.WARNA_KEC[String(n || '').toUpperCase().trim()]
+            || @json(config('statistik.warna.netral'));
     };
+
     // Palet kategorikal umum untuk chart NON-kecamatan (mis. per bulan / per jenis)
-    window.CAT_COLORS = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834'];
+    window.CAT_COLORS = @json(config('statistik.warna.kategori'));
 </script>

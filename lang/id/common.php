@@ -33,6 +33,17 @@ return [
     'persentase'   => 'Persentase',
     'tidak_ada_data' => 'Belum ada data',
 
+    // ── Komponen tabel (x-statistik.tabel) ────────────────────────
+    // Dipakai semua modul yang punya tabel. Sebelumnya kalimat paginasi
+    // ditulis langsung di JavaScript modul geografis, sehingga halaman /en
+    // tetap menampilkan bahasa Indonesia.
+    'tabel_cari'        => 'Cari…',
+    'tabel_info'        => 'Menampilkan :dari–:sampai dari :total baris',
+    'tabel_kosong'      => 'Tidak ada data yang cocok dengan pencarian',
+    'tabel_sebelumnya'  => 'Halaman sebelumnya',
+    'tabel_berikutnya'  => 'Halaman berikutnya',
+    'tabel_sumber'      => 'Sumber:',
+
     // ── Istilah domain yang dipakai lebih dari satu modul ──────────
     // Overview ikut memakai kelompok-kelompok ini untuk grafik komposisinya,
     // jadi label-nya dikumpulkan di sini supaya tidak ditulis dua kali dengan

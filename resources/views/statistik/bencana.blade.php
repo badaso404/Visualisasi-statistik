@@ -234,64 +234,51 @@
                 </div>
             </div>
 
-    <div class="chart-card">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 table-header">
-            <div>
-                <div class="chart-title" style="margin-bottom: 4px;">{{ __('bencana.table_title') }}</div>
-                <div class="text-muted" style="font-size:13px;">{!! __('bencana.table_sub', ['tahun' => $tahun]) !!}</div>
-            </div>
-            <div class="d-flex flex-wrap gap-2 table-controls">
-                <select id="bencana-jenis-filter" class="form-select form-select-sm" style="width:auto;">
+        <x-statistik.tabel
+            id="tabel-bencana-rekap"
+            :judul="__('bencana.table_title')"
+            :subjudul="strip_tags(__('bencana.table_sub', ['tahun' => $tahun]))"
+            :kolom="[
+                __('bencana.col_periode'),
+                __('bencana.col_triwulan'),
+                __('bencana.col_jenis'),
+                __('bencana.col_kejadian'),
+                __('bencana.col_meninggal'),
+                __('bencana.col_luka'),
+            ]"
+            :per-halaman="10"
+            :sumber="$items->first()->sumber ?? 'Satu Data Jakarta'"
+            :berkas="__('bencana.table_file', ['tahun' => $tahun])"
+        >
+            <x-slot:alat>
+                {{-- data-stat-filter=&quot;jenis&quot; dicocokkan komponen dengan
+                     atribut data-jenis pada tiap baris; value tetap nilai
+                     mentah dari basis data supaya cocoknya persis. --}}
+                <select data-stat-filter="jenis" class="stat-cari-input" style="width:auto; padding:0 16px;">
                     <option value="all">{{ __('bencana.filter_semua') }}</option>
                     @foreach($items->pluck('jenis_bencana')->unique()->sort()->values() as $j)
-                    {{-- value tetap nilai mentah supaya penyaringan baris tabel tetap cocok --}}
-                    <option value="{{ $j }}">{{ $labelJenis($j) }}</option>
+                        <option value="{{ $j }}">{{ $labelJenis($j) }}</option>
                     @endforeach
                 </select>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border"><i class="fa fa-search"></i></span>
-                    <input type="text" id="bencana-search" class="form-control" placeholder="{{ __('bencana.search') }}">
-                </div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-bencana-rekap',
-                    'nama'   => __('bencana.table_file', ['tahun' => $tahun]),
-                ])
-            </div>
-        </div>
-        <div style="overflow-x:auto;">
-            <table class="bencana-table" id="tabel-bencana-rekap" data-unduh-angka="{{ app()->getLocale() }}">
-                <thead>
-                    <tr>
-                        <th>{{ __('bencana.col_periode') }}</th><th>{{ __('bencana.col_triwulan') }}</th><th>{{ __('bencana.col_jenis') }}</th>
-                        <th>{{ __('bencana.col_kejadian') }}</th><th>{{ __('bencana.col_meninggal') }}</th><th>{{ __('bencana.col_luka') }}</th>
-                    </tr>
-                </thead>
-                <tbody id="bencana-tbody">
-                    @forelse($items as $b)
-                    <tr class="bencana-row" data-jenis="{{ $b->jenis_bencana }}" data-search="{{ strtolower($b->periode_label . ' ' . $b->jenis_bencana) }}">
-                        <td>{{ $b->periode_label }}</td>
-                        <td>{{ $b->triwulan ? 'TW' . $b->triwulan : '-' }}</td>
-                        <td><span class="badge-jenis" style="background: {{ $warnaJenis[$labelJenis($b->jenis_bencana)] ?? '#9e9e9e' }};">{{ $labelJenis($b->jenis_bencana) }}</span></td>
-                        <td>{{ nf($b->jumlah_kejadian) }}</td>
-                        <td>{{ nf($b->jumlah_korban_meninggal) }}</td>
-                        <td>{{ nf($b->jumlah_korban_luka) }}</td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="6" style="text-align:center; color:#999; padding:24px;">{{ __('bencana.empty_rekap') }}</td></tr>
-                    @endforelse
-                    <tr id="bencana-empty-search" style="display:none;"><td colspan="6" style="text-align:center; color:#999; padding:24px;">{{ __('bencana.empty_search') }}</td></tr>
-                </tbody>
-            </table>
-        </div>
-        @if($items->isNotEmpty())
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-3">
-            <div class="text-muted" id="bencana-page-info" style="font-size:13px;"></div>
-            <div class="d-flex gap-1" id="bencana-pagination"></div>
-        </div>
-        @endif
-    </div>
+            </x-slot:alat>
 
-    <div class="sumber">{!! __('bencana.source', ['sumber' => $items->first()->sumber ?? 'Satu Data Jakarta']) !!}</div>
+            @foreach($items as $b)
+                <tr data-jenis="{{ $b->jenis_bencana }}"
+                    data-cari="{{ strtolower($b->periode_label . ' ' . $labelJenis($b->jenis_bencana)) }}">
+                    <td><span class="stat-nama">{{ $b->periode_label }}</span></td>
+                    <td><span class="stat-nilai">{{ $b->triwulan ? 'TW' . $b->triwulan : '—' }}</span></td>
+                    <td>
+                        <span class="badge-jenis" style="background: {{ $warnaJenis[$labelJenis($b->jenis_bencana)] ?? '#9e9e9e' }};">
+                            {{ $labelJenis($b->jenis_bencana) }}
+                        </span>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($b->jumlah_kejadian) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($b->jumlah_korban_meninggal) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($b->jumlah_korban_luka) }}</span></td>
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
+
         </div>
     </div>
 </div>
@@ -539,75 +526,8 @@
         applyFilter(activeBtn ? activeBtn.getAttribute('data-filter') : 'banjir');
     })();
 
-    // ── Tabel: pencarian + pagination (client-side) ──
-    (function () {
-        var perPage = 10;
-        var allRows = Array.prototype.slice.call(document.querySelectorAll('#bencana-tbody .bencana-row'));
-        if (!allRows.length) return;
-
-        var searchEl = document.getElementById('bencana-search');
-        var jenisEl  = document.getElementById('bencana-jenis-filter');
-        var infoEl   = document.getElementById('bencana-page-info');
-        var pagEl    = document.getElementById('bencana-pagination');
-        var emptyEl  = document.getElementById('bencana-empty-search');
-        var currentPage = 1;
-        var filtered = allRows;
-
-        function applyRowFilters() {
-            var q = (searchEl && searchEl.value.trim().toLowerCase()) || '';
-            var jenis = (jenisEl && jenisEl.value) || 'all';
-            filtered = allRows.filter(function (r) {
-                var okJenis = jenis === 'all' || r.getAttribute('data-jenis') === jenis;
-                var okSearch = !q || (r.getAttribute('data-search') || '').indexOf(q) !== -1;
-                return okJenis && okSearch;
-            });
-            currentPage = 1;
-            render();
-        }
-
-        function render() {
-            var totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            allRows.forEach(function (r) { r.style.display = 'none'; });
-            var start = (currentPage - 1) * perPage;
-            var pageRows = filtered.slice(start, start + perPage);
-            pageRows.forEach(function (r) { r.style.display = ''; });
-
-            emptyEl.style.display = filtered.length ? 'none' : '';
-
-            if (filtered.length) {
-                infoEl.textContent = @json(__('bencana.pager_info'))
-                    .replace(':from', start + 1).replace(':to', start + pageRows.length).replace(':total', filtered.length);
-            } else {
-                infoEl.textContent = '';
-            }
-
-            // Bangun tombol halaman
-            pagEl.innerHTML = '';
-            if (filtered.length) {
-                pagEl.appendChild(pageButton('‹', currentPage - 1, currentPage === 1));
-                for (var p = 1; p <= totalPages; p++) {
-                    pagEl.appendChild(pageButton(p, p, false, p === currentPage));
-                }
-                pagEl.appendChild(pageButton('›', currentPage + 1, currentPage === totalPages));
-            }
-        }
-
-        function pageButton(label, page, disabled, active) {
-            var b = document.createElement('button');
-            b.className = 'page-btn' + (active ? ' active' : '');
-            b.textContent = label;
-            if (disabled) b.disabled = true;
-            b.addEventListener('click', function () { currentPage = page; render(); });
-            return b;
-        }
-
-        if (searchEl) searchEl.addEventListener('input', applyRowFilters);
-        if (jenisEl)  jenisEl.addEventListener('change', applyRowFilters);
-
-        render();
-    })();
+    // Pencarian, penyaring jenis, dan paginasi tabel ditangani komponen
+    // statistik.tabel — penyaringnya dideklarasikan lewat data-stat-filter.
 </script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>

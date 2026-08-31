@@ -55,4 +55,52 @@ return [
         'cache_ttl' => (int) env('DSDA_CACHE_TTL', 300), // 5 menit
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Palet warna statistik
+    |--------------------------------------------------------------------------
+    |
+    | Sumber tunggal untuk PHP maupun JavaScript. Palet ini sebelumnya hanya
+    | ada sebagai literal JS di statistik/partials/warna-kecamatan.blade.php,
+    | sehingga komponen tabel yang merender warnanya di sisi PHP terpaksa
+    | menyalin ulang daftar yang sama. Sekarang partial itu memancarkan isi
+    | berkas ini, dan komponen tabel membacanya langsung — satu tempat untuk
+    | diubah, dua konsumen yang selalu sinkron.
+    |
+    | Palet kategorikal colorblind-safe & tervalidasi (lihat panduan dataviz).
+    |
+    */
+
+    'warna' => [
+
+        // Dipakai untuk deret yang BUKAN kecamatan (per bulan, per jenis) dan
+        // untuk mewarnai kolom pada komponen <x-statistik.tabel>.
+        'kategori' => [
+            '#2a78d6',   // biru
+            '#1baf7a',   // teal
+            '#eda100',   // amber
+            '#008300',   // hijau
+            '#4a3aa7',   // ungu
+            '#e34948',   // merah
+            '#e87ba4',   // pink
+            '#eb6834',   // oranye
+        ],
+
+        // Warna khas per kecamatan — agar Cengkareng selalu amber di modul
+        // mana pun. Kunci ditulis huruf besar; pencariannya case-insensitive.
+        'kecamatan' => [
+            'KALIDERES'         => '#e87ba4',
+            'CENGKARENG'        => '#eda100',
+            'KEBON JERUK'       => '#e34948',
+            'KEMBANGAN'         => '#4a3aa7',
+            'GROGOL PETAMBURAN' => '#2a78d6',
+            'PALMERAH'          => '#008300',
+            'TAMBORA'           => '#1baf7a',
+            'TAMAN SARI'        => '#eb6834',
+        ],
+
+        // Dipakai saat sebuah nama tidak ada di daftar di atas.
+        'netral' => '#9e9e9e',
+    ],
+
 ];

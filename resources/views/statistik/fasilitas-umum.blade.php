@@ -61,32 +61,11 @@
         color:#aaa; font-size:13px; padding:20px;
     }
 
-    /* ── Table card ─────────────────────────────────────────── */
-    .table-card   { background:#fff; border:1px solid #ebebeb; border-radius:12px; padding:22px; margin-bottom:16px; }
-    .table-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
-    .table-title  { font-size:15px; font-weight:700; color:#1a1a1a; margin:0; }
-    .table-sub    { font-size:11px; color:#aaa; margin:2px 0 0; }
-    .tbl-tools    { display:flex; gap:8px; flex-wrap:wrap; }
-    .tbl-btn, .tbl-input, .tbl-select {
-        border:1px solid #e0e0e0; background:#fff; color:#555;
-        font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px;
-    }
-    .tbl-btn { display:inline-flex; align-items:center; gap:6px; cursor:pointer; transition:all .15s; }
-    .tbl-btn:hover { border-color:#ffbf00; color:#b8860b; }
-    .tbl-input { font-weight:400; min-width:220px; }
-    .tbl-input:focus, .tbl-select:focus { outline:none; border-color:#ffbf00; }
-
-    .kes-table { width:100%; border-collapse:collapse; }
-    .kes-table th {
-        font-size:11px; font-weight:700; color:#9e9e9e;
-        text-transform:uppercase; letter-spacing:.5px;
-        padding:10px 14px; border-bottom:1px solid #f0f0f0; text-align:left;
-    }
-    .kes-table td { padding:12px 14px; font-size:13px; color:#333; border-bottom:1px solid #f9f9f9; vertical-align:top; }
-    .kes-table tr:last-child td { border-bottom:none; }
-    .kes-table tr:hover td { background:#fafafa; }
+    /* ── Tabel ──────────────────────────────────────────────────
+       Kerangka tabel, pencarian, dan paginasi kini dari komponen
+       statistik.tabel (assets/statistik/css/tabel.css). Yang tersisa di sini
+       hanya gaya khas fasilitas umum. */
     .td-alamat { color:#888; font-size:12px; max-width:340px; }
-    .td-nama   { font-weight:600; }
 
     .badge-kat {
         display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
@@ -101,20 +80,6 @@
 @endforeach
     .badge-kosong { background:#f0f0f0; color:#999; font-size:11px; padding:3px 8px; border-radius:20px; }
 
-    /* ── Pagination ─────────────────────────────────────────── */
-    .pager { display:flex; align-items:center; justify-content:space-between; margin-top:16px; flex-wrap:wrap; gap:12px; }
-    .pager-info { font-size:12px; color:#999; }
-    .pager-btns { display:flex; gap:6px; flex-wrap:wrap; }
-    .page-btn {
-        min-width:34px; height:34px; padding:0 10px; border:1px solid #e0e0e0;
-        border-radius:8px; background:#fff; color:#555; font-weight:600; font-size:13px; cursor:pointer; transition:all .15s;
-    }
-    .page-btn:hover:not(:disabled) { border-color:#ffbf00; color:#b8860b; }
-    .page-btn.active { background:#ffbf00; border-color:#ffbf00; color:#fff; }
-    .page-btn:disabled { opacity:.45; cursor:not-allowed; }
-
-    /* ── Footer ─────────────────────────────────────────────── */
-    .kes-footer { font-size:11px; color:#bbb; text-align:right; margin-top:8px; }
 
     /* ── Responsive ─────────────────────────────────────────── */
     @media (max-width: 992px) {
@@ -124,9 +89,6 @@
     @media (max-width: 768px) {
         .kes-wrapper { flex-direction: column; padding: 20px 0; gap: 16px; }
         .stat-header { font-size: 15px; padding: 12px; }
-        .table-card  { overflow-x: auto; }
-        .kes-table   { min-width: 720px; }
-        .tbl-input   { min-width: 0; width: 100%; }
     }
     @media (max-width: 520px) {
         .stat-grid { grid-template-columns: 1fr; }
@@ -259,66 +221,45 @@
             </div>
 
             {{-- ── Tabel ───────────────────────────────── --}}
-            <div class="table-card">
-                <div class="table-header">
-                    <div>
-                        <h3 class="table-title">{{ __('fasilitas.table_title') }}</h3>
-                        <p class="table-sub">{{ __('fasilitas.table_sub', ['total' => nf($ringkasan['total'])]) }}</p>
-                    </div>
-                    <div class="tbl-tools">
-                        <input type="search" id="cariFasilitas" class="tbl-input" placeholder="{{ __('fasilitas.cari') }}">
-                        <select id="filterKategori" class="tbl-select">
-                            <option value="ALL">{{ __('fasilitas.filter_semua') }}</option>
-                            @foreach ($daftarKategori as $slug => $label)
-                                <option value="{{ $slug }}">{{ $labelKategori($slug) }} ({{ $perKategori[$slug] ?? 0 }})</option>
-                            @endforeach
-                        </select>
-                        <button class="tbl-btn" id="exportCsv"><i class="fa fa-download"></i> {{ __('common.unduh_csv') }}</button>
-                    </div>
-                </div>
-
-                <table class="kes-table">
-                    <thead>
-                        <tr>
-                            <th>{{ __('fasilitas.col_nama') }}</th>
-                            <th>{{ __('fasilitas.col_kategori') }}</th>
-                            <th>{{ __('fasilitas.col_kecamatan') }}</th>
-                            <th>{{ __('fasilitas.col_kelurahan') }}</th>
-                            <th>{{ __('fasilitas.col_alamat') }}</th>
-                        </tr>
-                    </thead>
-                    {{-- Ratusan baris dicetak sekaligus supaya pencarian dan
-                         penyaringan berjalan tanpa memuat ulang halaman. Karena
-                         itu markup per barisnya ditulis rapat: indentasi Blade
-                         yang wajar untuk 8 baris menjadi ratusan kilobyte
-                         spasi kosong pada 776 baris. Kunci pencarian juga tidak
-                         ditulis sebagai atribut data — JS menyusunnya sendiri
-                         dari teks baris saat halaman siap. --}}
-                    <tbody id="fasilitas-tbody">
-                        @forelse ($semua as $f)
-                        <tr class="fasilitas-row" data-kategori="{{ $f->kategori }}"><td class="td-nama">{{ $f->nama }}</td><td><span class="badge-kat kat-{{ $f->kategori }}"><i class="fa {{ $f->ikon() }}"></i> {{ $f->labelKategori() }}</span></td><td>@if ($f->kecamatan){{ $f->kecamatan->nama_kecamatan }}@else<span class="badge-kosong">{{ __('fasilitas.belum_diisi') }}</span>@endif</td><td>{{ $f->kelurahan ?: '-' }}</td><td class="td-alamat">{{ $f->alamat ?: '-' }}</td></tr>
-                        @empty
-                        <tr><td colspan="5" class="text-center" style="color:#bbb;padding:20px;">{{ __('fasilitas.empty') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
-                <div id="tidakAdaHasil" style="display:none;color:#bbb;text-align:center;padding:20px;font-size:13px;">
-                    {{ __('fasilitas.empty_cari') }}
-                </div>
-
-                <div class="pager">
-                    <div class="pager-info" id="pagerInfo"></div>
-                    <div class="pager-btns" id="pagerBtns"></div>
-                </div>
-            </div>
-
-            {{-- Footer --}}
-            <div class="kes-footer">
-                {!! __('fasilitas.source', [
+            <x-statistik.tabel
+                id="tabel-fasilitas-umum"
+                :judul="__('fasilitas.table_title')"
+                :subjudul="__('fasilitas.table_sub', ['total' => nf($ringkasan['total'])])"
+                :kolom="[
+                    __('fasilitas.col_nama'),
+                    __('fasilitas.col_kategori'),
+                    __('fasilitas.col_kecamatan'),
+                    __('fasilitas.col_kelurahan'),
+                    __('fasilitas.col_alamat'),
+                ]"
+                :per-halaman="15"
+                :lebar-label="280"
+                :lebar-kolom="180"
+                :sumber="__('fasilitas.source', [
                     'tanggal' => $terakhir ? \Carbon\Carbon::parse($terakhir)->translatedFormat('d F Y') : '-',
-                ]) !!}
-            </div>
+                ])"
+                berkas="fasilitas-umum-jakarta-barat"
+            >
+                <x-slot:alat>
+                    <select data-stat-filter="kategori" class="stat-cari-input" style="width:auto; padding:0 16px;">
+                        <option value="ALL">{{ __('fasilitas.filter_semua') }}</option>
+                        @foreach ($daftarKategori as $slug => $label)
+                            <option value="{{ $slug }}">{{ $labelKategori($slug) }} ({{ $perKategori[$slug] ?? 0 }})</option>
+                        @endforeach
+                    </select>
+                </x-slot:alat>
+
+                {{-- Ratusan baris dicetak sekaligus supaya pencarian dan
+                     penyaringan berjalan tanpa memuat ulang halaman. Karena
+                     itu markup per barisnya ditulis rapat: indentasi Blade
+                     yang wajar untuk 8 baris menjadi ratusan kilobyte spasi
+                     kosong pada 776 baris. Kunci pencarian juga tidak ditulis
+                     sebagai atribut data-cari — tanpa itu komponen menyusun
+                     kuncinya sendiri sekali dari teks baris. --}}
+                @foreach ($semua as $f)
+                <tr data-kategori="{{ $f->kategori }}"><td><span class="stat-nama" style="white-space:normal;">{{ $f->nama }}</span></td><td><span class="badge-kat kat-{{ $f->kategori }}"><i class="fa {{ $f->ikon() }}"></i> {{ $f->labelKategori() }}</span></td><td><span class="stat-nilai">@if ($f->kecamatan){{ $f->kecamatan->nama_kecamatan }}@else<span class="badge-kosong">{{ __('fasilitas.belum_diisi') }}</span>@endif</span></td><td><span class="stat-nilai">{{ $f->kelurahan ?: '—' }}</span></td><td><span class="stat-nilai td-alamat">{{ $f->alamat ?: '—' }}</span></td></tr>
+                @endforeach
+            </x-statistik.tabel>
 
         </div>{{-- /.kes-content --}}
     </div>{{-- /.kes-wrapper --}}
@@ -422,118 +363,8 @@
         }).render();
     }
 
-    // ── Tabel: pencarian, filter kategori, pagination, export CSV ──
-    var pageSize     = 15;
-    var currentPage  = 1;
-    var filterKat    = 'ALL';
-    var kataCari     = '';
-    var rows = Array.prototype.slice.call(document.querySelectorAll('#fasilitas-tbody tr.fasilitas-row'));
-
-    // Kunci pencarian disusun sekali di sini, bukan dikirim sebagai atribut
-    // data dari server: isinya cuma salinan teks yang sudah ada di baris, dan
-    // 776 salinan itu memberatkan halaman tanpa menambah informasi apa pun.
-    var kunci = rows.map(function (r) { return r.textContent.toLowerCase().replace(/\s+/g, ' '); });
-
-    function filtered() {
-        return rows.filter(function (r, i) {
-            var cocokKat  = filterKat === 'ALL' || r.dataset.kategori === filterKat;
-            var cocokCari = kataCari === '' || kunci[i].indexOf(kataCari) !== -1;
-            return cocokKat && cocokCari;
-        });
-    }
-
-    function render() {
-        var fr = filtered();
-        var totalPages = Math.max(1, Math.ceil(fr.length / pageSize));
-        if (currentPage > totalPages) currentPage = totalPages;
-
-        rows.forEach(function (r) { r.style.display = 'none'; });
-        var start = (currentPage - 1) * pageSize;
-        fr.slice(start, start + pageSize).forEach(function (r) { r.style.display = ''; });
-
-        document.getElementById('tidakAdaHasil').style.display = fr.length ? 'none' : '';
-
-        document.getElementById('pagerInfo').textContent = fr.length
-            ? @json(__('fasilitas.pager_info'))
-                .replace(':from', fmt(start + 1))
-                .replace(':to', fmt(Math.min(start + pageSize, fr.length)))
-                .replace(':total', fmt(fr.length))
-            : @json(__('fasilitas.pager_empty'));
-
-        buildPager(totalPages);
-    }
-
-    function buildPager(totalPages) {
-        var box = document.getElementById('pagerBtns');
-        box.innerHTML = '';
-        var mk = function (label, page, opts) {
-            opts = opts || {};
-            var b = document.createElement('button');
-            b.className = 'page-btn' + (opts.active ? ' active' : '');
-            b.innerHTML = label;
-            if (opts.disabled) b.disabled = true;
-            else b.addEventListener('click', function () { currentPage = page; render(); });
-            box.appendChild(b);
-        };
-
-        mk('&laquo;', currentPage - 1, { disabled: currentPage === 1 });
-
-        // Daftarnya bisa puluhan halaman (600+ tempat ibadah), jadi hanya
-        // jendela di sekitar halaman aktif yang ditampilkan — kalau semua
-        // nomor dicetak, barisan tombolnya lebih panjang dari tabelnya.
-        var dari = Math.max(1, currentPage - 2);
-        var ke   = Math.min(totalPages, dari + 4);
-        dari = Math.max(1, ke - 4);
-
-        if (dari > 1) mk('1', 1, {});
-        if (dari > 2) mk('…', 0, { disabled: true });
-        for (var p = dari; p <= ke; p++) mk(p, p, { active: p === currentPage });
-        if (ke < totalPages - 1) mk('…', 0, { disabled: true });
-        if (ke < totalPages) mk(totalPages, totalPages, {});
-
-        mk('&raquo;', currentPage + 1, { disabled: currentPage === totalPages });
-    }
-
-    document.getElementById('filterKategori').addEventListener('change', function () {
-        filterKat = this.value; currentPage = 1; render();
-    });
-
-    // Pencarian ditunda sesaat: mengetik cepat di daftar 700+ baris akan
-    // memicu render berulang kali per huruf tanpa jeda ini.
-    var timer = null;
-    document.getElementById('cariFasilitas').addEventListener('input', function () {
-        var nilai = this.value.toLowerCase().trim();
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-            kataCari = nilai; currentPage = 1; render();
-        }, 180);
-    });
-
-    document.getElementById('exportCsv').addEventListener('click', function () {
-        var header = [
-            @json(__('fasilitas.col_nama')),      @json(__('fasilitas.col_kategori')),
-            @json(__('fasilitas.col_kecamatan')), @json(__('fasilitas.col_kelurahan')),
-            @json(__('fasilitas.col_alamat')),
-        ];
-        // Mengikuti apa yang sedang terlihat (hasil filter + pencarian), bukan
-        // seluruh tabel — sama seperti export pada modul infrastruktur digital.
-        var lines = [header.join(',')];
-        filtered().forEach(function (r) {
-            var c = r.querySelectorAll('td');
-            var sel = function (i) { return '"' + c[i].textContent.trim().replace(/"/g, '""').replace(/\s+/g, ' ') + '"'; };
-            lines.push([sel(0), sel(1), sel(2), sel(3), sel(4)].join(','));
-        });
-
-        // BOM agar Excel membaca berkas sebagai UTF-8, sama seperti modul lain.
-        var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'fasilitas-umum-jakarta-barat.csv';
-        a.click();
-        URL.revokeObjectURL(a.href);
-    });
-
-    render();
+    // Pencarian, penyaring kategori, paginasi, dan unduh CSV kini ditangani
+    // komponen statistik.tabel bersama partial unduh-tabel.
 })();
 </script>
 @endpush

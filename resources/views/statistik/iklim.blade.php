@@ -85,17 +85,9 @@
     .donut-legend-left { display: flex; align-items: center; }
     .donut-legend-pct { font-weight: 700; color: #333; }
 
-    /* Table */
-    /* table-layout: fixed → lebar kolom stabil, tidak bergeser saat ganti halaman */
-    .iklim-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-    .iklim-table thead th {
-        padding: 8px 12px; text-align: center; color: #777; font-weight: 600;
-        border-bottom: 2px solid #f0f0f0;
-    }
-    .iklim-table thead th:first-child { text-align: left; }
-    .iklim-table tbody td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; color: #333; text-align: center; }
-    .iklim-table tbody td:first-child { text-align: left; }
-    .iklim-table tbody tr:hover { background: #fffbf0; }
+    /* Kerangka tabel kini dari komponen statistik.tabel (assets/statistik/css/tabel.css);
+       yang tersisa di sini hanya gaya khas iklim: badge kategori & titik warna. */
+
     /* Badge kategori BMKG (curah hujan / suhu / kelembaban) */
     .cat-badge {
         display: inline-flex; align-items: center; gap: 5px;
@@ -123,24 +115,6 @@
     .kategori-item b { color: #333; }
     @media (max-width: 768px) { .kategori-grid { grid-template-columns: 1fr; } }
 
-    /* Pagination (sama seperti geografis) */
-    .geo-pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 13px; color: #888; }
-    .geo-pager { display: flex; gap: 4px; }
-    .geo-pager button {
-        width: 30px; height: 30px; border-radius: 6px; border: 1px solid #ddd;
-        background: #fff; color: #555; cursor: pointer; font-size: 13px;
-    }
-    .geo-pager button.active { background: #ffbf00; border-color: #ffbf00; color: #fff; font-weight: 700; }
-    .geo-pager button:disabled { opacity: 0.4; cursor: default; }
-
-    /* Tombol export CSV (sama seperti geografis) */
-    .btn-export-csv {
-        display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-        border: 1px solid #1e8e3e; background: #eaf6ec; color: #1e8e3e;
-        font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 6px;
-        cursor: pointer; transition: background .15s, color .15s;
-    }
-    .btn-export-csv:hover { background: #1e8e3e; color: #fff; }
 
     /* Animasi nilai card saat bulan dipilih dari bar chart (halus, fade + naik) */
     @keyframes cardValueIn {
@@ -161,10 +135,7 @@
         }
         .statistik-sidebar .nav-link { white-space: nowrap; margin-bottom: 0; }
         .stat-header        { font-size: 15px; padding: 12px; }
-        #iklim-table        { min-width: 640px; }
     }
-    /* Bungkus tabel agar bisa scroll horizontal di layar kecil */
-    .iklim-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
 @endpush
 
@@ -364,68 +335,49 @@
         </div>
 
         {{-- Table section --}}
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <div class="chart-title" style="margin-bottom:0;">{{ __('iklim.table_title') }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#iklim-table',
-                    'nama'   => 'iklim-per-bulan-' . $tahun,
-                ])
-            </div>
-
-            <div class="iklim-table-scroll">
-            <table class="iklim-table" id="iklim-table" data-unduh-angka="{{ app()->getLocale() }}">
-                <colgroup>
-                    <col style="width:13%"> <col style="width:11%"> <col style="width:10%"> <col style="width:13%">
-                    <col style="width:11%"> <col style="width:12%"> <col style="width:14%"> <col style="width:16%">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>{{ __('iklim.col_bulan') }}</th>
-                        <th>{{ __('iklim.col_hari_hujan') }}</th>
-                        <th>{{ __('iklim.col_suhu') }}</th>
-                        <th>{{ __('iklim.col_kelembaban') }}</th>
-                        <th>{{ __('iklim.col_angin') }}</th>
-                        <th>{{ __('iklim.col_tekanan') }}</th>
-                        <th>{{ __('iklim.col_penyinaran') }}</th>
-                        <th>{{ __('iklim.col_status') }}</th>
-                    </tr>
-                </thead>
-                <tbody id="iklim-table-body">
-                    @foreach ($iklim as $row)
-                        @php
-                            [$status, $statusClass] = $rainCat($row->hari_hujan);
-                            [$suhuLbl, $suhuClass]   = $suhuCat($row->suhu_udara);
-                            [$kelLbl, $kelClass]     = $lembabCat($row->kelembaban_udara);
-                        @endphp
-                        <tr>
-                            <td>{{ $bulanLabel[$row->bulan] ?? $row->bulan }}</td>
-                            <td>{{ nf($row->hari_hujan, 1) }}</td>
-                            <td>
-                                <span class="cell-val" title="{{ $suhuLbl }}">
-                                    <span class="dot" style="background:{{ $catDot[$suhuClass] }};"></span>{{ nf($row->suhu_udara, 1) }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="cell-val" title="{{ $kelLbl }}">
-                                    <span class="dot" style="background:{{ $catDot[$kelClass] }};"></span>{{ nf($row->kelembaban_udara, 1) }}%
-                                </span>
-                            </td>
-                            <td>{{ nf($row->kecepatan_angin, 1) }}</td>
-                            <td>{{ nf($row->tekanan_udara, 1) }}</td>
-                            <td>{{ nf($row->penyinaran_matahari, 1) }}%</td>
-                            <td><span class="cat-badge {{ $statusClass }}"><span class="dot"></span>{{ $status }}</span></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            </div>
-
-            <div class="geo-pagination">
-                <div id="iklim-pager-info"></div>
-                <div class="geo-pager" id="iklim-pager"></div>
-            </div>
-        </div>
+        <x-statistik.tabel
+            id="iklim-table"
+            :judul="__('iklim.table_title')"
+            :kolom="[
+                __('iklim.col_bulan'),
+                __('iklim.col_hari_hujan'),
+                __('iklim.col_suhu'),
+                __('iklim.col_kelembaban'),
+                __('iklim.col_angin'),
+                __('iklim.col_tekanan'),
+                __('iklim.col_penyinaran'),
+                __('iklim.col_status'),
+            ]"
+            :per-halaman="6"
+            :berkas="'iklim-per-bulan-' . $tahun"
+        >
+            @foreach ($iklim as $row)
+                @php
+                    [$status, $statusClass] = $rainCat($row->hari_hujan);
+                    [$suhuLbl, $suhuClass]  = $suhuCat($row->suhu_udara);
+                    [$kelLbl, $kelClass]    = $lembabCat($row->kelembaban_udara);
+                    $namaBulan = $bulanLabel[$row->bulan] ?? $row->bulan;
+                @endphp
+                <tr data-cari="{{ strtolower($namaBulan . ' ' . $status) }}">
+                    <td><span class="stat-nama">{{ $namaBulan }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->hari_hujan, 1) }}</span></td>
+                    <td>
+                        <span class="cell-val stat-nilai" title="{{ $suhuLbl }}">
+                            <span class="dot" style="background:{{ $catDot[$suhuClass] }};"></span>{{ nf($row->suhu_udara, 1) }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="cell-val stat-nilai" title="{{ $kelLbl }}">
+                            <span class="dot" style="background:{{ $catDot[$kelClass] }};"></span>{{ nf($row->kelembaban_udara, 1) }}%
+                        </span>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($row->kecepatan_angin, 1) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->tekanan_udara, 1) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->penyinaran_matahari, 1) }}%</span></td>
+                    <td><span class="cat-badge {{ $statusClass }}"><span class="dot"></span>{{ $status }}</span></td>
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
 
         {{-- Keterangan kategori (acuan BMKG) --}}
         <div class="chart-card">
@@ -780,52 +732,7 @@
         });
     });
 
-    // ── Pagination tabel iklim (sama seperti geografis) ───────────
-    var IKLIM_PAGE_SIZE = 6, iklimPage = 1;
-
-    function iklimRows() { return Array.from(document.querySelectorAll('#iklim-table-body tr')); }
-
-    function renderIklimTable() {
-        var rows  = iklimRows();
-        var total = rows.length;
-        var start = (iklimPage - 1) * IKLIM_PAGE_SIZE;
-        var end   = Math.min(start + IKLIM_PAGE_SIZE, total);
-
-        rows.forEach(function(r, i) { r.style.display = (i >= start && i < end) ? '' : 'none'; });
-
-        document.getElementById('iklim-pager-info').textContent =
-            '{{ __('iklim.pager_showing', ['from' => ':from', 'to' => ':to', 'total' => ':total']) }}'
-                .replace(':from',  total ? start + 1 : 0)
-                .replace(':to',    end)
-                .replace(':total', total);
-
-        var pages = Math.ceil(total / IKLIM_PAGE_SIZE) || 1;
-        var pager = document.getElementById('iklim-pager');
-        pager.innerHTML = '';
-
-        var prev = document.createElement('button');
-        prev.innerHTML = '&lsaquo;'; prev.disabled = iklimPage === 1;
-        prev.onclick = function() { iklimPage--; renderIklimTable(); };
-        pager.appendChild(prev);
-
-        for (var p = 1; p <= pages; p++) {
-            (function(pg) {
-                var btn = document.createElement('button');
-                btn.textContent = pg;
-                if (pg === iklimPage) btn.classList.add('active');
-                btn.onclick = function() { iklimPage = pg; renderIklimTable(); };
-                pager.appendChild(btn);
-            })(p);
-        }
-
-        var next = document.createElement('button');
-        next.innerHTML = '&rsaquo;'; next.disabled = iklimPage === pages;
-        next.onclick = function() { iklimPage++; renderIklimTable(); };
-        pager.appendChild(next);
-    }
-
-    renderIklimTable();
-
+    // Paginasi & pencarian tabel ditangani komponen statistik.tabel.
     // Unduh CSV ditangani statistik.partials.unduh-tabel (dipakai semua modul).
 </script>
 @endpush

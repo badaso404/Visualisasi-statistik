@@ -92,29 +92,10 @@
     .alert-title { font-size:13px; font-weight:700; color:#333; }
     .alert-meta  { font-size:11px; color:#999; margin-top:2px; }
 
-    /* ── Table card ─────────────────────────────────────────── */
-    .table-card   { background:#fff; border:1px solid #ebebeb; border-radius:12px; padding:22px; margin-bottom:16px; }
-    .table-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
-    .table-title  { font-size:15px; font-weight:700; color:#1a1a1a; margin:0; }
-    .table-sub    { font-size:11px; color:#aaa; margin:2px 0 0; }
-    .tbl-tools { display:flex; gap:8px; }
-    .tbl-btn {
-        display:inline-flex; align-items:center; gap:6px; border:1px solid #e0e0e0;
-        background:#fff; color:#555; font-size:13px; font-weight:600;
-        padding:7px 12px; border-radius:8px; cursor:pointer; transition:all .15s;
-    }
-    .tbl-btn:hover { border-color:#ffbf00; color:#b8860b; }
-
-    .kes-table { width:100%; border-collapse:collapse; }
-    .kes-table th {
-        font-size:11px; font-weight:700; color:#9e9e9e;
-        text-transform:uppercase; letter-spacing:.5px;
-        padding:10px 14px; border-bottom:1px solid #f0f0f0; text-align:left;
-    }
-    .kes-table td { padding:12px 14px; font-size:13px; color:#333; border-bottom:1px solid #f9f9f9; }
-    .kes-table tr:last-child td { border-bottom:none; }
-    .kes-table tr:hover td { background:#fafafa; }
-    .td-num { font-weight:600; }
+    /* ── Tabel ──────────────────────────────────────────────────
+       Kerangka tabel, penyaring, dan paginasi kini dari komponen
+       statistik.tabel (assets/statistik/css/tabel.css). Yang tersisa di sini
+       hanya lencana jenis & indikator status. */
 
     .badge-type { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
     .badge-type.wifi { background:#fff8e1; color:#b8860b; }
@@ -125,25 +106,10 @@
     .status.on  { color:#2e7d32; } .status.on  .dot { background:#2e7d32; }
     .status.off { color:#e53935; } .status.off .dot { background:#e53935; }
 
-    /* ── Pagination ─────────────────────────────────────────── */
-    .pager { display:flex; align-items:center; justify-content:space-between; margin-top:16px; flex-wrap:wrap; gap:12px; }
-    .pager-info { font-size:12px; color:#999; }
-    .pager-btns { display:flex; gap:6px; }
-    .page-btn {
-        min-width:34px; height:34px; padding:0 10px; border:1px solid #e0e0e0;
-        border-radius:8px; background:#fff; color:#555; font-weight:600; font-size:13px; cursor:pointer; transition:all .15s;
-    }
-    .page-btn:hover:not(:disabled) { border-color:#ffbf00; color:#b8860b; }
-    .page-btn.active { background:#ffbf00; border-color:#ffbf00; color:#fff; }
-    .page-btn:disabled { opacity:.45; cursor:not-allowed; }
-
     /* ── Peta sebaran ───────────────────────────────────────── */
     .map-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .map-cap  { font-size:12px; font-weight:700; color:#555; margin-bottom:8px; }
     .infra-map { width:100%; height:360px; border-radius:8px; border:1px solid #eee; z-index:0; }
-
-    /* ── Footer ─────────────────────────────────────────────── */
-    .kes-footer { font-size:11px; color:#bbb; text-align:right; margin-top:8px; }
 
     /* ── Responsive ─────────────────────────────────────────── */
     @media (max-width: 992px) {
@@ -153,8 +119,6 @@
     @media (max-width: 768px) {
         .kes-wrapper { flex-direction: column; padding: 20px 0; gap: 16px; }
         .stat-header { font-size: 15px; padding: 12px; }
-        .table-card  { overflow-x: auto; }
-        .kes-table   { min-width: 640px; }
         .map-grid    { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
@@ -344,69 +308,67 @@
             </div>
 
             {{-- ── Rincian Unit ─────────────────────────── --}}
-            <div class="table-card">
-                <div class="table-header">
-                    <div>
-                        <p class="table-title">{{ __('infrastruktur.table_title') }}</p>
-                        <p class="table-sub">{!! __('infrastruktur.table_sub', ['tahun' => $tahun]) !!}</p>
-                    </div>
-                    <div class="tbl-tools">
-                        <select class="tbl-btn" id="filterType">
-                            <option value="ALL">{{ __('infrastruktur.filter_semua') }}</option>
-                            <option value="JAKWIFI">JakWiFi</option>
-                            <option value="CCTV">CCTV</option>
-                        </select>
-                        <button class="tbl-btn" id="exportCsv"><i class="fa fa-download"></i> {{ __('infrastruktur.export_csv') }}</button>
-                    </div>
-                </div>
-                <table class="kes-table" id="unitTable">
-                    <thead>
-                        <tr>
-                            <th>{{ __('infrastruktur.col_kecamatan') }}</th>
-                            <th>{{ __('infrastruktur.col_jenis') }}</th>
-                            <th>{{ __('infrastruktur.col_total') }}</th>
-                            <th>{{ __('infrastruktur.col_aktif') }}</th>
-                            <th>{{ __('infrastruktur.col_status') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="unit-tbody">
-                        @forelse($unitRows as $row)
-                        @php $offline = $row['total'] - $row['aktif']; @endphp
-                        <tr class="unit-row" data-type="{{ $row['tipe'] }}">
-                            <td><strong>{{ $row['kecamatan'] }}</strong></td>
-                            <td>
-                                @if($row['tipe'] === 'JAKWIFI')
-                                    <span class="badge-type wifi"><i class="fa fa-wifi"></i> JAKWIFI</span>
-                                @else
-                                    <span class="badge-type cctv"><i class="fa fa-video"></i> CCTV</span>
-                                @endif
-                            </td>
-                            <td class="td-num">{{ nf($row['total']) }}</td>
-                            <td class="td-num">{{ nf($row['aktif']) }}</td>
-                            <td>
-                                @if($offline <= 0)
-                                    <span class="status on"><span class="dot"></span> {{ __('infrastruktur.status_aktif') }}</span>
-                                @else
-                                    <span class="status off"><span class="dot"></span> {{ __('infrastruktur.status_offline', ['jumlah' => nf($offline)]) }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="5" class="text-center" style="color:#bbb;padding:20px;">{{ __('infrastruktur.empty', ['tahun' => $tahun]) }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            {{-- Kolom Offline kini dicetak sungguhan, bukan cuma dihitung saat
+                 unduh CSV. Dulu ekspor modul ini punya kode sendiri hanya demi
+                 kolom turunan itu; dengan kolomnya tampil di layar, unduhan
+                 bersama (statistik.partials.unduh-tabel) sudah memuat semuanya. --}}
+            <x-statistik.tabel
+                id="unitTable"
+                :judul="__('infrastruktur.table_title')"
+                :subjudul="strip_tags(__('infrastruktur.table_sub', ['tahun' => $tahun]))"
+                :kolom="[
+                    __('infrastruktur.col_kecamatan'),
+                    __('infrastruktur.col_jenis'),
+                    __('infrastruktur.col_total'),
+                    __('infrastruktur.col_aktif'),
+                    __('infrastruktur.col_offline'),
+                    __('infrastruktur.col_status'),
+                ]"
+                :per-halaman="8"
+                :sumber="strip_tags(__('infrastruktur.source', ['tahun' => $tahun]))"
+                :berkas="'rincian-infrastruktur-digital-' . $tahun"
+            >
+                <x-slot:alat>
+                    <select data-stat-filter="type" class="stat-cari-input" style="width:auto; padding:0 16px;">
+                        <option value="ALL">{{ __('infrastruktur.filter_semua') }}</option>
+                        <option value="JAKWIFI">JakWiFi</option>
+                        <option value="CCTV">CCTV</option>
+                    </select>
+                </x-slot:alat>
 
-                <div class="pager">
-                    <div class="pager-info" id="pagerInfo"></div>
-                    <div class="pager-btns" id="pagerBtns"></div>
-                </div>
-            </div>
-
-            {{-- Footer --}}
-            <div class="kes-footer">
-                {!! __('infrastruktur.source', ['tahun' => $tahun]) !!}
-            </div>
+                @foreach($unitRows as $row)
+                    @php $offline = $row['total'] - $row['aktif']; @endphp
+                    <tr data-type="{{ $row['tipe'] }}"
+                        data-cari="{{ strtolower($row['kecamatan'] . ' ' . $row['tipe']) }}">
+                        <td>
+                            <div class="stat-sel-label">
+                                <span class="stat-nama">{{ $row['kecamatan'] }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            @if($row['tipe'] === 'JAKWIFI')
+                                <span class="badge-type wifi"><i class="fa fa-wifi"></i> JAKWIFI</span>
+                            @else
+                                <span class="badge-type cctv"><i class="fa fa-video"></i> CCTV</span>
+                            @endif
+                        </td>
+                        <td><span class="stat-nilai">{{ nf($row['total']) }}</span></td>
+                        <td><span class="stat-nilai">{{ nf($row['aktif']) }}</span></td>
+                        <td>
+                            <span class="stat-nilai {{ $offline > 0 ? '' : 'stat-nilai-kosong' }}">
+                                {{ nf(max(0, $offline)) }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($offline <= 0)
+                                <span class="status on"><span class="dot"></span> {{ __('infrastruktur.status_aktif') }}</span>
+                            @else
+                                <span class="status off"><span class="dot"></span> {{ __('infrastruktur.status_offline', ['jumlah' => nf($offline)]) }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </x-statistik.tabel>
 
         </div>{{-- /.kes-content --}}
     </div>{{-- /.kes-wrapper --}}
@@ -584,89 +546,8 @@
         }).render();
     }
 
-    // ── Tabel: filter jenis, pagination, export CSV ───────────────
-    var pageSize    = 8;
-    var currentPage = 1;
-    var filterType  = 'ALL';
-    var rows = Array.prototype.slice.call(document.querySelectorAll('#unit-tbody tr.unit-row'));
-
-    function filtered() {
-        return rows.filter(function (r) {
-            return filterType === 'ALL' || r.dataset.type === filterType;
-        });
-    }
-
-    function render() {
-        var fr = filtered();
-        var totalPages = Math.max(1, Math.ceil(fr.length / pageSize));
-        if (currentPage > totalPages) currentPage = totalPages;
-
-        rows.forEach(function (r) { r.style.display = 'none'; });
-        var start = (currentPage - 1) * pageSize;
-        fr.slice(start, start + pageSize).forEach(function (r) { r.style.display = ''; });
-
-        var info = document.getElementById('pagerInfo');
-        info.textContent = fr.length
-            ? @json(__('infrastruktur.pager_info'))
-                .replace(':from', start + 1).replace(':to', Math.min(start + pageSize, fr.length)).replace(':total', fr.length)
-            : @json(__('infrastruktur.pager_empty'));
-
-        buildPager(totalPages);
-    }
-
-    function buildPager(totalPages) {
-        var box = document.getElementById('pagerBtns');
-        box.innerHTML = '';
-        var mk = function (label, page, opts) {
-            opts = opts || {};
-            var b = document.createElement('button');
-            b.className = 'page-btn' + (opts.active ? ' active' : '');
-            b.innerHTML = label;
-            if (opts.disabled) b.disabled = true;
-            else b.addEventListener('click', function () { currentPage = page; render(); });
-            box.appendChild(b);
-        };
-        mk('&laquo;', currentPage - 1, { disabled: currentPage === 1 });
-        for (var p = 1; p <= totalPages; p++) mk(p, p, { active: p === currentPage });
-        mk('&raquo;', currentPage + 1, { disabled: currentPage === totalPages });
-    }
-
-    document.getElementById('filterType').addEventListener('change', function () {
-        filterType = this.value; currentPage = 1; render();
-    });
-
-    document.getElementById('exportCsv').addEventListener('click', function () {
-        var header = [
-            @json(__('infrastruktur.col_kecamatan')), @json(__('infrastruktur.col_jenis')),
-            @json(__('infrastruktur.col_total')),     @json(__('infrastruktur.col_aktif')),
-            @json(__('infrastruktur.col_offline')),
-        ];
-        var lines = [header.join(',')];
-        filtered().forEach(function (r) {
-            var c = r.querySelectorAll('td');
-            var total = parseInt(c[2].textContent.replace(/\D/g, ''), 10) || 0;
-            var aktif = parseInt(c[3].textContent.replace(/\D/g, ''), 10) || 0;
-            lines.push([
-                '"' + c[0].textContent.trim() + '"',
-                r.dataset.type,
-                total, aktif, Math.max(0, total - aktif),
-            ].join(','));
-        });
-        // Export ini sengaja tidak memakai statistik.partials.unduh-tabel:
-        // ia menghitung kolom turunan (Offline = total - aktif) dan hanya
-        // mengambil baris yang lolos filter pencarian, dua hal yang tidak bisa
-        // disimpulkan dari tabel apa adanya.
-        //
-        // BOM agar Excel membaca berkas sebagai UTF-8, sama seperti modul lain.
-        var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'rincian-infrastruktur-digital-{{ $tahun }}.csv';
-        a.click();
-        URL.revokeObjectURL(a.href);
-    });
-
-    render();
+    // Penyaring jenis, paginasi, dan unduh CSV kini ditangani komponen
+    // statistik.tabel bersama partial unduh-tabel.
 })();
 </script>
 @endpush

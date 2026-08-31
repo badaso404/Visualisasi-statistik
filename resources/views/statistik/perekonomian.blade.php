@@ -180,108 +180,96 @@
         </div>
 
         {{-- TABEL SEKTOR --}}
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">{{ __('perekonomian.table_sektor_title', ['tahun' => $tahun]) }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-lapangan-usaha',
-                    'nama'   => __('perekonomian.table_sektor_file', ['tahun' => $tahun]),
-                ])
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm" id="tabel-lapangan-usaha" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('perekonomian.col_kategori') }}</th>
-                            <th>{{ __('perekonomian.col_sektor') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_adhb') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_distribusi') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_tumbuh') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($sektorUtama as $row)
-                        <tr>
-                            <td>{{ $row->kategori }}</td>
-                            <td>{{ $row->nama_sektor }}</td>
-                            <td class="text-end">{{ nf($row->adhb / 1000, 0) }}</td>
-                            <td class="text-end">{{ nf($row->distribusi, 2) }}%</td>
-                            <td class="text-end {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
-                                {{ nf($row->laju_pertumbuhan, 2) }}%
-                            </td>
-                        </tr>
-                        @endforeach
+        <x-statistik.tabel
+            id="tabel-lapangan-usaha"
+            :judul="__('perekonomian.table_sektor_title', ['tahun' => $tahun])"
+            :subjudul="$sektorLainnya && $sektorLainnya['laju_pertumbuhan'] !== null
+                ? __('perekonomian.catatan_lainnya')
+                : null"
+            :kolom="[
+                __('perekonomian.col_kategori'),
+                __('perekonomian.col_sektor'),
+                __('perekonomian.col_adhb'),
+                __('perekonomian.col_distribusi'),
+                __('perekonomian.col_tumbuh'),
+            ]"
+            :per-halaman="8"
+            :berkas="__('perekonomian.table_sektor_file', ['tahun' => $tahun])"
+        >
+            @foreach($sektorUtama as $row)
+                <tr data-cari="{{ strtolower($row->kategori . ' ' . $row->nama_sektor) }}">
+                    <td><span class="stat-nama">{{ $row->kategori }}</span></td>
+                    <td><span class="stat-nilai">{{ $row->nama_sektor }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->adhb / 1000, 0) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->distribusi, 2) }}%</span></td>
+                    <td>
+                        <span class="stat-nilai {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
+                            {{ nf($row->laju_pertumbuhan, 2) }}%
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
 
-                        @if($sektorLainnya)
-                        <tr class="text-muted">
-                            <td></td>
-                            <td>{{ __('perekonomian.row_lainnya', ['jumlah' => $sektorLainnya['jumlah_sektor']]) }}</td>
-                            <td class="text-end">{{ nf($sektorLainnya['adhb'] / 1000, 0) }}</td>
-                            <td class="text-end">{{ nf($sektorLainnya['distribusi'], 2) }}%</td>
-                            <td class="text-end {{ ($sektorLainnya['laju_pertumbuhan'] ?? 0) < 0 ? 'tren-down' : '' }}">
-                                {{ $sektorLainnya['laju_pertumbuhan'] !== null
-                                    ? nf($sektorLainnya['laju_pertumbuhan'], 2) . '%*'
-                                    : '—' }}
-                            </td>
-                        </tr>
-                        @endif
-
-                        <tr class="fw-bold" style="background:#fff8e1;">
-                            <td></td>
-                            <td>{{ __('perekonomian.row_total') }}</td>
-                            <td class="text-end">{{ nf($summary->pdrb_adhb / 1000, 0) }}</td>
-                            {{-- Baris total selalu 100%; lewat nf() supaya pemisah desimalnya ikut bahasa. --}}
-                            <td class="text-end">{{ nf(100, 2) }}%</td>
-                            <td class="text-end">{{ nf($summary->laju_pertumbuhan, 2) }}%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            @if($sektorLainnya && $sektorLainnya['laju_pertumbuhan'] !== null)
-            <div class="chart-hint" style="margin:4px 0 0;">
-                {{ __('perekonomian.catatan_lainnya') }}
-            </div>
+            @if($sektorLainnya)
+                <tr data-cari="{{ strtolower(__('perekonomian.row_lainnya', ['jumlah' => $sektorLainnya['jumlah_sektor']])) }}">
+                    <td></td>
+                    <td>
+                        <span class="stat-nilai">
+                            {{ __('perekonomian.row_lainnya', ['jumlah' => $sektorLainnya['jumlah_sektor']]) }}
+                        </span>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($sektorLainnya['adhb'] / 1000, 0) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($sektorLainnya['distribusi'], 2) }}%</span></td>
+                    <td>
+                        <span class="stat-nilai {{ ($sektorLainnya['laju_pertumbuhan'] ?? 0) < 0 ? 'tren-down' : '' }}">
+                            {{ $sektorLainnya['laju_pertumbuhan'] !== null
+                                ? nf($sektorLainnya['laju_pertumbuhan'], 2) . '%*'
+                                : '—' }}
+                        </span>
+                    </td>
+                </tr>
             @endif
-        </div>
+
+            {{-- data-stat-tetap: baris total harus tetap terbaca di halaman
+                 mana pun, jadi tidak ikut dipaginasi. --}}
+            <tr data-stat-tetap class="stat-baris-aktif">
+                <td></td>
+                <td><span class="stat-nama">{{ __('perekonomian.row_total') }}</span></td>
+                <td><span class="stat-nilai">{{ nf($summary->pdrb_adhb / 1000, 0) }}</span></td>
+                {{-- Baris total selalu 100%; lewat nf() supaya pemisah desimalnya ikut bahasa. --}}
+                <td><span class="stat-nilai">{{ nf(100, 2) }}%</span></td>
+                <td><span class="stat-nilai">{{ nf($summary->laju_pertumbuhan, 2) }}%</span></td>
+            </tr>
+        </x-statistik.tabel>
 
         {{-- RINGKASAN ANTAR-TAHUN --}}
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">{{ __('perekonomian.table_tahun_title') }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-perekonomian-tahun',
-                    'nama'   => __('perekonomian.table_tahun_file'),
-                ])
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm" id="tabel-perekonomian-tahun" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('perekonomian.col_tahun') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_adhb_t') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_adhk_t') }}</th>
-                            <th class="text-end">{{ __('perekonomian.col_tumbuh') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($riwayatTabel as $row)
-                        <tr @if((int)$row->tahun === (int)$tahun) class="fw-bold" style="background:#fff8e1;" @endif>
-                            <td>{{ $row->tahun }}</td>
-                            <td class="text-end">{{ nf($row->pdrb_adhb / 1000000, 2) }}</td>
-                            <td class="text-end">{{ nf($row->pdrb_adhk / 1000000, 2) }}</td>
-                            <td class="text-end {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
-                                {{ nf($row->laju_pertumbuhan, 2) }}%
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="sumber">
-            {{ __('perekonomian.source', ['sumber' => $summary->sumber]) }}
-        </div>
+        <x-statistik.tabel
+            id="tabel-perekonomian-tahun"
+            :judul="__('perekonomian.table_tahun_title')"
+            :kolom="[
+                __('perekonomian.col_tahun'),
+                __('perekonomian.col_adhb_t'),
+                __('perekonomian.col_adhk_t'),
+                __('perekonomian.col_tumbuh'),
+            ]"
+            :per-halaman="5"
+            :sumber="$summary->sumber"
+            :berkas="__('perekonomian.table_tahun_file')"
+        >
+            @foreach($riwayatTabel as $row)
+                <tr data-cari="{{ $row->tahun }}"
+                    @class(['stat-baris-aktif' => (int) $row->tahun === (int) $tahun])>
+                    <td><span class="stat-nama">{{ $row->tahun }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->pdrb_adhb / 1000000, 2) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->pdrb_adhk / 1000000, 2) }}</span></td>
+                    <td>
+                        <span class="stat-nilai {{ $row->laju_pertumbuhan < 0 ? 'tren-down' : '' }}">
+                            {{ nf($row->laju_pertumbuhan, 2) }}%
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
 
     </div>
 </div>

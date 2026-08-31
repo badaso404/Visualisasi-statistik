@@ -195,45 +195,37 @@
         </div>
 
         {{-- TABEL RINGKASAN ANTAR-TAHUN (data BPS) --}}
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <div class="chart-title" style="margin-bottom:0;">{{ __('kemiskinan.table_title') }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-kemiskinan-tahun',
-                    'nama'   => __('kemiskinan.table_file'),
-                ])
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm" id="tabel-kemiskinan-tahun" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('kemiskinan.col_tahun') }}</th>
-                            <th>{{ __('kemiskinan.col_jumlah') }}</th>
-                            <th>{{ __('kemiskinan.col_persen') }}</th>
-                            <th>{{ __('kemiskinan.col_garis') }}</th>
-                            <th>{{ __('kemiskinan.col_p1') }}</th>
-                            <th>{{ __('kemiskinan.col_p2') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($riwayat as $row)
-                        <tr @if((int)$row->tahun === (int)$tahun) class="fw-bold" style="background:#fff8e1;" @endif>
-                            <td>{{ $row->tahun }}</td>
-                            <td>{{ nf($row->jumlah_penduduk_miskin, 0) }}</td>
-                            <td>{{ nf($row->persentase_penduduk_miskin, 2) }}%</td>
-                            <td>Rp {{ nf($row->garis_kemiskinan, 0) }}</td>
-                            <td>{{ nf($row->indeks_kedalaman, 2) }}</td>
-                            <td>{{ nf($row->indeks_keparahan, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="sumber">
-            {{ __('kemiskinan.source', ['sumber' => $summary->sumber]) }}
-        </div>
+        <x-statistik.tabel
+            id="tabel-kemiskinan-tahun"
+            :judul="__('kemiskinan.table_title')"
+            :kolom="[
+                __('kemiskinan.col_tahun'),
+                __('kemiskinan.col_jumlah'),
+                __('kemiskinan.col_persen'),
+                __('kemiskinan.col_garis'),
+                __('kemiskinan.col_p1'),
+                __('kemiskinan.col_p2'),
+            ]"
+            :per-halaman="5"
+            :sumber="$summary->sumber"
+            :berkas="__('kemiskinan.table_file')"
+        >
+            @foreach($riwayat as $row)
+                <tr data-cari="{{ $row->tahun }}"
+                    @class(['stat-baris-aktif' => (int) $row->tahun === (int) $tahun])>
+                    <td>
+                        <div class="stat-sel-label">
+                            <span class="stat-nama">{{ $row->tahun }}</span>
+                        </div>
+                    </td>
+                    <td><span class="stat-nilai">{{ nf($row->jumlah_penduduk_miskin, 0) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->persentase_penduduk_miskin, 2) }}%</span></td>
+                    <td><span class="stat-nilai">Rp {{ nf($row->garis_kemiskinan, 0) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->indeks_kedalaman, 2) }}</span></td>
+                    <td><span class="stat-nilai">{{ nf($row->indeks_keparahan, 2) }}</span></td>
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
 
         {{-- ── CHART & TABEL PER-KECAMATAN (DINONAKTIFKAN) ────────────────────────
              BPS hanya merilis data kemiskinan sampai level kota (Jakarta Barat),

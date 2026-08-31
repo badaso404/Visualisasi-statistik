@@ -202,48 +202,44 @@
 
         {{-- TABEL LINTAS MODUL PER KECAMATAN --}}
         @if ($perKecamatan->isNotEmpty())
-        <div class="chart-card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-                <div class="chart-title">{{ __('overview.table_title') }}</div>
-                @include('statistik.partials.unduh-tabel', [
-                    'target' => '#tabel-overview-kecamatan',
-                    'nama'   => __('overview.table_file'),
-                ])
-            </div>
-            <div class="chart-hint">
-                {!! __('overview.table_hint') !!}
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm" id="tabel-overview-kecamatan" data-unduh-angka="{{ app()->getLocale() }}">
-                    <thead>
-                        <tr>
-                            <th>{{ __('overview.col_kecamatan') }}</th>
-                            <th class="text-end">{{ __('overview.col_luas') }}</th>
-                            <th class="text-end">{{ __('overview.col_penduduk') }}</th>
-                            <th class="text-end">{{ __('overview.col_kepadatan') }}</th>
-                            <th class="text-end">{{ __('overview.col_pelajar') }}</th>
-                            <th class="text-end">{{ __('overview.col_faskes') }}</th>
-                            <th class="text-end">{{ __('overview.col_miskin') }}</th>
-                            <th class="text-end">{{ __('overview.col_digital') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($perKecamatan as $r)
-                        <tr>
-                            <td>{{ $r['nama'] }}</td>
-                            <td class="text-end">{{ $r['luas'] ? nf($r['luas'], 2) : '—' }}</td>
-                            <td class="text-end">{{ $r['penduduk'] ? nf($r['penduduk'], 0) : '—' }}</td>
-                            <td class="text-end">{{ $r['kepadatan'] ? nf($r['kepadatan'], 0) : '—' }}</td>
-                            <td class="text-end">{{ $r['pelajar'] ? nf($r['pelajar'], 0) : '—' }}</td>
-                            <td class="text-end">{{ $r['faskes'] ? nf($r['faskes'], 0) : '—' }}</td>
-                            <td class="text-end">{{ $r['miskin'] ? nf($r['miskin'], 0) : '—' }}</td>
-                            <td class="text-end">{{ $r['digital'] ? nf($r['digital'], 0) : '—' }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <x-statistik.tabel
+            id="tabel-overview-kecamatan"
+            :judul="__('overview.table_title')"
+            :subjudul="strip_tags(__('overview.table_hint'))"
+            :kolom="[
+                __('overview.col_kecamatan'),
+                __('overview.col_luas'),
+                __('overview.col_penduduk'),
+                __('overview.col_kepadatan'),
+                __('overview.col_pelajar'),
+                __('overview.col_faskes'),
+                __('overview.col_miskin'),
+                __('overview.col_digital'),
+            ]"
+            :per-halaman="5"
+            :berkas="__('overview.table_file')"
+        >
+            @foreach ($perKecamatan as $r)
+                <tr data-cari="{{ strtolower($r['nama']) }}">
+                    <td>
+                        <div class="stat-sel-label">
+                            <span class="stat-rank" data-unduh-abaikan>{{ $loop->iteration }}</span>
+                            <span class="stat-nama">{{ $r['nama'] }}</span>
+                        </div>
+                    </td>
+                    @foreach ([
+                        ['luas', 2], ['penduduk', 0], ['kepadatan', 0], ['pelajar', 0],
+                        ['faskes', 0], ['miskin', 0], ['digital', 0],
+                    ] as [$kunci, $desimal])
+                        <td>
+                            <span class="stat-nilai {{ $r[$kunci] ? '' : 'stat-nilai-kosong' }}">
+                                {{ $r[$kunci] ? nf($r[$kunci], $desimal) : '—' }}
+                            </span>
+                        </td>
+                    @endforeach
+                </tr>
+            @endforeach
+        </x-statistik.tabel>
         @endif
 
         <div class="sumber">
