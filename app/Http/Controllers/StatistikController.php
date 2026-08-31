@@ -930,7 +930,12 @@ class StatistikController extends Controller
         $titik = $semua->filter(fn ($f) => $f->latitude !== null && $f->longitude !== null)
             ->map(fn ($f) => [
                 'nama'      => $f->nama,
+                // slug dikirim di samping labelnya: peta mengelompokkan titik
+                // per kategori, dan label terjemahan tidak bisa dipakai sebagai
+                // kunci karena ikut berubah saat bahasa diganti.
+                'slug'      => $f->kategori,
                 'kategori'  => $f->labelKategori(),
+                'ikon'      => $f->ikon(),
                 'warna'     => $f->warna(),
                 'kecamatan' => $f->kecamatan->nama_kecamatan ?? '-',
                 'lat'       => (float) $f->latitude,

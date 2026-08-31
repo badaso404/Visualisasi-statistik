@@ -53,8 +53,33 @@
 
     /* ── Peta ───────────────────────────────────────────────── */
     .map-card  { background:#fff; border:1px solid #ebebeb; border-radius:12px; padding:22px; margin-bottom:16px; }
-    .fas-map   { width:100%; height:420px; border-radius:8px; border:1px solid #eee; z-index:0; }
+    /* 520px menyamai peta kebencanaan. Pada 420px, Jakarta Barat yang lebih
+       lebar daripada tinggi memaksa Leaflet turun satu tingkat zoom, dan
+       wilayahnya jadi sekepal di tengah layar. */
+    .fas-map   { width:100%; height:520px; border-radius:8px; border:1px solid #eee; z-index:0; }
     .map-note  { font-size:11px; color:#aaa; margin-top:10px; }
+
+    /* Legenda peta — bentuknya disamakan dengan modul kebencanaan supaya
+       pengunjung yang pindah antar modul tidak perlu belajar dua kali. */
+    .map-legend-box {
+        background:#fff; padding:8px 11px; border-radius:6px;
+        box-shadow:0 2px 10px rgba(0,0,0,.18); font-size:11px; min-width:190px;
+    }
+    .map-legend-box .legend-title { text-align:center; font-weight:700; color:#333; margin-bottom:6px; font-size:11px; }
+    .legend-row {
+        display:flex; align-items:center; gap:6px; margin-bottom:4px;
+        padding:2px 4px; border-radius:4px; cursor:pointer;
+        transition:background .15s, opacity .15s;
+    }
+    .legend-row:last-of-type { margin-bottom:0; }
+    .legend-row:hover  { background:#f4f7fc; }
+    .legend-row.aktif  { background:#fff8e1; }
+    .legend-row.redup  { opacity:.4; }
+    .legend-row .lr-icon  { width:15px; text-align:center; flex-shrink:0; font-size:12px; }
+    .legend-row .lr-label { flex:1; font-weight:600; color:#333; white-space:nowrap; }
+    .legend-row .lr-sep   { color:#333; }
+    .legend-row .lr-count { font-weight:700; color:#333; min-width:18px; text-align:right; }
+    .legend-hint { margin-top:6px; font-size:10px; color:#999; font-style:italic; text-align:center; }
     .map-empty {
         display:flex; align-items:center; justify-content:center; text-align:center;
         height:180px; border:1px dashed #e0e0e0; border-radius:8px;
@@ -267,6 +292,8 @@
 @endsection
 
 @push('scripts')
+{{-- Dipakai peta untuk mewarnai batas kecamatan seragam dengan modul lain. --}}
+@include('statistik.partials.warna-kecamatan')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (function () {
@@ -274,27 +301,164 @@
     // Berbeda dari peta infrastruktur digital yang posisinya digenerate acak
     // di dalam polygon kecamatan: di sini tiap titik adalah koordinat asli
     // sebuah fasilitas, jadi tidak ada yang perlu disebar-sebar sendiri.
+    //
+    // Susunannya mengikuti peta modul kebencanaan: satu peta untuk semua
+    // kategori, dengan legenda yang bisa diklik untuk menyaring per jenis.
+    // Sebelumnya semua titik dituang ke satu lapisan tanpa keterangan apa pun,
+    // sehingga dua fasilitas berbeda jenis yang berjauhan terbaca seolah dua
+    // peta yang tak berhubungan.
     var titik = {!! json_encode($titik) !!};
     var el = document.getElementById('map-fasilitas');
     if (typeof L === 'undefined' || !el || !titik.length) return;
 
     var map = L.map('map-fasilitas', { scrollWheelZoom: false }).setView([-6.168, 106.785], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(map);
 
-    var bounds = [];
-    titik.forEach(function (t) {
-        L.circleMarker([t.lat, t.lng], {
-            radius: 6, color: '#fff', weight: 1.5,
-            fillColor: t.warna, fillOpacity: 0.9
-        }).addTo(map).bindPopup(
-            '<b>' + t.nama + '</b><br>' + t.kategori + '<br><span style="color:#888">' + t.kecamatan + '</span>'
-        );
-        bounds.push([t.lat, t.lng]);
+    // Satelit jadi basemap bawaan, sama seperti kebencanaan. Ubin CARTO kini
+    // menuntut API key dan menimpa peta dengan tulisan "API KEY REQUIRED"
+    // kalau dipakai tanpa kunci, jadi ia tidak lagi jadi pilihan default.
+    var satelit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri', maxZoom: 19
+    }).addTo(map);
+    var petaJalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 19
     });
 
-    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+    // ── Batas kecamatan: memberi konteks wilayah, supaya titik yang sedikit
+    //    tidak melayang di atas peta tanpa acuan apa pun. ──
+    map.createPane('kecamatanPane');
+    map.getPane('kecamatanPane').style.zIndex = 350;
+
+    var batasWilayah = null;   // bounds seluruh Jakarta Barat, diisi setelah geojson tiba
+
+    // Berkas geojson memuat SELURUH kecamatan DKI. Tanpa disaring lebih dulu,
+    // batas wilayahnya terbentang sampai Jakarta Timur dan peta ter-zoom keluar
+    // sampai Jakarta Barat cuma sekepal di tengah layar.
+    var kecJakbar = {!! json_encode($perKecamatan->pluck('nama')->map(fn ($n) => strtoupper($n))->values()) !!};
+
+    fetch('{{ asset("assets/geojson/kecamatan.geojson") }}')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            data.features = data.features.filter(function (f) {
+                return kecJakbar.indexOf((f.properties.name || '').toUpperCase()) !== -1;
+            });
+
+            var lapisanKec = L.geoJSON(data, {
+                pane: 'kecamatanPane',
+                style: function (f) {
+                    return {
+                        color: window.warnaKecamatan
+                            ? window.warnaKecamatan(f.properties.name || '')
+                            : '#888',
+                        weight: 2, fillOpacity: 0.06,
+                    };
+                },
+                onEachFeature: function (f, layer) {
+                    layer.bindTooltip(f.properties.name || '', { sticky: true });
+                },
+            }).addTo(map);
+
+            batasWilayah = lapisanKec.getBounds();
+            pasBatas();
+        })
+        .catch(function () { /* batas wilayah sifatnya pelengkap; peta tetap jalan tanpanya */ });
+
+    // ── Satu lapisan per kategori, supaya bisa dinyalakan/dimatikan ──
+    var lapisan = {};   // slug → L.layerGroup
+    var jumlah  = {};   // slug → cacah titik
+    var meta    = {};   // slug → { label, warna, ikon }
+
+    titik.forEach(function (t) {
+        if (!lapisan[t.slug]) {
+            lapisan[t.slug] = L.layerGroup().addTo(map);
+            jumlah[t.slug]  = 0;
+            meta[t.slug]    = { label: t.kategori, warna: t.warna, ikon: t.ikon };
+        }
+        jumlah[t.slug]++;
+
+        L.circleMarker([t.lat, t.lng], {
+            radius: 7, color: '#fff', weight: 2,
+            fillColor: t.warna, fillOpacity: 0.95
+        }).bindPopup(
+            '<b>' + t.nama + '</b><br>' + t.kategori
+            + '<br><span style="color:#888">' + t.kecamatan + '</span>'
+        ).addTo(lapisan[t.slug]);
+    });
+
+    L.control.layers(
+        {
+            [@json(__('fasilitas.basemap_satelit'))]: satelit,
+            [@json(__('fasilitas.basemap_jalan'))]:   petaJalan,
+        },
+        {},
+        { position: 'bottomleft' }
+    ).addTo(map);
+
+    // ── Legenda yang bisa diklik ──────────────────────────────────
+    // Klik satu baris → hanya kategori itu yang tampil; klik lagi → semua
+    // kembali. Ini yang menggantikan kesan "peta terpisah per jenis".
+    var fokus = null;
+
+    var legenda = L.control({ position: 'topright' });
+    legenda.onAdd = function () {
+        var div = L.DomUtil.create('div', 'map-legend-box');
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+
+        var html = '<div class="legend-title">' + @json(__('fasilitas.map_legend')) + '</div>';
+
+        Object.keys(lapisan).forEach(function (slug) {
+            html += '<div class="legend-row" data-slug="' + slug + '">'
+                +   '<span class="lr-icon" style="color:' + meta[slug].warna + ';">'
+                +     '<i class="fa ' + meta[slug].ikon + '"></i></span>'
+                +   '<span class="lr-label">' + meta[slug].label + '</span>'
+                +   '<span class="lr-sep">:</span>'
+                +   '<span class="lr-count">' + jumlah[slug] + '</span>'
+                + '</div>';
+        });
+
+        html += '<div class="legend-hint">' + @json(__('fasilitas.map_legend_hint')) + '</div>';
+        div.innerHTML = html;
+
+        div.querySelectorAll('.legend-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                var slug = row.dataset.slug;
+                fokus = (fokus === slug) ? null : slug;
+
+                Object.keys(lapisan).forEach(function (s) {
+                    var tampil = (fokus === null || fokus === s);
+                    if (tampil && !map.hasLayer(lapisan[s])) lapisan[s].addTo(map);
+                    if (!tampil && map.hasLayer(lapisan[s])) map.removeLayer(lapisan[s]);
+                });
+
+                div.querySelectorAll('.legend-row').forEach(function (r) {
+                    r.classList.toggle('redup', fokus !== null && r.dataset.slug !== fokus);
+                    r.classList.toggle('aktif', fokus === r.dataset.slug);
+                });
+
+                pasBatas();
+            });
+        });
+
+        return div;
+    };
+    legenda.addTo(map);
+
+    // Tanpa fokus, peta memperlihatkan seluruh Jakarta Barat — bukan meng-crop
+    // ke titik yang ada. Dengan koordinat yang baru terisi segelintir, membingkai
+    // ke titiknya saja menghasilkan tampilan melompat-lompat yang terbaca seolah
+    // tiap jenis punya petanya sendiri. Saat satu kategori dipilih, barulah peta
+    // mendekat ke titik-titiknya; maxZoom menahan agar tidak melompat ke zoom
+    // jalan-setapak ketika kategori itu cuma punya satu titik.
+    function pasBatas() {
+        if (fokus === null) {
+            if (batasWilayah) map.fitBounds(batasWilayah, { padding: [20, 20] });
+            return;
+        }
+
+        var tampak = titik.filter(function (t) { return t.slug === fokus; })
+                          .map(function (t) { return [t.lat, t.lng]; });
+        if (tampak.length) map.fitBounds(tampak, { padding: [40, 40], maxZoom: 15 });
+    }
 })();
 </script>
 <script>

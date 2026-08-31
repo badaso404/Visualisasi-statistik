@@ -65,4 +65,12 @@ return [
 
     'source' => 'Source: West Jakarta District Website (barat.jakarta.go.id) &bull; Updated :tanggal',
 
+
+    // ── Map ───────────────────────────────────────────────────────
+    'map_legend'       => 'Legend :',
+    'map_legend_hint'  => 'click a row to filter points on the map',
+    'basemap_satelit'  => 'Satellite',
+    'basemap_terang'   => 'Light Map',
+    'basemap_jalan'    => 'Street Map',
+    'map_batas_kec'    => 'District Boundaries',
 ];

@@ -61,4 +61,12 @@ return [
 
     'source' => 'Sumber: Situs Kecamatan Jakarta Barat (barat.jakarta.go.id) &bull; Diperbarui :tanggal',
 
+
+    // ── Peta ──────────────────────────────────────────────────────
+    'map_legend'       => 'Keterangan :',
+    'map_legend_hint'  => 'klik baris untuk menyaring titik di peta',
+    'basemap_satelit'  => 'Satelit',
+    'basemap_terang'   => 'Peta Terang',
+    'basemap_jalan'    => 'Peta Jalan',
+    'map_batas_kec'    => 'Batas Kecamatan',
 ];
