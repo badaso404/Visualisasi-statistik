@@ -3,6 +3,7 @@
     'title' => 'Data',    // judul default (tombol Edit bisa menimpanya)
     'action',             // URL store; saat edit diisi ulang oleh JS
     'size' => '',         // '', 'modal-lg', 'modal-xl'
+    'upload' => false,    // true bila form berisi input file
 ])
 
 @php
@@ -13,7 +14,7 @@
 
 <div class="modal fade" id="{{ $id }}" tabindex="-1" @if ($reopen) data-modal-autoopen @endif>
     <div class="modal-dialog {{ $size }}">
-        <form method="POST" action="{{ $reopen ? old('_form_action', $action) : $action }}" class="modal-content">
+        <form method="POST" action="{{ $reopen ? old('_form_action', $action) : $action }}" class="modal-content" @if ($upload) enctype="multipart/form-data" @endif>
             @csrf
             <input type="hidden" name="_form_id" value="{{ $id }}">
             <input type="hidden" name="_form_action" value="{{ $action }}">

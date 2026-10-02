@@ -39,6 +39,7 @@
         ['route' => 'statistik.infrastruktur-digital','icon' => 'fa-wifi',             'label' => __('common.nav_infrastruktur')],
         ['route' => 'statistik.fasilitas-umum',       'icon' => 'fa-building-columns', 'label' => __('common.nav_fasilitas')],
         ['route' => 'statistik.potensi-kelurahan',    'icon' => 'fa-city',             'label' => __('common.nav_podes')],
+        ['route' => 'statistik.ngobrol-statistik',    'icon' => 'fa-comments',         'label' => __('common.nav_ngobrol')],
     ];
 @endphp
 

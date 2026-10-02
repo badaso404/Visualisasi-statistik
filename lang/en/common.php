@@ -21,6 +21,7 @@ return [
     'nav_infrastruktur' => 'Digital Infrastructure',
     'nav_fasilitas'     => 'Public Facilities',
     'nav_podes'         => 'Village Potential',
+    'nav_ngobrol'       => 'Statistics Talk',
 
     // ── Recurring controls ────────────────────────────────────────
     'unduh_csv'    => 'Download CSV',

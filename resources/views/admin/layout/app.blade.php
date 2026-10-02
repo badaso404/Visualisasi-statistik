@@ -33,6 +33,7 @@
         <a href="{{ route('admin.perekonomian.index') }}" class="{{ request()->routeIs('admin.perekonomian.*') || request()->routeIs('admin.pdrb-sektor.*') ? 'active' : '' }}"><i class="bi bi-graph-up-arrow"></i> Perekonomian</a>
         <a href="{{ route('admin.infrastruktur-digital.index') }}" class="{{ request()->routeIs('admin.infrastruktur-digital.*') || request()->routeIs('admin.jak-wifi.*') || request()->routeIs('admin.cctv.*') ? 'active' : '' }}"><i class="bi bi-wifi"></i> Infrastruktur Digital</a>
         <a href="{{ route('admin.fasilitas-umum.index') }}" class="{{ request()->routeIs('admin.fasilitas-umum.*') ? 'active' : '' }}"><i class="bi bi-buildings"></i> Fasilitas Umum</a>
+        <a href="{{ route('admin.ngobrol-statistik.index') }}" class="{{ request()->routeIs('admin.ngobrol-statistik.*') ? 'active' : '' }}"><i class="bi bi-youtube"></i> Ngobrol Statistik</a>
     </nav>
 
     <div class="content">
@@ -111,7 +112,11 @@ document.addEventListener('click', function (e) {
         if (input.name === '_token' || input.name === '_method') return;
         if (input.name === '_form_action') { input.value = form.action; return; }
         if (input.name === '_form_method') { input.value = trigger.dataset.method || ''; return; }
+        // Input file tidak bisa diisi dari skrip; form.reset() sudah mengosongkannya.
+        if (input.type === 'file') return;
         const value = fields[input.name];
+        // Checkbox: value-nya tetap ("1"), yang diatur status centangnya.
+        if (input.type === 'checkbox') { input.checked = !!value; return; }
         input.value = value === null || value === undefined ? '' : value;
     });
 

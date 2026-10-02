@@ -21,6 +21,7 @@ return [
     'nav_infrastruktur' => 'Infrastruktur Digital',
     'nav_fasilitas'     => 'Fasilitas Umum',
     'nav_podes'         => 'Potensi Kelurahan',
+    'nav_ngobrol'       => 'Ngobrol Statistik',
 
     // ── Kontrol berulang ──────────────────────────────────────────
     'unduh_csv'    => 'Unduh CSV',

@@ -24,6 +24,7 @@ use App\Models\KemiskinanKecamatan;
 use App\Models\DataPerekonomian;
 use App\Models\PdrbSektor;
 use App\Models\FasilitasUmum;
+use App\Models\NgobrolStatistik;
 
 class StatistikController extends Controller
 {
@@ -991,5 +992,32 @@ class StatistikController extends Controller
             . http_build_query(['blok' => $blok, 'kotakab' => '31.73']);
 
         return view('statistik.potensi-kelurahan', compact('bloks', 'blok', 'embedUrl'));
+    }
+
+    /**
+     * Berapa konten tiap jenis yang tampil di halaman utama. Sisanya lewat
+     * tombol "Lihat semua" ke halaman jenisnya masing-masing.
+     */
+    private const NGOBROL_CUPLIKAN = ['video' => 6, 'infografis' => 8, 'materi' => 6];
+
+    public function ngobrolStatistik(?string $jenis = null)
+    {
+        // Satu query, dipecah per jenis. Jenis yang belum punya konten tetap
+        // ada sebagai koleksi kosong.
+        $konten = NgobrolStatistik::publik()->kategori($jenis)->get()->groupBy('kategori');
+
+        $seksi = [];
+        foreach (array_keys(NgobrolStatistik::KATEGORI) as $slug) {
+            if ($jenis !== null && $slug !== $jenis) {
+                continue;
+            }
+            $isi = $konten->get($slug, collect());
+            $seksi[$slug] = [
+                'isi'   => $jenis ? $isi : $isi->take(self::NGOBROL_CUPLIKAN[$slug]),
+                'total' => $isi->count(),
+            ];
+        }
+
+        return view('statistik.ngobrol-statistik', compact('jenis', 'seksi'));
     }
 }

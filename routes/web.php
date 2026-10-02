@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\KemiskinanKecamatanController;
 use App\Http\Controllers\Admin\PerekonomianController;
 use App\Http\Controllers\Admin\PdrbSektorController;
 use App\Http\Controllers\Admin\FasilitasUmumController;
+use App\Http\Controllers\Admin\NgobrolStatistikController;
 use App\Http\Controllers\Admin\SinkronisasiController;
 
 /*
@@ -80,6 +81,13 @@ Route::group([
         // Satu-satunya modul tanpa data lokal: halamannya disematkan dari Satu
         // Data Jakarta, jadi tidak ada pasangan CRUD-nya di panel admin.
         Route::get('/potensi-kelurahan', [StatistikController::class, 'potensiKelurahan'])->name('potensi-kelurahan');
+        // Bukan modul angka: video YouTube, infografis, dan artikel
+        // pengetahuan statistik, dikurasi lewat panel admin.
+        // Tanpa {jenis} = halaman utama berisi cuplikan ketiga jenis; dengan
+        // {jenis} = halaman khusus satu jenis berisi semua kontennya.
+        Route::get('/ngobrol-statistik/{jenis?}', [StatistikController::class, 'ngobrolStatistik'])
+            ->whereIn('jenis', array_keys(\App\Models\NgobrolStatistik::KATEGORI))
+            ->name('ngobrol-statistik');
     });
 });
 
@@ -261,6 +269,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('fasilitas-umum/import', [FasilitasUmumController::class, 'import'])->name('fasilitas-umum.import');
         Route::resource('fasilitas-umum', FasilitasUmumController::class)
             ->parameters(['fasilitas-umum' => 'fasilitasUmum'])
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        // Ngobrol Statistik (video YouTube, infografis, materi statistik)
+        Route::resource('ngobrol-statistik', NgobrolStatistikController::class)
+            ->parameters(['ngobrol-statistik' => 'ngobrolStatistik'])
             ->only(['index', 'store', 'update', 'destroy']);
     });
 });
