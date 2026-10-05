@@ -994,21 +994,22 @@ class StatistikController extends Controller
         return view('statistik.potensi-kelurahan', compact('bloks', 'blok', 'embedUrl'));
     }
 
-    /**
-     * Berapa konten tiap jenis yang tampil di halaman utama. Sisanya lewat
-     * tombol "Lihat semua" ke halaman jenisnya masing-masing.
-     */
-    private const NGOBROL_CUPLIKAN = ['video' => 6, 'infografis' => 8, 'materi' => 6];
+    /** Jumlah video dan materi yang tampil sebagai cuplikan di halaman utama. */
+    private const NGOBROL_CUPLIKAN = ['video' => 6, 'materi' => 6];
 
     public function ngobrolStatistik(?string $jenis = null)
     {
+        if ($jenis === 'infografis') {
+            return redirect()->route('statistik.infografis');
+        }
+
         // Satu query, dipecah per jenis. Jenis yang belum punya konten tetap
         // ada sebagai koleksi kosong.
         $konten = NgobrolStatistik::publik()->kategori($jenis)->get()->groupBy('kategori');
 
         $seksi = [];
         foreach (array_keys(NgobrolStatistik::KATEGORI) as $slug) {
-            if ($jenis !== null && $slug !== $jenis) {
+            if ($slug === 'infografis' || ($jenis !== null && $slug !== $jenis)) {
                 continue;
             }
             $isi = $konten->get($slug, collect());
@@ -1019,5 +1020,12 @@ class StatistikController extends Controller
         }
 
         return view('statistik.ngobrol-statistik', compact('jenis', 'seksi'));
+    }
+
+    public function infografis()
+    {
+        $infografis = NgobrolStatistik::publik()->kategori('infografis')->get();
+
+        return view('statistik.infografis', compact('infografis'));
     }
 }

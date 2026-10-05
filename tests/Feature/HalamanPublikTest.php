@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DataKependudukan;
+use App\Models\NgobrolStatistik;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -29,6 +30,8 @@ class HalamanPublikTest extends TestCase
             'perekonomian'          => ['statistik.perekonomian'],
             'infrastruktur digital' => ['statistik.infrastruktur-digital'],
             'fasilitas umum'        => ['statistik.fasilitas-umum'],
+            'infografis'            => ['statistik.infografis'],
+            'ngobrol statistik'     => ['statistik.ngobrol-statistik'],
         ];
     }
 
@@ -43,6 +46,67 @@ class HalamanPublikTest extends TestCase
         $this->get(route('statistik.kependudukan'))
             ->assertOk()
             ->assertSee('Data belum tersedia');
+    }
+
+    public function test_infografis_tampil_di_menu_baru_dan_tidak_di_ngobrol_statistik(): void
+    {
+        NgobrolStatistik::create([
+            'kategori' => 'infografis',
+            'judul' => 'Infografis Uji',
+            'gambar' => 'ngobrol-statistik/infografis-uji.jpg',
+            'tampil' => true,
+        ]);
+
+        $this->get(route('statistik.infografis'))
+            ->assertOk()
+            ->assertSee('Infografis Uji');
+
+        $this->get(route('statistik.ngobrol-statistik'))
+            ->assertOk()
+            ->assertDontSee('Infografis Uji');
+    }
+
+    public function test_rute_infografis_lama_dialihkan_ke_menu_baru(): void
+    {
+        $this->get(route('statistik.ngobrol-statistik', ['jenis' => 'infografis']))
+            ->assertRedirect(route('statistik.infografis'));
+    }
+
+    public function test_materi_mempratinjau_pdf_dan_mengunduh_pptx(): void
+    {
+        NgobrolStatistik::create([
+            'kategori' => 'materi',
+            'judul' => 'Materi PDF',
+            'isi' => 'Isi materi statistik.',
+            'presentasi' => 'ngobrol-statistik/materi-uji.pdf',
+            'tampil' => true,
+        ]);
+        NgobrolStatistik::create([
+            'kategori' => 'materi',
+            'judul' => 'Materi PPT',
+            'isi' => 'Isi materi presentasi lama.',
+            'presentasi' => 'ngobrol-statistik/presentasi-uji.ppt',
+            'tampil' => true,
+        ]);
+        NgobrolStatistik::create([
+            'kategori' => 'materi',
+            'judul' => 'Materi PPTX',
+            'isi' => 'Isi materi presentasi.',
+            'presentasi' => 'ngobrol-statistik/presentasi-uji.pptx',
+            'tampil' => true,
+        ]);
+
+        $this->get(route('statistik.ngobrol-statistik', ['jenis' => 'materi']))
+            ->assertOk()
+            ->assertSee('Materi PDF')
+            ->assertSee('<iframe', false)
+            ->assertSee('storage/ngobrol-statistik/materi-uji.pdf#toolbar=0')
+            ->assertSee('Unduh PDF')
+            ->assertSee('Materi PPT')
+            ->assertSee('storage/ngobrol-statistik/presentasi-uji.ppt" download', false)
+            ->assertSee('Materi PPTX')
+            ->assertSee('storage/ngobrol-statistik/presentasi-uji.pptx" download', false)
+            ->assertSee('Unduh dokumen');
     }
 
     /** Tahun yang tidak punya data tidak boleh menjatuhkan halaman. */

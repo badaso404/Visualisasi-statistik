@@ -17,6 +17,7 @@ class NgobrolStatistik extends Model
         'deskripsi',
         'youtube_id',
         'gambar',
+        'presentasi',
         'instagram_url',
         'isi',
         'urutan',
@@ -116,6 +117,18 @@ class NgobrolStatistik extends Model
     {
         if ($this->gambar) {
             Storage::disk('public')->delete($this->gambar);
+        }
+    }
+
+    public function presentasiUrl(): ?string
+    {
+        return $this->presentasi ? asset('storage/' . $this->presentasi) : null;
+    }
+
+    public function hapusPresentasi(): void
+    {
+        if ($this->presentasi) {
+            Storage::disk('public')->delete($this->presentasi);
         }
     }
 

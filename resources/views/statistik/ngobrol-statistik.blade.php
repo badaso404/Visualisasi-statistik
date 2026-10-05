@@ -69,7 +69,7 @@
 
     .ng-main-info { padding-top: 14px; }
     .ng-main-judul { font-size: 18px; font-weight: 700; color: #333; margin: 0 0 6px; line-height: 1.4; }
-    .ng-main-desc  { font-size: 13px; color: #666; line-height: 1.7; margin: 0 0 8px; white-space: pre-line; }
+    .ng-main-desc  { font-size: 13px; color: #666; line-height: 1.7; margin: 0 0 8px; white-space: pre-line; overflow-wrap: anywhere; }
     .ng-yt { font-size: 12px; font-weight: 600; color: #b8860b; text-decoration: none; }
     .ng-yt:hover { color: #ff0000; }
 
@@ -106,7 +106,7 @@
     }
     .ng-pl-desc {
         font-size: 11.5px; color: #888; line-height: 1.45;
-        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
     }
 
     /* ── Kartu infografis & materi ──────────────────────────────── */
@@ -119,38 +119,6 @@
     .ng-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); transform: translateY(-2px); }
     .ng-card-img { width: 100%; display: block; object-fit: cover; background: #f5f5f5; }
     .ng-card-img.lanskap { aspect-ratio: 16 / 9; }
-
-    /* Kartu infografis: gambar saja, judul & tombol muncul sebagai overlay
-       saat disorot (atau difokus — lihat catatan tabindex di markup). */
-    .ng-info {
-        position: relative; border-radius: 12px; overflow: hidden; cursor: pointer;
-        border: 1px solid #eee; background: #f5f5f5; outline: none;
-    }
-    .ng-info img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: top; display: block; transition: transform .35s; }
-    .ng-info-overlay {
-        position: absolute; inset: 0; padding: 20px;
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-        background: rgba(20, 20, 20, .45); backdrop-filter: blur(1.5px);
-        opacity: 0; transition: opacity .25s;
-    }
-    .ng-info:hover .ng-info-overlay, .ng-info:focus-within .ng-info-overlay { opacity: 1; }
-    .ng-info:hover img, .ng-info:focus-within img { transform: scale(1.04); }
-    .ng-info:focus-visible { box-shadow: 0 0 0 3px #ffbf00; }
-    .ng-info-judul {
-        color: #fff; font-size: 17px; font-weight: 600; text-align: center; line-height: 1.35;
-        text-shadow: 0 1px 4px rgba(0,0,0,.4);
-    }
-    .ng-info-aksi { display: flex; gap: 16px; }
-    .ng-bulat {
-        width: 56px; height: 56px; border-radius: 50%; border: 0; background: #fff;
-        display: flex; align-items: center; justify-content: center; font-size: 24px;
-        text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,.18);
-        transform: translateY(8px); transition: transform .25s, box-shadow .2s;
-    }
-    .ng-info:hover .ng-bulat, .ng-info:focus-within .ng-bulat { transform: translateY(0); }
-    .ng-bulat:hover { box-shadow: 0 6px 20px rgba(0,0,0,.28); }
-    .ng-bulat.ig   { color: #e1306c; }
-    .ng-bulat.zoom { color: #26a69a; }
 
     .ng-card-placeholder {
         aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center;
@@ -167,8 +135,9 @@
     /* ── Modal ─────────────────────────────────────────────────────── */
     .ng-modal .modal-content { border: 0; border-radius: 16px; }
     .ng-modal-img { width: 100%; border-radius: 10px; display: block; }
-    .ng-artikel p { font-size: 14.5px; color: #444; line-height: 1.85; margin-bottom: 1em; }
+    .ng-artikel p { font-size: 14.5px; color: #444; line-height: 1.85; margin-bottom: 1em; overflow-wrap: anywhere; }
     .ng-artikel-cover { width: 100%; max-height: 320px; object-fit: cover; border-radius: 10px; margin-bottom: 18px; }
+    .ng-pdf-frame { display: block; width: 100%; height: 70vh; min-height: 420px; border: 1px solid #ddd; border-radius: 8px; }
 
     .ng-kosong { text-align: center; color: #999; padding: 56px 16px; }
     .ng-kosong i { font-size: 40px; color: #ddd; margin-bottom: 12px; display: block; }
@@ -204,6 +173,7 @@
                     <i class="fa fa-table-cells-large"></i>{{ __('ngobrol.semua') }}
                 </a>
                 @foreach (\App\Models\NgobrolStatistik::KATEGORI as $slug => $label)
+                    @continue($slug === 'infografis')
                     <a href="{{ route('statistik.ngobrol-statistik', ['jenis' => $slug]) }}" class="{{ $jenis === $slug ? 'active' : '' }}">
                         <i class="fa {{ \App\Models\NgobrolStatistik::IKON[$slug] }}"></i>{{ __('ngobrol.kategori.' . $slug) }}
                     </a>
@@ -279,37 +249,6 @@
                             @endif
                         </div>
 
-                @elseif ($slug === 'infografis')
-                        <div class="ng-grid">
-                            @foreach ($s['isi'] as $i)
-                                {{-- tabindex: di layar sentuh tidak ada hover, jadi
-                                     ketukan pertama memfokuskan kartu dan memunculkan
-                                     overlay; ketukan kedua mengenai tombolnya. --}}
-                                <div class="ng-info" tabindex="0">
-                                    <img src="{{ $i->gambarUrl() }}" alt="{{ $i->judul }}" loading="lazy">
-                                    <div class="ng-info-overlay">
-                                        <div class="ng-info-judul">{{ $i->judul }}</div>
-                                        <div class="ng-info-aksi">
-                                            @if ($i->instagram_url)
-                                                <a class="ng-bulat ig" href="{{ $i->instagram_url }}" target="_blank" rel="noopener noreferrer"
-                                                   aria-label="{{ __('ngobrol.instagram') }}: {{ $i->judul }}" title="{{ __('ngobrol.instagram') }}">
-                                                    <i class="fab fa-instagram"></i>
-                                                </a>
-                                            @endif
-                                            <button type="button" class="ng-bulat zoom" data-bs-toggle="modal" data-bs-target="#ngInfoModal"
-                                                    data-gambar="{{ $i->gambarUrl() }}"
-                                                    data-judul="{{ $i->judul }}"
-                                                    data-desc="{{ $i->deskripsi }}"
-                                                    data-instagram="{{ $i->instagram_url }}"
-                                                    aria-label="{{ __('ngobrol.perbesar') }}: {{ $i->judul }}" title="{{ __('ngobrol.perbesar') }}">
-                                                <i class="fa fa-magnifying-glass-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
                 @else {{-- materi --}}
                         <div class="ng-grid">
                             @foreach ($s['isi'] as $k)
@@ -337,6 +276,19 @@
                                     @foreach (preg_split('/\R\s*\R/', trim((string) $k->isi)) as $paragraf)
                                         <p>{!! nl2br(e(trim($paragraf))) !!}</p>
                                     @endforeach
+                                    @if ($k->presentasiUrl())
+                                        @php($ekstensi = strtolower(pathinfo($k->presentasi, PATHINFO_EXTENSION)))
+                                        @if ($ekstensi === 'pdf')
+                                            <iframe class="ng-pdf-frame mt-3" src="{{ $k->presentasiUrl() }}#toolbar=0" title="{{ $k->judul }}" loading="lazy"></iframe>
+                                            <a class="btn btn-outline-warning align-self-start mt-2" href="{{ $k->presentasiUrl() }}" download>
+                                                <i class="fa fa-download"></i> {{ __('ngobrol.unduh_pdf') }}
+                                            </a>
+                                        @else
+                                            <a class="btn btn-warning align-self-start mt-2" href="{{ $k->presentasiUrl() }}" download>
+                                                <i class="fa fa-download"></i> {{ __('ngobrol.unduh_dokumen') }}
+                                            </a>
+                                        @endif
+                                    @endif
                                 </template>
                             @endforeach
                         </div>
@@ -349,33 +301,9 @@
     </div>
 </div>
 
-{{-- Modal infografis (dipakai bersama semua kartu) --}}
-<div class="modal fade ng-modal" id="ngInfoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" data-ng="judul"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ngobrol.tutup') }}"></button>
-            </div>
-            <div class="modal-body">
-                <img class="ng-modal-img" data-ng="gambar" alt="">
-                <p class="mt-3 mb-0 text-muted small" style="white-space:pre-line" data-ng="desc"></p>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <a class="btn btn-sm btn-outline-danger" data-ng="instagram" target="_blank" rel="noopener noreferrer" hidden>
-                    <i class="fab fa-instagram"></i> {{ __('ngobrol.instagram') }}
-                </a>
-                <a class="btn btn-sm btn-outline-warning" data-ng="link" target="_blank" rel="noopener">
-                    <i class="fa fa-up-right-from-square"></i> {{ __('ngobrol.lihat_penuh') }}
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
 {{-- Modal artikel materi --}}
 <div class="modal fade ng-modal" id="ngMateriModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
                 <span class="badge text-bg-warning text-white"><i class="fa fa-book-open"></i> {{ __('ngobrol.kategori.materi') }}</span>
@@ -427,25 +355,14 @@
         }
     });
 
-    // Isi modal infografis dari kartu yang diklik.
-    document.getElementById('ngInfoModal')?.addEventListener('show.bs.modal', function (e) {
-        const d = e.relatedTarget.dataset;
-        this.querySelector('[data-ng="judul"]').textContent = d.judul;
-        this.querySelector('[data-ng="gambar"]').src = d.gambar;
-        this.querySelector('[data-ng="gambar"]').alt = d.judul;
-        this.querySelector('[data-ng="link"]').href = d.gambar;
-        const ig = this.querySelector('[data-ng="instagram"]');
-        ig.hidden = !d.instagram;
-        if (d.instagram) ig.href = d.instagram;
-        const desc = this.querySelector('[data-ng="desc"]');
-        desc.textContent = d.desc || '';
-        desc.hidden = !d.desc;
-    });
-
     // Isi modal materi dari template artikelnya.
     document.getElementById('ngMateriModal')?.addEventListener('show.bs.modal', function (e) {
         const tpl = document.getElementById(e.relatedTarget.dataset.isi);
         this.querySelector('[data-ng="isi"]').replaceChildren(tpl.content.cloneNode(true));
+    });
+
+    document.getElementById('ngMateriModal')?.addEventListener('hidden.bs.modal', function () {
+        this.querySelector('[data-ng="isi"]').replaceChildren();
     });
 })();
 </script>

@@ -28,5 +28,8 @@ return [
   'perbesar' => 'Enlarge',
   'instagram' => 'View on Instagram',
   'baca' => 'Read more',
+  'dokumen' => 'Open document',
+  'unduh_pdf' => 'Download PDF',
+  'unduh_dokumen' => 'Download document',
   'tutup' => 'Close',
 ];

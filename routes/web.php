@@ -81,10 +81,11 @@ Route::group([
         // Satu-satunya modul tanpa data lokal: halamannya disematkan dari Satu
         // Data Jakarta, jadi tidak ada pasangan CRUD-nya di panel admin.
         Route::get('/potensi-kelurahan', [StatistikController::class, 'potensiKelurahan'])->name('potensi-kelurahan');
-        // Bukan modul angka: video YouTube, infografis, dan artikel
-        // pengetahuan statistik, dikurasi lewat panel admin.
-        // Tanpa {jenis} = halaman utama berisi cuplikan ketiga jenis; dengan
-        // {jenis} = halaman khusus satu jenis berisi semua kontennya.
+        Route::get('/infografis', [StatistikController::class, 'infografis'])->name('infografis');
+        // Video dan materi statistik dikurasi lewat panel admin. Infografis
+        // punya menu publik tersendiri di /statistik/infografis.
+        // Tanpa {jenis} = cuplikan video dan materi; dengan {jenis} = semua
+        // konten untuk jenis tersebut.
         Route::get('/ngobrol-statistik/{jenis?}', [StatistikController::class, 'ngobrolStatistik'])
             ->whereIn('jenis', array_keys(\App\Models\NgobrolStatistik::KATEGORI))
             ->name('ngobrol-statistik');

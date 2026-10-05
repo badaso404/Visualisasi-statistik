@@ -94,6 +94,11 @@
                             @if ($row->deskripsi)
                                 <div class="small text-muted" style="max-width:420px">{{ \Illuminate\Support\Str::limit($row->deskripsi, 120) }}</div>
                             @endif
+                            @if ($row->presentasiUrl())
+                                <a href="{{ $row->presentasiUrl() }}" target="_blank" rel="noopener noreferrer" class="small text-primary">
+                                    <i class="bi bi-file-earmark-text"></i> Dokumen tersedia
+                                </a>
+                            @endif
                         </td>
                         <td class="text-nowrap">
                             <i class="bi {{ $ikon[$row->kategori] ?? 'bi-file' }}"></i>
@@ -221,6 +226,17 @@
             <div class="form-check mt-3">
                 <input type="checkbox" name="hapus_gambar" value="1" class="form-check-input" id="hapusGambarMateri">
                 <label class="form-check-label" for="hapusGambarMateri">Hapus gambar sampul lama</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <label class="form-label">File Materi <span class="text-muted">(opsional)</span></label>
+            <input type="file" name="presentasi" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" class="form-control">
+            <div class="form-text">PDF, PPT, atau PPTX, maks. 50 MB. Saat edit, kosongkan untuk tetap memakai file lama.</div>
+        </div>
+        <div class="col-md-4 d-flex align-items-center">
+            <div class="form-check mt-3">
+                <input type="checkbox" name="hapus_presentasi" value="1" class="form-check-input" id="hapusPresentasiMateri">
+                <label class="form-check-label" for="hapusPresentasiMateri">Hapus dokumen lama</label>
             </div>
         </div>
         @include('admin.ngobrol-statistik.urutan-status', ['catatan' => 'Angka kecil tampil lebih dulu.'])

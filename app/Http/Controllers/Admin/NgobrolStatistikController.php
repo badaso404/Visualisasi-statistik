@@ -19,6 +19,7 @@ class NgobrolStatistikController extends Controller
 {
     /** Batas unggah gambar (KB). Infografis memang tinggi-tinggi resolusinya. */
     private const MAKS_GAMBAR = 5120;
+    private const MAKS_PRESENTASI = 51200;
 
     public function index(Request $request)
     {
@@ -59,6 +60,7 @@ class NgobrolStatistikController extends Controller
     public function destroy(NgobrolStatistik $ngobrolStatistik)
     {
         $ngobrolStatistik->hapusGambar();
+        $ngobrolStatistik->hapusPresentasi();
         $ngobrolStatistik->delete();
 
         return $this->kembali($ngobrolStatistik->kategori, 'dihapus');
@@ -95,6 +97,8 @@ class NgobrolStatistikController extends Controller
                 'isi'          => ['required', 'string', 'max:60000'],
                 'gambar'       => array_merge(['nullable'], $gambar),
                 'hapus_gambar' => ['nullable', 'boolean'],
+                'presentasi'   => ['nullable', 'file', 'mimes:pdf,ppt,pptx', 'max:' . self::MAKS_PRESENTASI],
+                'hapus_presentasi' => ['nullable', 'boolean'],
             ],
         };
 
@@ -106,6 +110,9 @@ class NgobrolStatistikController extends Controller
             'gambar.required' => 'Gambar infografis wajib diunggah.',
             'gambar.uploaded' => 'Gambar gagal diunggah — kemungkinan melebihi batas ukuran unggahan server.',
             'gambar.max'      => 'Ukuran gambar maksimal 5 MB.',
+            'presentasi.uploaded' => 'PowerPoint gagal diunggah — kemungkinan melebihi batas ukuran unggahan server.',
+            'presentasi.mimes' => 'Berkas materi harus berformat PDF, PPT, atau PPTX.',
+            'presentasi.max' => 'Ukuran berkas materi maksimal 50 MB.',
             'instagram_url.regex' => 'Link Instagram harus berupa tautan instagram.com, mis. https://www.instagram.com/p/xxxxxxx/',
         ], [
             'youtube_url' => 'link YouTube',
@@ -127,13 +134,21 @@ class NgobrolStatistikController extends Controller
 
         // Gambar baru menggantikan yang lama; file lama dibuang supaya folder
         // unggahan tidak menumpuk sampah.
-        unset($data['gambar'], $data['hapus_gambar']);
+        unset($data['gambar'], $data['hapus_gambar'], $data['presentasi'], $data['hapus_presentasi']);
         if ($request->hasFile('gambar')) {
             $lama?->hapusGambar();
             $data['gambar'] = $request->file('gambar')->store(NgobrolStatistik::FOLDER, 'public');
         } elseif ($lama && $kategori === 'materi' && $request->boolean('hapus_gambar')) {
             $lama->hapusGambar();
             $data['gambar'] = null;
+        }
+
+        if ($request->hasFile('presentasi')) {
+            $lama?->hapusPresentasi();
+            $data['presentasi'] = $request->file('presentasi')->store(NgobrolStatistik::FOLDER, 'public');
+        } elseif ($lama && $kategori === 'materi' && $request->boolean('hapus_presentasi')) {
+            $lama->hapusPresentasi();
+            $data['presentasi'] = null;
         }
 
         return $data;

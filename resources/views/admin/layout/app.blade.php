@@ -132,6 +132,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener('submit', function (e) {
+    const form = e.target.closest('form[data-submit-once]');
+    if (!form) return;
+
+    if (form.dataset.submitting === 'true') {
+        e.preventDefault();
+        return;
+    }
+
+    form.dataset.submitting = 'true';
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+        button.disabled = true;
+    });
+});
+
 // Konfirmasi hapus. Label diambil dari atribut, bukan ditulis langsung ke dalam
 // confirm('...'), supaya nama berisi tanda kutip (mis. "Jl. Anggrek 'Blok A'")
 // tidak merusak skripnya.

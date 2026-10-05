@@ -30,5 +30,8 @@ return [
     'perbesar'    => 'Perbesar',
     'instagram'   => 'Lihat di Instagram',
     'baca'        => 'Baca selengkapnya',
+    'dokumen'     => 'Buka dokumen',
+    'unduh_pdf'   => 'Unduh PDF',
+    'unduh_dokumen' => 'Unduh dokumen',
     'tutup'       => 'Tutup',
 ];

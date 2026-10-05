@@ -14,7 +14,7 @@
 
 <div class="modal fade" id="{{ $id }}" tabindex="-1" @if ($reopen) data-modal-autoopen @endif>
     <div class="modal-dialog {{ $size }}">
-        <form method="POST" action="{{ $reopen ? old('_form_action', $action) : $action }}" class="modal-content" @if ($upload) enctype="multipart/form-data" @endif>
+        <form method="POST" action="{{ $reopen ? old('_form_action', $action) : $action }}" class="modal-content" @if ($upload) enctype="multipart/form-data" data-submit-once @endif>
             @csrf
             <input type="hidden" name="_form_id" value="{{ $id }}">
             <input type="hidden" name="_form_action" value="{{ $action }}">
