@@ -94,7 +94,7 @@
     .ng-pl-item.active { background: #fff8e1; box-shadow: inset 3px 0 0 #ffbf00; }
     .ng-pl-thumb { position: relative; width: 128px; flex-shrink: 0; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #000; }
     .ng-pl-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .ng-pl-item.active .ng-pl-thumb::after {
+    .ng-pl-item.active:not(.ng-materi-item) .ng-pl-thumb::after {
         content: "\f04b"; font-family: "Font Awesome 6 Free"; font-weight: 900;
         position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
         background: rgba(0,0,0,.45); color: #fff; font-size: 14px;
@@ -181,8 +181,13 @@
             </nav>
 
             @if (!$adaKonten)
+                @php
+                    $ikonKosong = $jenis && isset(\App\Models\NgobrolStatistik::IKON[$jenis]) 
+                                  ? \App\Models\NgobrolStatistik::IKON[$jenis] 
+                                  : 'fa-comments';
+                @endphp
                 <div class="chart-card ng-kosong">
-                    <i class="fa {{ $jenis ? \App\Models\NgobrolStatistik::IKON[$jenis] : 'fa-comments' }}"></i>
+                    <i class="fa {{ $ikonKosong }}"></i>
                     {{ $jenis
                         ? __('ngobrol.kosong_jenis', ['jenis' => \Illuminate\Support\Str::lower(__('ngobrol.kategori.' . $jenis))])
                         : __('ngobrol.kosong') }}
@@ -250,47 +255,88 @@
                         </div>
 
                 @else {{-- materi --}}
-                        <div class="ng-grid">
-                            @foreach ($s['isi'] as $k)
-                                <button type="button" class="ng-card" data-bs-toggle="modal" data-bs-target="#ngMateriModal"
-                                        data-isi="ng-isi-{{ $k->id }}">
-                                    @if ($k->gambarUrl())
-                                        <img class="ng-card-img lanskap" src="{{ $k->gambarUrl() }}" alt="" loading="lazy">
-                                    @else
-                                        <span class="ng-card-placeholder"><i class="fa fa-book-open"></i></span>
-                                    @endif
-                                    <span class="ng-card-body">
-                                        <span class="ng-card-judul">{{ $k->judul }}</span>
-                                        <span class="ng-card-desc">{{ $k->deskripsi ?: \Illuminate\Support\Str::limit($k->isi, 160) }}</span>
-                                        <span class="ng-card-more">{{ __('ngobrol.baca') }} <i class="fa fa-arrow-right"></i></span>
-                                    </span>
-                                </button>
-
-                                {{-- Isi artikel disimpan di template supaya modal bersama
-                                     cukup menyalinnya; teks sudah di-escape di sini. --}}
-                                <template id="ng-isi-{{ $k->id }}">
-                                    @if ($k->gambarUrl())
-                                        <img class="ng-artikel-cover" src="{{ $k->gambarUrl() }}" alt="">
-                                    @endif
-                                    <h4 class="fw-bold mb-3">{{ $k->judul }}</h4>
-                                    @foreach (preg_split('/\R\s*\R/', trim((string) $k->isi)) as $paragraf)
-                                        <p>{!! nl2br(e(trim($paragraf))) !!}</p>
-                                    @endforeach
-                                    @if ($k->presentasiUrl())
-                                        @php($ekstensi = strtolower(pathinfo($k->presentasi, PATHINFO_EXTENSION)))
-                                        @if ($ekstensi === 'pdf')
-                                            <iframe class="ng-pdf-frame mt-3" src="{{ $k->presentasiUrl() }}#toolbar=0" title="{{ $k->judul }}" loading="lazy"></iframe>
-                                            <a class="btn btn-outline-warning align-self-start mt-2" href="{{ $k->presentasiUrl() }}" download>
-                                                <i class="fa fa-download"></i> {{ __('ngobrol.unduh_pdf') }}
-                                            </a>
-                                        @else
-                                            <a class="btn btn-warning align-self-start mt-2" href="{{ $k->presentasiUrl() }}" download>
-                                                <i class="fa fa-download"></i> {{ __('ngobrol.unduh_dokumen') }}
-                                            </a>
+                        @php
+                            $materi = $s['isi'];
+                            $utama_m = $materi->first();
+                        @endphp
+                        <div class="ng-video {{ $materi->count() > 1 ? '' : 'tunggal' }}">
+                            <div>
+                                <div class="ng-materi-hero ng-artikel" id="ngMateriHero">
+                                    @if ($utama_m)
+                                        @if ($utama_m->gambarUrl())
+                                            <img class="ng-artikel-cover" src="{{ $utama_m->gambarUrl() }}" alt="">
                                         @endif
+                                        <div style="word-wrap: break-word;">
+                                            <h4 class="fw-bold mb-3" style="word-break: break-word;">{{ $utama_m->judul }}</h4>
+                                            @foreach (preg_split('/\R\s*\R/', trim((string) $utama_m->isi)) as $paragraf)
+                                                <p style="word-break: break-word;">{!! nl2br(e(trim($paragraf))) !!}</p>
+                                            @endforeach
+                                            @if ($utama_m->presentasiUrl())
+                                                @php($ekstensi = strtolower(pathinfo($utama_m->presentasi, PATHINFO_EXTENSION)))
+                                                @php($urlFull = url($utama_m->presentasiUrl()))
+                                                @php($isPdf = $ekstensi === 'pdf')
+                                                @php($embedUrl = $isPdf ? $urlFull : 'https://view.officeapps.live.com/op/embed.aspx?src=' . urlencode($urlFull))
+                                                
+                                                <button type="button" class="btn btn-warning align-self-start mt-3" data-bs-toggle="modal" data-bs-target="#ngDocModal" data-src="{{ $embedUrl }}" data-title="{{ $utama_m->judul }}">
+                                                    <i class="fa fa-eye"></i> Lihat Materi
+                                                </button>
+                                            @endif
+                                        </div>
                                     @endif
-                                </template>
-                            @endforeach
+                                </div>
+                            </div>
+
+                            @if ($materi->count() > 1)
+                                <div class="ng-playlist">
+                                    <div class="ng-playlist-inner">
+                                        <div class="ng-playlist-head">
+                                            <i class="fa fa-list"></i> Daftar Materi
+                                        </div>
+                                        <div class="ng-playlist-list">
+                                            @foreach ($materi as $k)
+                                                <button type="button" class="ng-pl-item ng-materi-item {{ $loop->first ? 'active' : '' }}"
+                                                        data-id="{{ $k->id }}">
+                                                    <span class="ng-pl-thumb">
+                                                        @if ($k->gambarUrl())
+                                                            <img src="{{ $k->gambarUrl() }}" alt="" loading="lazy">
+                                                        @else
+                                                            <span class="ng-card-placeholder" style="width:100%; height:100%; font-size:20px;">
+                                                                <i class="fa fa-book-open"></i>
+                                                            </span>
+                                                        @endif
+                                                    </span>
+                                                    <span class="ng-pl-teks">
+                                                        <span class="ng-pl-judul">{{ $k->judul }}</span>
+                                                        <span class="ng-pl-desc" style="word-break: break-word;">{{ $k->deskripsi ?: \Illuminate\Support\Str::limit($k->isi, 80) }}</span>
+                                                    </span>
+                                                </button>
+
+                                                <template id="ng-materi-template-{{ $k->id }}">
+                                                    @if ($k->gambarUrl())
+                                                        <img class="ng-artikel-cover" src="{{ $k->gambarUrl() }}" alt="">
+                                                    @endif
+                                                    <div style="word-wrap: break-word;">
+                                                        <h4 class="fw-bold mb-3" style="word-break: break-word;">{{ $k->judul }}</h4>
+                                                        @foreach (preg_split('/\R\s*\R/', trim((string) $k->isi)) as $paragraf)
+                                                            <p style="word-break: break-word;">{!! nl2br(e(trim($paragraf))) !!}</p>
+                                                        @endforeach
+                                                        @if ($k->presentasiUrl())
+                                                            @php($ekstensi = strtolower(pathinfo($k->presentasi, PATHINFO_EXTENSION)))
+                                                            @php($urlFull = url($k->presentasiUrl()))
+                                                            @php($isPdf = $ekstensi === 'pdf')
+                                                            @php($embedUrl = $isPdf ? $urlFull : 'https://view.officeapps.live.com/op/embed.aspx?src=' . urlencode($urlFull))
+                                                            
+                                                            <button type="button" class="btn btn-warning align-self-start mt-3" data-bs-toggle="modal" data-bs-target="#ngDocModal" data-src="{{ $embedUrl }}" data-title="{{ $k->judul }}">
+                                                                <i class="fa fa-eye"></i> Lihat Materi
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </template>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                 @endif
                     </section>
@@ -301,15 +347,17 @@
     </div>
 </div>
 
-{{-- Modal artikel materi --}}
-<div class="modal fade ng-modal" id="ngMateriModal" tabindex="-1" aria-hidden="true">
+{{-- Modal untuk Viewer Dokumen --}}
+<div class="modal fade ng-modal" id="ngDocModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-                <span class="badge text-bg-warning text-white"><i class="fa fa-book-open"></i> {{ __('ngobrol.kategori.materi') }}</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ngobrol.tutup') }}"></button>
+                <span class="badge text-bg-warning text-white" id="ngDocModalTitle"><i class="fa fa-book-open"></i> Isi Materi</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
-            <div class="modal-body ng-artikel px-4 pb-4" data-ng="isi"></div>
+            <div class="modal-body p-0 pb-4 px-4 pt-3">
+                <iframe id="ngDocIframe" src="" style="width: 100%; height: 85vh; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+            </div>
         </div>
     </div>
 </div>
@@ -355,15 +403,36 @@
         }
     });
 
-    // Isi modal materi dari template artikelnya.
-    document.getElementById('ngMateriModal')?.addEventListener('show.bs.modal', function (e) {
-        const tpl = document.getElementById(e.relatedTarget.dataset.isi);
-        this.querySelector('[data-ng="isi"]').replaceChildren(tpl.content.cloneNode(true));
+    // Ganti hero section untuk materi ketika item daftar diklik.
+    document.addEventListener('click', function (e) {
+        const itemMateri = e.target.closest('.ng-materi-item');
+        if (!itemMateri) return;
+
+        document.querySelectorAll('.ng-materi-item.active').forEach(el => el.classList.remove('active'));
+        itemMateri.classList.add('active');
+
+        const hero = document.getElementById('ngMateriHero');
+        const tpl = document.getElementById('ng-materi-template-' + itemMateri.dataset.id);
+        if (hero && tpl) {
+            hero.replaceChildren(tpl.content.cloneNode(true));
+            
+            if (window.matchMedia('(max-width: 992px)').matches) {
+                hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     });
 
-    document.getElementById('ngMateriModal')?.addEventListener('hidden.bs.modal', function () {
-        this.querySelector('[data-ng="isi"]').replaceChildren();
-    });
+    const docModalEl = document.getElementById('ngDocModal');
+    if (docModalEl) {
+        docModalEl.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('ngDocModalTitle').innerHTML = '<i class="fa fa-book-open"></i> ' + btn.dataset.title;
+            document.getElementById('ngDocIframe').src = btn.dataset.src;
+        });
+        docModalEl.addEventListener('hidden.bs.modal', function () {
+            document.getElementById('ngDocIframe').src = '';
+        });
+    }
 })();
 </script>
 @endpush
